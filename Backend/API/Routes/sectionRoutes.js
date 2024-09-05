@@ -1,0 +1,17 @@
+const express = require('express');
+const router = express.Router();
+const sectionController = require('../Controllers/sectionController');
+
+// Route for creating a new section
+router.post('/', sectionController.createSection);
+
+// Route for getting all sections
+router.get('/', sectionController.getAllSections);
+
+// Route for getting a section by ID
+router.get('/:id', sectionController.getSectionById);
+
+// Route for deleting a section by ID
+router.delete('/:id', sectionController.deleteSectionById);
+
+module.exports = router;
