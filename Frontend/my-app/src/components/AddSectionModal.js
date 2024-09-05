@@ -76,8 +76,6 @@ const AddSectionModal = ({ isOpen, onClose, onSectionAdded }) => {
             onClose={onClose}
             size="md"
         >
-
-        <h1>asdfghjkl</h1>
             <ModalOverlay />
             <ModalContent>
                 <ModalHeader>Add Section</ModalHeader>

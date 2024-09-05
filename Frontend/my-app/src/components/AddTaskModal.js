@@ -37,11 +37,13 @@ const AddTaskModal = ({ isOpen, onClose, sectionIndex, onSubmit }) => {
     };
 
     return (
+        
         <Modal
             initialFocusRef={initialRef}
             isOpen={isOpen}
             onClose={onClose}
         >
+            <h1>taskkk</h1>
             <ModalOverlay />
             <ModalContent>
                 <ModalHeader>Add Task</ModalHeader>
