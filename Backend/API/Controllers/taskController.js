@@ -3,6 +3,7 @@ const Section = require('../../Database/Models/section');
 const User = require('../../Database/Models/user');
 const Tag = require('../../Database/Models/tag');
 const TaskTag = require('../../Database/Models/taskTag')
+const sequelize = require('../../Database/Config/config')
 
 // Create a new Task
 const createTask = async (req, res) => {
