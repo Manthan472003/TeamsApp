@@ -1,14 +1,12 @@
 import React, { useRef, useState } from 'react';
-
 import {
-    Select, Button,  Modal,
+    Select, Button, Modal,
     ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, FormControl, FormLabel, Input,
-     ModalCloseButton,
+    ModalCloseButton,
 } from '@chakra-ui/react';
 import TagDropdown from './TagDropdown';
+import UserDropdown from './UserDropdown';  // Import UserDropdown
 
-
-// ..........................................................Modal for adding a new task
 const AddTaskModal = ({ isOpen, onClose, sectionIndex, onSubmit }) => {
     const initialRef = useRef(null);
     const [taskName, setTaskName] = useState('');
@@ -21,28 +19,23 @@ const AddTaskModal = ({ isOpen, onClose, sectionIndex, onSubmit }) => {
         setSelectedTags(tags);
     };
 
+    const handleUserSelect = (userId) => {
+        setAssignedTo(userId);
+    };
+
     const handleSubmit = (event) => {
         event.preventDefault();
-        console.log('Submitting task:', {
-            sectionIndex,
-            task: {
-                id: Date.now(), // Unique ID for each task
-                taskName,
-                dueDate,
-                tags: selectedTags,
-                taskAssignedTo: assignedTo,
-                status
-            }
-        });
-
-        onSubmit(sectionIndex, {
-            id: Date.now(),
+        const task = {
+            id: Date.now(), // Unique ID for each task
             taskName,
             dueDate,
             tags: selectedTags,
             taskAssignedTo: assignedTo,
             status
-        });
+        };
+        console.log('Submitting task:', { sectionIndex, task });
+
+        onSubmit(sectionIndex, task);
 
         setTaskName('');
         setDueDate('');
@@ -51,8 +44,6 @@ const AddTaskModal = ({ isOpen, onClose, sectionIndex, onSubmit }) => {
         setStatus('A');
         onClose();
     };
-
-
 
     return (
         <Modal initialFocusRef={initialRef} isOpen={isOpen} onClose={onClose} size="md">
@@ -96,20 +87,12 @@ const AddTaskModal = ({ isOpen, onClose, sectionIndex, onSubmit }) => {
                                 selectedTags={selectedTags}
                                 onTagSelect={handleTagSelect}
                             />
-                            {/* <Stack spacing={2} mt={2}>
-                                {selectedTags.map(tag => (
-                                    <Tag key={tag} colorScheme="teal">
-                                        <TagLabel>{tag}</TagLabel>
-                                    </Tag>
-                                ))}
-                            </Stack> */}
                         </FormControl>
                         <FormControl mb={4}>
                             <FormLabel>Assigned To</FormLabel>
-                            <Input
-                                placeholder='Enter Assigned Person'
-                                value={assignedTo}
-                                onChange={(e) => setAssignedTo(e.target.value)}
+                            <UserDropdown
+                                selectedUser={assignedTo}
+                                onUserSelect={handleUserSelect}
                             />
                         </FormControl>
                         <FormControl mb={4}>
@@ -123,21 +106,20 @@ const AddTaskModal = ({ isOpen, onClose, sectionIndex, onSubmit }) => {
                                 <option value="D">On Hold</option>
                             </Select>
                         </FormControl>
+                        <ModalFooter
+                            position="sticky"
+                            bottom={0}
+                            bg="white"
+                            borderTopWidth="1px"
+                        >
+                            <Button type='submit' colorScheme='blue' mr={3}>Save</Button>
+                            <Button onClick={onClose}>Cancel</Button>
+                        </ModalFooter>
                     </form>
                 </ModalBody>
-                <ModalFooter
-                    position="sticky"
-                    bottom={0}
-                    bg="white"
-                    borderTopWidth="1px"
-                >
-                    <Button type='submit' onClick={handleSubmit} colorScheme='blue' mr={3}>Save</Button>
-                    <Button onClick={onClose}>Cancel</Button>
-                </ModalFooter>
             </ModalContent>
         </Modal>
     );
 };
 
-
-export default AddTaskModal
+export default AddTaskModal;

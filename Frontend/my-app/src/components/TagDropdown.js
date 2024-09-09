@@ -10,6 +10,7 @@ import {
     MenuItem,
     Stack,
     Text,
+    Flex,
     useToast,
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
@@ -100,14 +101,22 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
     };
 
     return (
-        <Box width="300px" p={4}>
+        <Box width="400px" p={4}>
             <Stack spacing={3}>
-                <Box border="1px solid #ccc" p={2} borderRadius="md">
-                    {Array.from(selectedTagIds).map(tag => (
-                        <Text key={tag} bg="teal.100" p={2} borderRadius="md" mb={1} textAlign="center">
-                            {tag}
-                        </Text>
-                    ))}
+                <Box>
+                    <Flex wrap="wrap" gap={2}>
+                        {Array.from(selectedTagIds).map(tag => (
+                            <Text
+                                key={tag}
+                                bg="teal.100"
+                                p={2}
+                                borderRadius="md"
+                                textAlign="center"
+                            >
+                                {tag}
+                            </Text>
+                        ))}
+                    </Flex>
                 </Box>
                 <Menu>
                     <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
@@ -130,16 +139,22 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
                         )}
                     </MenuList>
                 </Menu>
-                <Box mt={4}>
-                    <Input
-                        value={customTag}
-                        onChange={(e) => setCustomTag(e.target.value)}
-                        placeholder="Add custom tag"
-                        mb={2}
-                    />
-                    <Button onClick={handleAddCustomTag} colorScheme="teal">
-                        Add Custom Tag
-                    </Button>
+                <Box >
+                    <Flex align="center">
+                        <Input
+                            value={customTag}
+                            onChange={(e) => setCustomTag(e.target.value)}
+                            placeholder="Add custom tag"
+                            mr={2}
+                        />
+                        <Button
+                            onClick={handleAddCustomTag}
+                            colorScheme="teal"
+                            width="300px" 
+                        >
+                            Add Custom Tag
+                        </Button>
+                    </Flex>
                 </Box>
             </Stack>
         </Box>
