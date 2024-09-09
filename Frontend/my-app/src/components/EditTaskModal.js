@@ -2,62 +2,49 @@ import React, { useRef, useState } from 'react';
 import {
     Select, Button, Modal,
     ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, FormControl, FormLabel, Input,
-    ModalCloseButton, Textarea,
+    ModalCloseButton,Stack,Tag,TagLabel
 } from '@chakra-ui/react';
+import TagDropdown from './TagDropdown';
+
 
 //........................................................... Modal for editing a task
 const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
     const initialRef = useRef(null);
     const [taskName, setTaskName] = useState(task.taskName || '');
     const [dueDate, setDueDate] = useState(task.dueDate || '');
-    const [tags, setTags] = useState(task.tags.join(', ') || '');
+    const [selectedTags, setSelectedTags] = useState(task.tags || []);
     const [assignedTo, setAssignedTo] = useState(task.taskAssignedTo || '');
     const [status, setStatus] = useState(task.status || 'A');
     const [subTask, setSubTask] = useState(task.subTask || '');
     const [description, setDescription] = useState(task.description || '');
+    const [showMore, setShowMore] = useState(false);
+
+    const handleTagSelect = (tags) => {
+        setSelectedTags(tags);
+    };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        if (!taskName.trim()) {
-            alert('Task name cannot be empty.');
-            return;
-        }
         onSubmit(task.id, {
             ...task,
             taskName,
-            tags: tags.split(',').map(tag => tag.trim()),
+            dueDate,
+            tags: selectedTags,
             taskAssignedTo: assignedTo,
-            status
+            status,
+            subTask,
+            description
         });
         onClose();
     };
 
     return (
-        <Modal
-            initialFocusRef={initialRef}
-            isOpen={isOpen}
-            onClose={onClose}
-            size="xl" // You can adjust the size as needed
-        >
+        <Modal initialFocusRef={initialRef} isOpen={isOpen} onClose={onClose} size="xl">
             <ModalOverlay />
-            <ModalContent
-                maxH="90vh" // Set maximum height for the modal content
-                overflow="hidden" // Hide overflow to avoid issues
-            >
-                <ModalHeader
-                    position="sticky" // Make header sticky
-                    top={0} // Stick to the top
-                    bg="white" // Ensure background is set to avoid transparency issues
-                    zIndex={1} // Ensure it stays above other content
-                >
-                    Edit Task
-                </ModalHeader>
+            <ModalContent maxH="90vh" overflow="hidden">
+                <ModalHeader position="sticky" top={0} bg="white" zIndex={1}>Edit Task</ModalHeader>
                 <ModalCloseButton />
-                <ModalBody
-                    pb={6}
-                    overflowY="auto" // Allow vertical scrolling
-                    maxH="calc(90vh - 100px)" // Adjust max height based on header and footer height
-                >
+                <ModalBody pb={0} overflowY="auto" maxH="calc(100vh - 150px)">
                     <form onSubmit={handleSubmit}>
                         <FormControl>
                             <FormLabel>Task Name</FormLabel>
@@ -71,19 +58,24 @@ const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
                         <FormControl>
                             <FormLabel>Due Date</FormLabel>
                             <Input
-                                ref={initialRef}
                                 value={dueDate}
                                 type='date'
                                 onChange={(e) => setDueDate(e.target.value)}
                             />
                         </FormControl>
                         <FormControl mt={4}>
-                            <FormLabel>Tags (comma separated)</FormLabel>
-                            <Input
-                                placeholder='Enter Tags'
-                                value={tags}
-                                onChange={(e) => setTags(e.target.value)}
+                            <FormLabel>Tags</FormLabel>
+                            <TagDropdown
+                                selectedTags={selectedTags}
+                                onTagSelect={handleTagSelect}
                             />
+                            <Stack spacing={2} mt={2}>
+                                {selectedTags.map(tag => (
+                                    <Tag key={tag} colorScheme="teal">
+                                        <TagLabel>{tag}</TagLabel>
+                                    </Tag>
+                                ))}
+                            </Stack>
                         </FormControl>
                         <FormControl mt={4}>
                             <FormLabel>Assigned To</FormLabel>
@@ -104,34 +96,31 @@ const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
                                 <option value="D">On Hold</option>
                             </Select>
                         </FormControl>
-                        <FormControl mt={4}>
-                            <FormLabel>SubTask</FormLabel>
-                            <Input
-                                ref={initialRef}
-                                placeholder='Enter Subtask'
-                                value={subTask}
-                                onChange={(e) => setSubTask(e.target.value)}
-                            />
-                        </FormControl>
-                        <FormControl mt={4}>
-                            <FormLabel>Add Description</FormLabel>
-                            <Textarea
-                                ref={initialRef}
-                                placeholder='Here is a sample placeholder'
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                            />
-                        </FormControl>
-
-                        <ModalFooter position="sticky"
-                            bottom={0}
-                            bg="white"
-                            zIndex={1}
-                            borderTopWidth={1}
-                        >
-                            <Button type='submit' colorScheme='blue' mr={3}>
-                                Save
-                            </Button>
+                        {showMore && (
+                            <>
+                                <FormControl mt={4}>
+                                    <FormLabel>Sub-Task</FormLabel>
+                                    <Input
+                                        placeholder='Enter Sub-Task'
+                                        value={subTask}
+                                        onChange={(e) => setSubTask(e.target.value)}
+                                    />
+                                </FormControl>
+                                <FormControl mt={4}>
+                                    <FormLabel>Description</FormLabel>
+                                    <Input
+                                        placeholder='Enter Description'
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                    />
+                                </FormControl>
+                            </>
+                        )}
+                        <Button mt={4} onClick={() => setShowMore(!showMore)}>
+                            {showMore ? 'Show Less' : 'Show More'}
+                        </Button>
+                        <ModalFooter position="sticky" bottom={0} bg="white" borderTopWidth="1px">
+                            <Button type='submit' colorScheme='blue' mr={3}>Save</Button>
                             <Button onClick={onClose}>Cancel</Button>
                         </ModalFooter>
                     </form>

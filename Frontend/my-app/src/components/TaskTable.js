@@ -5,8 +5,19 @@ import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 
 // ...........................................................Table to display tasks
 const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
+    console.log('Rendering tasks:', tasks);
+
     const handleStatusChange = (taskId, newStatus) => {
         console.log(`Update status of task ${taskId} to ${newStatus}`);
+    };
+
+    const handleDelete = (task) => {
+        console.log('Deleting task:', task);
+        if (onDelete) {
+            onDelete(task); // Ensure this function is properly implemented
+        } else {
+            console.error('onDelete function is not defined');
+        }
     };
 
     return (
@@ -55,7 +66,7 @@ const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
                                     leftIcon={<EditIcon />}
                                     onClick={() => onEdit(task)}
                                 >
-                                    Show More
+                                    Edit
                                 </Button>
                                 <Button
                                     variant='solid'
@@ -63,7 +74,7 @@ const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
                                     size='sm'
                                     ml={2}
                                     leftIcon={<DeleteIcon />}
-                                    onClick={() => onDelete(task)}
+                                    onClick={() => handleDelete(task)}
                                 >
                                     Delete
                                 </Button>
@@ -77,7 +88,7 @@ const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
                     ))
                 ) : (
                     <Tr>
-                        <Td colSpan={6} textAlign="center" color="gray.500">
+                        <Td colSpan={7} textAlign="center" color="gray.500">
                             No tasks available
                         </Td>
                     </Tr>
@@ -85,6 +96,7 @@ const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
             </Tbody>
         </Table>
     );
-};
+};  
+
 
 export default TaskTable
