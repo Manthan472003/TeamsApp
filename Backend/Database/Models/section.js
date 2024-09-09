@@ -7,16 +7,16 @@ const Section = sequelize.define('Section', {
     autoIncrement: true,
     primaryKey: true
   },
-  SectionName: {
+  sectionName: {
     type: DataTypes.STRING(45),
     allowNull: false
   },
-  CreatedAt: {
+  createdAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
     allowNull: true
   },
-  UpdatedAt: {
+  updatedAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
     onUpdate: DataTypes.NOW,

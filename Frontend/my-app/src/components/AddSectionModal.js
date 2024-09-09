@@ -12,7 +12,6 @@ const AddSectionModal = ({ isOpen, onClose, onSectionAdded }) => {
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        // Trim whitespace from the section name
         const trimmedSectionName = sectionName.trim();
 
         if (!trimmedSectionName) {
@@ -26,8 +25,7 @@ const AddSectionModal = ({ isOpen, onClose, onSectionAdded }) => {
             return;
         }
 
-        const sectionData = { SectionName: trimmedSectionName };
-        console.log('Sending request with data:', sectionData);
+        const sectionData = { sectionName: trimmedSectionName };
 
         try {
             const response = await saveSection(sectionData);
@@ -39,13 +37,12 @@ const AddSectionModal = ({ isOpen, onClose, onSectionAdded }) => {
                     duration: 5000,
                     isClosable: true,
                 });
-                setSectionName(''); // Clear input field
+                setSectionName('');
                 if (typeof onSectionAdded === 'function') {
-                    onSectionAdded(); // Notify parent component
+                    onSectionAdded(); // Notify parent to refresh sections
                 }
-                onClose(); // Close the modal
+                onClose();
             } else {
-                // Handle other unexpected status codes
                 toast({
                     title: "An Error Occurred",
                     description: "Unable to create the section. Please try again later.",
@@ -56,13 +53,10 @@ const AddSectionModal = ({ isOpen, onClose, onSectionAdded }) => {
             }
         } catch (error) {
             console.error('Caught error:', error);
-            const errorMessage = error.message.includes('409') 
-                 ? 'This section already exists. Please choose a different name.' 
-                 : 'There was an error connecting to the server. Please try again.';
             toast({
                 title: "Error",
-                description: errorMessage,
-                variant: "top-accent",
+                description: error.message || 'There was an error connecting to the server. Please try again.',
+                status: "error",
                 duration: 5000,
                 isClosable: true,
             });

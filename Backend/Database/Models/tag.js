@@ -7,16 +7,16 @@ const Tag = sequelize.define('Tag', {
     autoIncrement: true,
     primaryKey: true
   },
-  TagName: {
+  tagName: {
     type: DataTypes.STRING(255),
     allowNull: false
   },
-  CreatedAt: {
+  createdAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
     allowNull: true
   },
-  UpdatedAt: {
+  updatedAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
     onUpdate: DataTypes.NOW,

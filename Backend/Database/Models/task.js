@@ -7,46 +7,44 @@ const Task = sequelize.define('Task', {
         autoIncrement: true,
         primaryKey: true
     },
-    TaskName: {
+    taskName: {
         type: DataTypes.STRING(255),
         allowNull: false
     },
-    Description: {
+    description: {
         type: DataTypes.TEXT
     },
-    DueDate: {
+    dueDate: {
         type: DataTypes.DATE,
     },
-    SubTask: {
+    subTask: {
         type: DataTypes.TEXT
     },
-    TaskAssignedToID: {
+    taskAssignedToID: {
         type: DataTypes.INTEGER,
         allowNull: true
     },
-    TaskCreatedByID: {
+    taskCreatedByID: {
         type: DataTypes.INTEGER,
         allowNull: true
     },
-    Status: {
+    status: {
         type: DataTypes.ENUM('Not Started', 'In Progress', 'Completed', 'On Hold'),
         defaultValue: 'Not Started'
     },
-    SectionID: {
+    sectionID: {
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    CreatedAt: {
+    createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
-        allowNull: true
-      },
-      UpdatedAt: {
+    },
+    updatedAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
         onUpdate: DataTypes.NOW,
-        allowNull: true
-      }
+    }
 }, {
     tableName: 'taskstable',
     timestamps: false

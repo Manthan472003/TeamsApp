@@ -8,7 +8,6 @@ import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import TaskTable from './TaskTable';
 
-// ............................................................Main component to manage sections and tasks
 const TaskManager = () => {
     const { isOpen: isSectionOpen, onOpen: onSectionOpen, onClose: onSectionClose } = useDisclosure();
     const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
@@ -19,12 +18,12 @@ const TaskManager = () => {
     const [taskToEdit, setTaskToEdit] = useState(null);
     const toast = useToast();
 
-    // Fetch sections with error handling
     const fetchSections = useCallback(async () => {
         try {
             const response = await getSections();
+            console.log('Fetched sections:', response.data);
             if (response && response.data) {
-                setSections(response.data); 
+                setSections(response.data);
             } else {
                 throw new Error('Unexpected response format');
             }
@@ -44,11 +43,9 @@ const TaskManager = () => {
         fetchSections();
     }, [fetchSections]);
 
-    // Handle section addition
-    const addSection = async (sectionData) => {
+    const addSection = async () => {
         try {
-            await saveSection(sectionData); 
-            await fetchSections();
+            await fetchSections(); // Refresh sections list
             toast({
                 title: "Section added.",
                 description: "The new section was successfully added.",
@@ -67,20 +64,17 @@ const TaskManager = () => {
         }
     };
 
-    // Add a task to a section
     const addTaskToSection = (task) => {
-        if (selectedSectionIndex === null) return; // No section selected
+        if (selectedSectionIndex === null) return;
 
         const updatedSections = [...sections];
         updatedSections[selectedSectionIndex].tasks = [
             ...(updatedSections[selectedSectionIndex].tasks || []),
             task
-        ]; 
-        // Ensure tasks array exists
+        ];
         setSections(updatedSections);
     };
 
-    // Update a task in a section
     const updateTask = (taskId, updatedTask) => {
         const updatedSections = sections.map(section => ({
             ...section,
@@ -89,13 +83,11 @@ const TaskManager = () => {
         setSections(updatedSections);
     };
 
-    // Handle task editing
     const handleEdit = (task) => {
         setTaskToEdit(task);
         onEditTaskOpen();
     };
 
-    // Handle opening the task modal
     const handleSectionOpen = (index) => {
         setSelectedSectionIndex(index);
         onTaskOpen();
@@ -110,26 +102,26 @@ const TaskManager = () => {
             <AddSectionModal
                 isOpen={isSectionOpen}
                 onClose={onSectionClose}
-                onSectionAdded={addSection} 
+                onSectionAdded={addSection} // Ensure this is correctly passed and called
             />
 
-            <Accordion defaultIndex={[0]} allowMultiple>
+            <Accordion defaultIndex={sections.length > 0 ? [0] : []} allowMultiple>
                 {sections.map((section, index) => (
                     <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
                         <AccordionButton>
                             <Box flex='1' textAlign='left'>
                                 <Text fontSize='xl' fontWeight='bold' color='tomato'>
-                                    {section.SectionName}
+                                    {section.sectionName || 'Unnamed Section'}
                                 </Text>
                             </Box>
                             <AccordionIcon />
                         </AccordionButton>
                         <AccordionPanel>
                             <Button onClick={() => handleSectionOpen(index)}>
-                                Add Task to {section.SectionName}
+                                Add Task to {section.sectionName || 'Unnamed Section'}
                             </Button>
                             <TaskTable
-                                tasks={section.tasks || []} // Ensure tasks array exists
+                                tasks={section.tasks || []}
                                 onEdit={handleEdit}
                                 onDelete={(task) => console.log('Delete', task)}
                             />

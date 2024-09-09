@@ -1,20 +1,26 @@
 const Tag = require('../../Database/Models/tag');
 
-// Create a new Tag 
+// Create a new tag (with existence check)
 const createTag = async (req, res) => {
     try {
-        const { TagName } = req.body;
-
-        // Check if the Tag exist
-        const existingTag = await Tag.findOne({ where: { TagName } });
-        if (existingTag) {
-            return res.status(400).json({ message: 'Tag already available' });
+        const { tagName } = req.body;
+        if (!tagName) {
+            return res.status(400).json({ message: 'Tag name is required.' });
         }
-        // Create new tag
-        const newTag = await Tag.create({ TagName });
-        res.status(201).json({ message: 'Tag created successfully', task: newTag });
+
+        // Check if the tag already exists
+        const existingTag = await Tag.findOne({
+            where: { tagName }
+        });
+        if (existingTag) {
+            return res.status(409).json({ message: 'Tag already exists.' });
+        }
+
+        // Create the new tag
+        const newTag = await Tag.create({ tagName });
+        return res.status(201).json({ message: 'Tag created successfully.', newTag });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: 'Error creating tag.', error });
     }
 };
 
@@ -22,78 +28,79 @@ const createTag = async (req, res) => {
 const getAllTags = async (req, res) => {
     try {
         const tags = await Tag.findAll();
-        res.status(200).json(tags);
+        return res.status(200).json(tags);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: 'Error retrieving tags.', error });
     }
 };
 
-// Get a tag by ID
+// Get tag by ID (using findOne)
 const getTagById = async (req, res) => {
     try {
-        const tag = await Tag.findByPk(req.params.id);
-        if (tag) {
-            res.status(200).json(tag);
-        } else {
-            res.status(404).json({ message: 'Tag not found' });
+        const { id } = req.params;
+        const tag = await Tag.findOne({
+            where: { id }
+        });
+        if (!tag) {
+            return res.status(404).json({ message: 'Tag not found.' });
         }
+        return res.status(200).json(tag);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: 'Error retrieving tag.', error });
     }
 };
 
-// Update Tag Name by ID
+// Update tag by ID
 const updateTagById = async (req, res) => {
-    const { TagName } = req.body; // Ensure `TagName` is being destructured correctly
-
     try {
-        // Find the tag by primary key
-        const tag = await Tag.findByPk(req.params.id);
+        const { id } = req.params;
+        const { tagName } = req.body;
+
+        if (!tagName) {
+            return res.status(400).json({ message: 'Tag name is required for update.' });
+        }
+
+        // Check if the tag exists
+        const tag = await Tag.findOne({
+            where: { id }
+        });
 
         if (!tag) {
-            return res.status(404).json({ message: 'Tag not found' });
+            return res.status(404).json({ message: 'Tag not found.' });
         }
 
-        // Check if the tag name already exists (excluding the current tag)
-        const existingTag = await Tag.findOne({ 
-            where: { TagName} 
+        // Check if the new tag name already exists
+        const existingTag = await Tag.findOne({
+            where: { tagName }
         });
-
-        if (existingTag) {
-            return res.status(400).json({ message: 'Tag already exists in the database, try with a different name' });
+        if (existingTag && existingTag.id !== id) {
+            return res.status(409).json({ message: 'Tag name already exists.' });
         }
 
-        // Update tag details
-        await Tag.update({ TagName }, {
-            where: { id: req.params.id }
-        });
+        // Update the tag
+        tag.tagName = tagName;
+        await tag.save();
 
-        const updatedTag = await Tag.findByPk(req.params.id);
-
-        res.status(200).json(updatedTag);
+        return res.status(200).json({ message: 'Tag updated successfully.', tag });
     } catch (error) {
-        console.error('Error updating tag:', error);
-        res.status(400).json({ error: error.message });
+        return res.status(500).json({ message: 'Error updating tag.', error });
     }
 };
 
-// Delete a tag by ID
+// Delete tag by ID
 const deleteTagById = async (req, res) => {
     try {
-        const tag = await Tag.findByPk(req.params.id);
-
-        if (!tag) {
-            return res.status(404).json({ message: 'Tag not found' });
-        }
-
-        await Tag.destroy({
-            where: { ID: req.params.id }
+        const { id } = req.params;
+        const tag = await Tag.findOne({
+            where: { id }
         });
-
-        res.status(204).send();
+        if (!tag) {
+            return res.status(404).json({ message: 'Tag not found.' });
+        }
+        await tag.destroy();
+        return res.status(200).json({ message: 'Tag deleted successfully.' });
     } catch (error) {
-        console.error('Error deleting Tag:', error);
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: 'Error deleting tag.', error });
     }
 };
 

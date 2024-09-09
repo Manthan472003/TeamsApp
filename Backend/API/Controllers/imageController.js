@@ -1,56 +1,55 @@
 const Image = require('../../Database/Models/image');
 
-// Create a new Image 
+// Create a new image
 const createImage = async (req, res) => {
     try {
-        const { ImageLink } = req.body;
-        // Create new Image
-        const newImage = await Image.create({ ImageLink });
-        res.status(201).json({ message: 'Image created successfully', task: newImage });
+        const { imageLink } = req.body;
+        if (!imageLink) {
+            return res.status(400).json({ message: 'Image link is required.' });
+        }
+        const newImage = await Image.create({ imageLink });
+        return res.status(201).json({ message: 'Image created successfully.', newImage });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: 'Error creating image.', error });
     }
 };
 
-// Get all Images
+// Get all images
 const getAllImages = async (req, res) => {
     try {
         const images = await Image.findAll();
-        res.status(200).json(images);
+        return res.status(200).json(images);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: 'Error retrieving images.', error });
     }
 };
 
-// Get a Image by ID
+// Get image by ID
 const getImageById = async (req, res) => {
     try {
-        const image = await Image.findByPk(req.params.id);
-        if (image) {
-            res.status(200).json(Image);
-        } else {
-            res.status(404).json({ message: 'Image not found' });
+        const { id } = req.params;
+        const image = await Image.findByPk(id);
+        if (!image) {
+            return res.status(404).json({ message: 'Image not found.' });
         }
+        return res.status(200).json(image);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: 'Error retrieving image.', error });
     }
 };
 
-// Delete a Image by ID
+// Delete image by ID
 const deleteImageById = async (req, res) => {
     try {
-        const image = await Image.findByPk(req.params.id);
-
+        const { id } = req.params;
+        const image = await Image.findByPk(id);
         if (!image) {
-            return res.status(404).json({ message: 'Image not found' });
+            return res.status(404).json({ message: 'Image not found.' });
         }
-        await Image.destroy({
-            where: { ID: req.params.id }
-        });
-        res.status(204).send();
+        await image.destroy();
+        return res.status(200).json({ message: 'Image deleted successfully.' });
     } catch (error) {
-        console.error('Error deleting Image:', error);
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: 'Error deleting image.', error });
     }
 };
 

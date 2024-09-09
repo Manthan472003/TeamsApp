@@ -7,31 +7,29 @@ const User = sequelize.define('User', {
     autoIncrement: true,
     primaryKey: true
   },
-  UserName: {
+  userName: {
     type: DataTypes.STRING(200),
     allowNull: false
   },
-  Email: {
+  email: {
     type: DataTypes.STRING(100),
     allowNull: false,
     unique: true,
     // Collation is generally set in the database schema
   },
-  Password: {
+  password: {
     type: DataTypes.STRING(45),
     allowNull: false,
     // Collation is generally set in the database schema
   },
-  CreatedAt: {
+  createdAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
-    allowNull: true
   },
-  UpdatedAt: {
+  updatedAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
     onUpdate: DataTypes.NOW,
-    allowNull: true
   }
 }, {
   tableName: 'usertable',

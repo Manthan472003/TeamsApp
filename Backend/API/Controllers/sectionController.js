@@ -1,73 +1,80 @@
 const Section = require('../../Database/Models/section');
 
-
+// Create a new section
 const createSection = async (req, res) => {
     try {
-        const { SectionName } = req.body;
-
-        console.log('Received SectionName:', SectionName); // Add this line for debugging
-
-        // Check if the Section exists
-        const existingSection = await Section.findOne({ where: { SectionName } });
-        if (existingSection) {
-            return res.status(409).json({ message: 'Section already available' });
-        }else {
-            const newSection = await Section.create({ SectionName });
-            res.status(201).json({ message: 'Section created successfully', section: newSection });
+        console.log('Received Body:', req.body); // Log received data
+        const { sectionName } = req.body;
+        if (!sectionName) {
+            return res.status(400).json({ message: 'Section name is required.' });
         }
 
-        // Create new Section
+        // Check if the section already exists
+        const existingSection = await Section.findOne({ where: { sectionName } });
+        if (existingSection) {
+            return res.status(409).json({ message: 'Section already exists.' });
+        }
 
+        // Create the new section
+        const newSection = await Section.create({ sectionName });
+        return res.status(201).json({ message: 'Section created successfully.', newSection });
     } catch (error) {
-        console.error('Backend Error creating section:', error); // Add this line for debugging
-        res.status(500).json({ error: error.message });
+        console.error('Error creating section:', error.message);
+        return res.status(500).json({ message: 'Error creating section.', error: error.message });
     }
 };
 
-
-// Get all Sections
+// Get all sections
 const getAllSections = async (req, res) => {
     try {
         const sections = await Section.findAll();
-        res.status(200).json(sections);
+        return res.status(200).json(sections);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error retrieving sections:', error.message);
+        return res.status(500).json({ message: 'Error retrieving sections.', error: error.message });
     }
 };
 
-// Get a Section by ID
+// Get section by ID
 const getSectionById = async (req, res) => {
     try {
-        const section = await Section.findByPk(req.params.id);
-        if (section) {
-            res.status(200).json(section);
-        } else {
-            res.status(404).json({ message: 'Section not found' });
+        const { id } = req.params;
+        // Ensure ID is valid
+        if (!id || isNaN(parseInt(id))) {
+            return res.status(400).json({ message: 'Invalid section ID.' });
         }
+
+        const section = await Section.findOne({ where: { id } });
+        if (!section) {
+            return res.status(404).json({ message: 'Section not found.' });
+        }
+        return res.status(200).json(section);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error retrieving section:', error.message);
+        return res.status(500).json({ message: 'Error retrieving section.', error: error.message });
     }
 };
 
-// Delete a Section by ID
+// Delete section by ID
 const deleteSectionById = async (req, res) => {
     try {
-        const section = await Section.findByPk(req.params.id);
-
-        if (!section) {
-            return res.status(404).json({ message: 'Section not found' });
+        const { id } = req.params;
+        // Ensure ID is valid
+        if (!id || isNaN(parseInt(id))) {
+            return res.status(400).json({ message: 'Invalid section ID.' });
         }
-        await Section.destroy({
-            where: { ID: req.params.id }
-        });
-        res.status(204).send();
+
+        const section = await Section.findOne({ where: { id } });
+        if (!section) {
+            return res.status(404).json({ message: 'Section not found.' });
+        }
+        await section.destroy();
+        return res.status(200).json({ message: 'Section deleted successfully.' });
     } catch (error) {
-        console.error('Error deleting Section:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Error deleting section:', error.message);
+        return res.status(500).json({ message: 'Error deleting section.', error: error.message });
     }
 };
-
-
 
 module.exports = {
     createSection,

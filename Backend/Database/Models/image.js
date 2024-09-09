@@ -7,21 +7,21 @@ const Image = sequelize.define('Image', {
         autoIncrement: true,
         primaryKey: true
     },
-    ImageLink: {
+    imageLink: {
         type: DataTypes.TEXT,
         allowNull: false
     },
-    CreatedAt: {
+    createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
         allowNull: true
-      },
-      UpdatedAt: {
+    },
+    updatedAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
         onUpdate: DataTypes.NOW,
         allowNull: true
-      }
+    }
 }, {
     tableName: 'imagetable',
     timestamps: false

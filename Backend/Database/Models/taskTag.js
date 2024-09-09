@@ -7,25 +7,25 @@ const TaskTag = sequelize.define('TaskTag', {
         autoIncrement: true,
         primaryKey: true
     },
-    TaskID: {
+    taskID: {
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    TagID: {
+    tagID: {
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    CreatedAt: {
+    createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
         allowNull: true
-      },
-      UpdatedAt: {
+    },
+    updatedAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
         onUpdate: DataTypes.NOW,
         allowNull: true
-      }
+    }
 }, {
     tableName: 'tasktagtable',
     timestamps: false

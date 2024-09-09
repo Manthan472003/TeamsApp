@@ -17,3 +17,6 @@ export const updateUser = (user) => axios.put(`${API_URL}/${user.id}`, user);
 
 // Delete a User
 export const deleteUser = (userId) => axios.delete(`${API_URL}/${userId}`);
+
+// Login user
+export const loginUser = (email, password) => axios.post(`${API_URL}/login`, { email, password });

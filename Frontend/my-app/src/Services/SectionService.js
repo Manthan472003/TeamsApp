@@ -9,7 +9,7 @@ export const getSections = async () => {
         return response; // Expecting an array of sections
     } catch (error) {
         console.error('Error fetching sections:', error);
-        throw error;
+        throw new Error('Failed to fetch sections');
     }
 };
 
@@ -21,7 +21,6 @@ export const saveSection = async (sectionData) => {
     } catch (error) {
         if (error.response) {
             if (error.response.status === 409) {
-                // Handle conflict error (e.g., section already exists)
                 throw new Error('Section already exists');
             }
             throw new Error(`Error: ${error.response.status} - ${error.response.data.message}`);
@@ -33,6 +32,7 @@ export const saveSection = async (sectionData) => {
     }
 };
 
+
 // Delete a section
 export const deleteSection = async (sectionId) => {
     try {
@@ -40,6 +40,6 @@ export const deleteSection = async (sectionId) => {
         return response;
     } catch (error) {
         console.error('Error deleting section:', error);
-        throw error;
+        throw new Error('Failed to delete section');
     }
 };

@@ -1,276 +1,169 @@
 const Task = require('../../Database/Models/task');
 const Section = require('../../Database/Models/section');
 const User = require('../../Database/Models/user');
-const Tag = require('../../Database/Models/tag');
-const TaskTag = require('../../Database/Models/taskTag')
-const sequelize = require('../../Database/Config/config')
 
-// Create a new Task
+// Create a new task (with user and section existence check)
 const createTask = async (req, res) => {
-    const { TaskName, Description, DueDate, SubTask, TaskAssignedToID, TaskCreatedByID, Status, SectionID, Tags = [] } = req.body;
-
-    const transaction = await sequelize.transaction();
-
     try {
-        // Check if the Section exists
-        const section = await Section.findByPk(SectionID);
+        const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID } = req.body;
+
+        // Validate required fields
+        if (!taskName || !sectionID) {
+            return res.status(400).json({ message: 'Task name and section ID are required.' });
+        }
+
+        // Check if the assigned user exists (if provided)
+        if (taskAssignedToID) {
+            const assignedUser = await User.findOne({
+                where: { id: taskAssignedToID }
+            });
+            if (!assignedUser) {
+                return res.status(404).json({ message: 'Assigned user does not exist.' });
+            }
+        }
+
+        // Check if the task creator exists (if provided)
+        if (taskCreatedByID) {
+            const createdByUser = await User.findOne({
+                where: { id: taskCreatedByID }
+            });
+            if (!createdByUser) {
+                return res.status(404).json({ message: 'Task creator does not exist.' });
+            }
+        }
+
+        // Check if the section exists
+        const section = await Section.findOne({
+            where: { id: sectionID }
+        });
         if (!section) {
-            return res.status(400).json({ message: 'SectionID does not exist.' });
+            return res.status(404).json({ message: 'Section does not exist.' });
         }
 
-        // Validate TaskAssignedToID if provided
-        if (TaskAssignedToID) {
-            const taskAssignedTo = await User.findByPk(TaskAssignedToID);
-            if (!taskAssignedTo) {
-                return res.status(400).json({ message: 'TaskAssignedToID does not exist.' });
-            }
-        }
+        // Create the task
+        const newTask = await Task.create({
+            taskName,
+            description,
+            dueDate,
+            subTask,
+            taskAssignedToID,
+            taskCreatedByID,
+            status,
+            sectionID
+        });
 
-        // Check if the TaskCreatedByID exists
-        const taskCreatedBy = await User.findByPk(TaskCreatedByID);
-        if (!taskCreatedBy) {
-            return res.status(400).json({ message: 'TaskCreatedByID does not exist.' });
-        }
-
-        // Validate if all provided tags exist
-        if (Tags.length > 0) {
-            const existingTags = await Tag.findAll({
-                where: { id: Tags },
-                attributes: ['id']
-            });
-
-            const existingTagIds = existingTags.map(tag => tag.id);
-            const invalidTagIds = Tags.filter(tagId => !existingTagIds.includes(tagId));
-
-            if (invalidTagIds.length > 0) {
-                return res.status(400).json({ message: `Invalid tag IDs: ${invalidTagIds.join(', ')}` });
-            }
-        }
-
-        // Create the new task within the transaction
-        const newTask = await Task.create({ TaskName, Description, DueDate, SubTask, TaskAssignedToID, TaskCreatedByID, Status, SectionID }, { transaction });
-
-        // Check existing TaskTag associations
-        if (Tags.length > 0) {
-            const existingAssociations = await TaskTag.findAll({
-                where: {
-                    TaskID: newTask.id,
-                    TagID: Tags
-                },
-                attributes: ['TagID']
-            });
-
-            const existingTagIds = existingAssociations.map(assoc => assoc.TagID);
-            const newTagIds = Tags.filter(tagId => !existingTagIds.includes(tagId));
-
-            if (newTagIds.length > 0) {
-                const taskTags = newTagIds.map(tagId => ({
-                    TaskID: newTask.id,
-                    TagID: tagId
-                }));
-
-                await TaskTag.bulkCreate(taskTags, { transaction });
-            }
-        }
-
-        await transaction.commit();
-        res.status(201).json({ message: 'Task created successfully', task: newTask });
+        return res.status(201).json({ message: 'Task created successfully.', newTask });
     } catch (error) {
-        await transaction.rollback();
-        console.error('Error creating task:', error);
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: 'Error creating task.', error });
     }
 };
 
-
+// Get all tasks
 const getAllTasks = async (req, res) => {
     try {
-        const tasks = await Task.findAll({
-            include: [{
-                model: Tag,
-                through: { attributes: [] } // Exclude the join table attributes from the result
-            }]
-        });
-
-        // Transform tasks to include only tag IDs
-        const tasksWithTagIds = tasks.map(task => ({
-            ...task.toJSON(),
-            Tags: task.Tags.map(tag => tag.id) // Extract tag IDs
-        }));
-
-        res.status(200).json(tasksWithTagIds);
+        const tasks = await Task.findAll();
+        return res.status(200).json(tasks);
     } catch (error) {
-        console.error('Error fetching tasks:', error);
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: 'Error retrieving tasks.', error });
     }
 };
 
-
-
-// Get a task by ID
+// Get task by ID
 const getTaskById = async (req, res) => {
     try {
-        const task = await Task.findByPk(req.params.id, {
-            include: [{
-                model: Tag,
-                through: { attributes: [] } // Exclude the join table attributes from the result
-            }]
+        const { id } = req.params;
+        const task = await Task.findOne({
+            where: { id }
         });
-
-        if (task) {
-            // Transform the task to include only tag IDs
-            const taskWithTagIds = {
-                ...task.toJSON(),
-                Tags: task.Tags.map(tag => tag.id) // Extract tag IDs
-            };
-
-            res.status(200).json(taskWithTagIds);
-        } else {
-            res.status(404).json({ message: 'Task not found' });
-        }
-    } catch (error) {
-        console.error('Error fetching task:', error);
-        res.status(500).json({ error: error.message });
-    }
-};
-
-
-// Update a task by ID
-const updateTaskById = async (req, res) => {
-    const { TaskName, Description, DueDate, SubTask, TaskAssignedToID, TaskCreatedByID, Status, SectionID, Tags = [] } = req.body;
-
-    const transaction = await sequelize.transaction();
-
-    try {
-        // Fetch the existing task
-        const task = await Task.findByPk(req.params.id);
         if (!task) {
-            return res.status(404).json({ message: 'Task not found' });
+            return res.status(404).json({ message: 'Task not found.' });
         }
-
-        // Validate SectionID if provided
-        if (SectionID) {
-            const section = await Section.findByPk(SectionID);
-            if (!section) {
-                return res.status(400).json({ message: 'SectionID does not exist.' });
-            }
-        }
-
-        // Validate TaskAssignedToID if provided
-        if (TaskAssignedToID) {
-            const taskAssignedTo = await User.findByPk(TaskAssignedToID);
-            if (!taskAssignedTo) {
-                return res.status(400).json({ message: 'TaskAssignedToID does not exist.' });
-            }
-        }
-
-        // Validate TaskCreatedByID if provided
-        if (TaskCreatedByID) {
-            const taskCreatedBy = await User.findByPk(TaskCreatedByID);
-            if (!taskCreatedBy) {
-                return res.status(400).json({ message: 'TaskCreatedByID does not exist.' });
-            }
-        }
-
-        // Update task details
-        await task.update({
-            TaskName,
-            Description,
-            DueDate,
-            SubTask,
-            TaskAssignedToID,
-            TaskCreatedByID,
-            Status,
-            SectionID
-        }, { transaction });
-
-        // Validate if all provided tags exist
-        if (Tags.length > 0) {
-            const existingTags = await Tag.findAll({
-                where: { id: Tags },
-                attributes: ['id']
-            });
-
-            const existingTagIds = existingTags.map(tag => tag.id);
-            const invalidTagIds = Tags.filter(tagId => !existingTagIds.includes(tagId));
-
-            if (invalidTagIds.length > 0) {
-                await transaction.rollback();
-                return res.status(400).json({ message: `Invalid tag IDs: ${invalidTagIds.join(', ')}` });
-            }
-        }
-
-        // Remove old tag associations
-        await TaskTag.destroy({ where: { TaskID: task.id }, transaction });
-
-        // Check existing TaskTag associations
-        if (Tags.length > 0) {
-            const existingAssociations = await TaskTag.findAll({
-                where: {
-                    TaskID: task.id,
-                    TagID: Tags
-                },
-                attributes: ['TagID']
-            });
-
-            const existingTagIds = existingAssociations.map(assoc => assoc.TagID);
-            const newTagIds = Tags.filter(tagId => !existingTagIds.includes(tagId));
-
-            if (newTagIds.length > 0) {
-                const taskTags = newTagIds.map(tagId => ({
-                    TaskID: task.id,
-                    TagID: tagId
-                }));
-
-                await TaskTag.bulkCreate(taskTags, { transaction });
-            }
-        }
-
-        await transaction.commit();
-
-        // Fetch the updated task to include the associated tags
-        const updatedTask = await Task.findByPk(req.params.id, {
-            include: [{ model: Tag, through: { attributes: [] } }] // Include tags to return with updated task
-        });
-
-        // Transform the task to include only tag IDs
-        const taskWithTagIds = {
-            ...updatedTask.toJSON(),
-            Tags: updatedTask.Tags.map(tag => tag.id) // Extract tag IDs
-        };
-
-        res.status(200).json(taskWithTagIds);
+        return res.status(200).json(task);
     } catch (error) {
-        await transaction.rollback();
-        console.error('Error updating task:', error);
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: 'Error retrieving task.', error });
     }
 };
 
+// Update task by ID (with user and section existence check)
+const updateTaskById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID } = req.body;
 
+        // Validate required fields
+        if (!taskName || !sectionID) {
+            return res.status(400).json({ message: 'Task name and section ID are required for update.' });
+        }
 
-// Delete a task by ID
+        // Find the task to update
+        const task = await Task.findOne({
+            where: { id }
+        });
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found.' });
+        }
+
+        // Check if the assigned user exists (if provided)
+        if (taskAssignedToID) {
+            const assignedUser = await User.findOne({
+                where: { id: taskAssignedToID }
+            });
+            if (!assignedUser) {
+                return res.status(404).json({ message: 'Assigned user does not exist.' });
+            }
+        }
+
+        // Check if the task creator exists (if provided)
+        if (taskCreatedByID) {
+            const createdByUser = await User.findOne({
+                where: { id: taskCreatedByID }
+            });
+            if (!createdByUser) {
+                return res.status(404).json({ message: 'Task creator does not exist.' });
+            }
+        }
+
+        // Check if the section exists
+        const section = await Section.findOne({
+            where: { id: sectionID }
+        });
+        if (!section) {
+            return res.status(404).json({ message: 'Section does not exist.' });
+        }
+
+        // Update the task
+        task.taskName = taskName;
+        task.description = description;
+        task.dueDate = dueDate;
+        task.subTask = subTask;
+        task.taskAssignedToID = taskAssignedToID;
+        task.taskCreatedByID = taskCreatedByID;
+        task.status = status;
+        task.sectionID = sectionID;
+
+        await task.save();
+
+        return res.status(200).json({ message: 'Task updated successfully.', task });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error updating task.', error });
+    }
+};
+
+// Delete task by ID
 const deleteTaskById = async (req, res) => {
     try {
-        const task = await Task.findByPk(req.params.id);
+        const { id } = req.params;
+        const task = await Task.findOne({
+            where: { id }
+        });
         if (!task) {
-            return res.status(404).json({ message: 'Task not found' });
+            return res.status(404).json({ message: 'Task not found.' });
         }
 
-        // Remove associated tag entries
-        await TaskTag.destroy({
-            where: { TaskID: req.params.id }
-        });
-
-        // Remove the task itself
-        await Task.destroy({
-            where: { id: req.params.id }
-        });
-
-        res.status(204).send();
+        await task.destroy();
+        return res.status(200).json({ message: 'Task deleted successfully.' });
     } catch (error) {
-        console.error('Error deleting task:', error);
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: 'Error deleting task.', error });
     }
 };
 
