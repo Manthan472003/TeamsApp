@@ -85,7 +85,6 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                     <option value="A">Not Started</option>
                                     <option value="B">In Progress</option>
                                     <option value="D">On Hold</option>
-                                    <option value="C">Completed</option>
                                 </Select>
                             </Td>
                             <Td>

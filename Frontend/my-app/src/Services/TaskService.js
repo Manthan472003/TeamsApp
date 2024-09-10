@@ -14,7 +14,15 @@ export const getTasksBySection = (sectionId) => axios.get(`${API_URL}/section/${
 export const saveTask = (task) => axios.post(API_URL, task);
 
 // Update an existing task
-export const updateTask = (task) => axios.put(`${API_URL}/${task.id}`, task);
+export const updateTask = async (task) => {
+    try {
+        const response = await axios.put(`${API_URL}/${task.id}`, task);
+        return response.data; // Return the updated task
+    } catch (error) {
+        console.error('Failed to update task:', error.response ? error.response.data : error.message);
+        throw error; // Rethrow error to be handled by the caller
+    }
+};
 
 // Delete a task
 export const deleteTask = (taskId) => axios.delete(`${API_URL}/${taskId}`);

@@ -4,7 +4,7 @@ import {
 } from '@chakra-ui/react';
 import { getSections } from '../Services/SectionService';
 import { saveTask, getTasksBySection, deleteTask, updateTask } from '../Services/TaskService';
-import { getUsers } from '../Services/UserService'; // Assuming you have a UserService for fetching users
+import { getUsers } from '../Services/UserService';
 import AddSectionModal from './AddSectionModal';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
@@ -17,7 +17,9 @@ const TaskManager = () => {
 
     const [sections, setSections] = useState([]);
     const [tasksBySection, setTasksBySection] = useState({});
-    const [users, setUsers] = useState([]); // State for users
+    const [users, setUsers] = useState([]);
+    const [tasks, setTasks] = useState([]);
+
     const [selectedSectionId, setSelectedSectionId] = useState(null);
     const [taskToEdit, setTaskToEdit] = useState(null);
     const toast = useToast();
@@ -158,18 +160,13 @@ const TaskManager = () => {
     };
 
     // Update an existing task
-    const updateTask = async (taskId, updatedTask) => {
+    const updateTask = async (updatedTask) => {
         try {
-            await updateTask(updatedTask); // Call the correct updateTask function
-            setTasksBySection(prev => {
-                const updatedTasks = { ...prev };
-                Object.keys(updatedTasks).forEach(sectionId => {
-                    updatedTasks[sectionId] = updatedTasks[sectionId].map(task =>
-                        task.id === taskId ? updatedTask : task
-                    );
-                });
-                return updatedTasks;
-            });
+
+              const updatedTasks = tasks.map(task => (task.id === updatedTask.id ? updatedTask : task));
+            setTasks(updatedTasks);
+    
+            // Show success toast
             toast({
                 title: "Task updated.",
                 description: "The task was successfully updated.",
@@ -179,6 +176,8 @@ const TaskManager = () => {
             });
         } catch (error) {
             console.error('Error updating task:', error.response || error);
+            
+            // Show error toast
             toast({
                 title: "Error updating task.",
                 description: error.message,
@@ -189,7 +188,6 @@ const TaskManager = () => {
         }
     };
 
-
     // Handle task edit
     const handleEdit = (task) => {
         setTaskToEdit(task);
@@ -197,10 +195,9 @@ const TaskManager = () => {
     };
 
     // Handle section selection and open task modal
-    const handleSectionOpen = (sectionId) => {
+    const handleSectionClick = (sectionId) => {
         setSelectedSectionId(sectionId);
         fetchTasksBySection(sectionId); // Fetch tasks for the selected section
-        onTaskOpen();
     };
 
     // Handle task deletion
@@ -242,7 +239,7 @@ const TaskManager = () => {
             <Accordion defaultIndex={sections.length > 0 ? [0] : []} allowMultiple>
                 {sections.map(section => (
                     <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
-                        <AccordionButton>
+                        <AccordionButton onClick={() => handleSectionClick(section.id)}>
                             <Box flex='1' textAlign='left'>
                                 <Text fontSize='xl' fontWeight='bold' color='tomato'>{section.sectionName}</Text>
                                 <Text fontSize='md' color='gray.500'>{section.description}</Text>
@@ -250,7 +247,7 @@ const TaskManager = () => {
                             <AccordionIcon />
                         </AccordionButton>
                         <AccordionPanel pb={4}>
-                            <Button onClick={() => handleSectionOpen(section.id)} colorScheme='teal' textColor='Orange.500' border={2} variant='outline'
+                            <Button onClick={() => onTaskOpen()} colorScheme='teal' textColor='Orange.500' border={2} variant='outline'
                                 sx={{ borderStyle: 'dotted', }} mb={3}>
                                 Add Task to {section.sectionName || 'Unnamed Section'}
                             </Button>
@@ -258,8 +255,8 @@ const TaskManager = () => {
                                 tasks={tasksBySection[section.id] || []}
                                 onEdit={handleEdit}
                                 onDelete={handleDelete}
-                                onStatusChange={updateTask} // Pass the updateTask function
-                                users={users} // Pass the list of users
+                                onStatusChange={updateTask}
+                                users={users}
                             />
                         </AccordionPanel>
                     </AccordionItem>
@@ -278,7 +275,10 @@ const TaskManager = () => {
                 isOpen={isEditTaskOpen}
                 onClose={onEditTaskClose}
                 task={taskToEdit}
-                onUpdate={updateTask}
+                onUpdate={(updatedTask) => {
+                    updateTask(updatedTask); // Update local task list with updated task
+                    fetchTasksBySection(selectedSectionId); // Refresh tasks list from server
+                }}
             />
         </Box>
     );
