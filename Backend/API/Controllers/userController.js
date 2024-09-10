@@ -132,11 +132,18 @@ const loginUser = async (req, res) => {
         }
 
         // Login successful
-        return res.status(200).json({ message: 'Login successful', user });
+        return res.status(200).json({
+            message: 'Login successful',
+            user: {
+                userId: user.id, // Ensure userId is included
+                userName: user.userName
+            }
+        });
     } catch (error) {
         return res.status(500).json({ message: 'Error logging in', error });
     }
 };
+
 
 
 module.exports = {

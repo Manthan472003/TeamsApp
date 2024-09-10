@@ -27,38 +27,40 @@ const Login = () => {
     setError('');
 
     if (!validateForm()) {
-      setError('Please enter a valid email and a password with at least 6 characters.');
-      return;
+        setError('Please enter a valid email and a password with at least 6 characters.');
+        return;
     }
 
     try {
-      const response = await axios.post('http://localhost:8080/users/login', { email, password });
+        const response = await axios.post('http://localhost:8080/users/login', { email, password });
 
-      if (response.status === 200) {
-        console.log(response.data); // Check the response data
-        const { userName, userId } = response.data; // Get the username and userId from the response
-        localStorage.setItem('userName', userName || email); // Store the username or email if no userName is available
-        localStorage.setItem('userId', userId); // Store the userId
+        if (response.status === 200) {
+            console.log(response.data); // Check the response data
+            const { userName, userId } = response.data.user; // Extract userName and userId correctly
+            localStorage.setItem('userName', userName || email); // Store userName or email if userName is not available
+            localStorage.setItem('userId', userId); // Store userId
 
-        navigate('/home'); // Navigate to home after successful login
-      }
-    } catch (error) {
-      if (error.response) {
-        switch (error.response.status) {
-          case 400:
-            setError('Incorrect email or password');
-            break;
-          case 401:
-            setError('Unauthorized');
-            break;
-          default:
-            setError('An error occurred. Please try again later.');
+            navigate('/home'); // Navigate to home after successful login
         }
-      } else {
-        setError('Network error. Please check your connection.');
-      }
+    } catch (error) {
+        if (error.response) {
+            switch (error.response.status) {
+                case 400:
+                    setError('Incorrect email or password');
+                    break;
+                case 401:
+                    setError('Unauthorized');
+                    break;
+                default:
+                    setError('An error occurred. Please try again later.');
+            }
+        } else {
+            setError('Network error. Please check your connection.');
+        }
     }
-  };
+};
+
+  
 
   return (
     <Flex

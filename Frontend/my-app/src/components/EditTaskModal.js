@@ -2,14 +2,13 @@ import React, { useRef, useState, useEffect } from 'react';
 import {
     Select, Button, Modal,
     ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, FormControl, FormLabel, Input,
-    ModalCloseButton, Stack, Tag, TagLabel
+    ModalCloseButton, 
 } from '@chakra-ui/react';
 // import TagDropdown from './TagDropdown';
 
-const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
+const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => {} }) => {
     const initialRef = useRef(null);
 
-    // Initialize state variables with default values
     const [taskName, setTaskName] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [selectedTags, setSelectedTags] = useState([]);
@@ -19,7 +18,6 @@ const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
     const [description, setDescription] = useState('');
     const [showMore, setShowMore] = useState(false);
 
-    // Effect to update state when `task` prop changes
     useEffect(() => {
         if (task) {
             setTaskName(task.taskName || '');
@@ -38,10 +36,15 @@ const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        if (!task) return; // Guard clause for undefined task
 
-        // Submit the updated task with the section ID included
-        onSubmit(task.id, {
+        if (typeof onUpdate !== 'function') {
+            console.error('onUpdate is not a function');
+            return;
+        }
+
+        if (!task) return;
+
+        onUpdate(task.id, {
             ...task,
             taskName,
             dueDate,
@@ -56,93 +59,79 @@ const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
 
     return (
         <Modal initialFocusRef={initialRef} isOpen={isOpen} onClose={onClose} size="xl">
-            <ModalOverlay />
-            <ModalContent maxH="90vh" overflow="hidden">
-                <ModalHeader position="sticky" top={0} bg="white" zIndex={1}>Edit Task</ModalHeader>
-                <ModalCloseButton />
-                <ModalBody pb={0} overflowY="auto" maxH="calc(100vh - 150px)">
-                    <form onSubmit={handleSubmit}>
-                        <FormControl>
-                            <FormLabel>Task Name</FormLabel>
-                            <Input
-                                ref={initialRef}
-                                placeholder='Enter Task Name'
-                                value={taskName}
-                                onChange={(e) => setTaskName(e.target.value)}
-                            />
-                        </FormControl>
-                        <FormControl>
-                            <FormLabel>Due Date</FormLabel>
-                            <Input
-                                value={dueDate}
-                                type='date'
-                                onChange={(e) => setDueDate(e.target.value)}
-                            />
-                        </FormControl>
-                        {/* <FormControl mt={4}>
-                            <FormLabel>Tags</FormLabel>
-                            <TagDropdown
-                                selectedTags={selectedTags}
-                                onTagSelect={handleTagSelect}
-                            />
-                            <Stack spacing={2} mt={2}>
-                                {selectedTags.map(tag => (
-                                    <Tag key={tag} colorScheme="teal">
-                                        <TagLabel>{tag}</TagLabel>
-                                    </Tag>
-                                ))}
-                            </Stack>
-                        </FormControl> */}
-                        <FormControl mt={4}>
-                            <FormLabel>Assigned To</FormLabel>
-                            <Input
-                                placeholder='Enter Assigned Person'
-                                value={assignedTo}
-                                onChange={(e) => setAssignedTo(e.target.value)}
-                            />
-                        </FormControl>
-                        <FormControl mt={4}>
-                            <FormLabel>Status</FormLabel>
-                            <Select
-                                value={status}
-                                onChange={(e) => setStatus(e.target.value)}
-                            >
-                                <option value="A">Not Started</option>
-                                <option value="B">In Progress</option>
-                                <option value="D">On Hold</option>
-                            </Select>
-                        </FormControl>
-                        {showMore && (
-                            <>
-                                <FormControl mt={4}>
-                                    <FormLabel>Sub-Task</FormLabel>
-                                    <Input
-                                        placeholder='Enter Sub-Task'
-                                        value={subTask}
-                                        onChange={(e) => setSubTask(e.target.value)}
-                                    />
-                                </FormControl>
-                                <FormControl mt={4}>
-                                    <FormLabel>Description</FormLabel>
-                                    <Input
-                                        placeholder='Enter Description'
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                    />
-                                </FormControl>
-                            </>
-                        )}
-                        <Button mt={4} onClick={() => setShowMore(!showMore)}>
-                            {showMore ? 'Show Less' : 'Show More'}
-                        </Button>
-                        <ModalFooter position="sticky" bottom={0} bg="white" borderTopWidth="1px">
-                            <Button type='submit' colorScheme='blue' mr={3}>Save</Button>
-                            <Button onClick={onClose}>Cancel</Button>
-                        </ModalFooter>
-                    </form>
-                </ModalBody>
-            </ModalContent>
-        </Modal>
+        <ModalOverlay />
+        <ModalContent maxH="90vh" overflow="hidden">
+            <ModalHeader position="sticky" top={0} bg="white" zIndex={1}>Edit Task</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody pb={0} overflowY="auto" maxH="calc(100vh - 150px)">
+                <form onSubmit={handleSubmit}>
+                    <FormControl>
+                        <FormLabel>Task Name</FormLabel>
+                        <Input
+                            ref={initialRef}
+                            placeholder='Enter Task Name'
+                            value={taskName}
+                            onChange={(e) => setTaskName(e.target.value)}
+                        />
+                    </FormControl>
+                    <FormControl>
+                        <FormLabel>Due Date</FormLabel>
+                        <Input
+                            value={dueDate}
+                            type='date'
+                            onChange={(e) => setDueDate(e.target.value)}
+                        />
+                    </FormControl>
+                    <FormControl mt={4}>
+                        <FormLabel>Assigned To</FormLabel>
+                        <Input
+                            placeholder='Enter Assigned Person'
+                            value={assignedTo}
+                            onChange={(e) => setAssignedTo(e.target.value)}
+                        />
+                    </FormControl>
+                    <FormControl mt={4}>
+                        <FormLabel>Status</FormLabel>
+                        <Select
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                        >
+                            <option value="A">Not Started</option>
+                            <option value="B">In Progress</option>
+                            <option value="D">On Hold</option>
+                        </Select>
+                    </FormControl>
+                    {showMore && (
+                        <>
+                            <FormControl mt={4}>
+                                <FormLabel>Sub-Task</FormLabel>
+                                <Input
+                                    placeholder='Enter Sub-Task'
+                                    value={subTask}
+                                    onChange={(e) => setSubTask(e.target.value)}
+                                />
+                            </FormControl>
+                            <FormControl mt={4}>
+                                <FormLabel>Description</FormLabel>
+                                <Input
+                                    placeholder='Enter Description'
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                />
+                            </FormControl>
+                        </>
+                    )}
+                    <Button mt={4} onClick={() => setShowMore(!showMore)}>
+                        {showMore ? 'Show Less' : 'Show More'}
+                    </Button>
+                    <ModalFooter position="sticky" bottom={0} bg="white" borderTopWidth="1px">
+                        <Button type='submit' colorScheme='blue' mr={3}>Save</Button>
+                        <Button onClick={onClose}>Cancel</Button>
+                    </ModalFooter>
+                </form>
+            </ModalBody>
+        </ModalContent>
+    </Modal>
     );
 };
 

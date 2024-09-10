@@ -15,12 +15,40 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
     const [status, setStatus] = useState('Not Started');
     const toast = useToast();
 
+    // Reset form fields
+    const resetForm = () => {
+        setTaskName('');
+        setDueDate('');
+        setAssignedTo('');
+        setStatus('Not Started');
+    };
+
+    // Handle user selection
     const handleUserSelect = (userId) => {
         setAssignedTo(userId);
     };
 
+    // Handle form submission
     const handleSubmit = async (event) => {
         event.preventDefault();
+
+        // Basic validation
+        if (!taskName || !dueDate || !assignedTo) {
+            toast({
+                title: "Error",
+                description: "Please fill in all required fields.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+            return;
+        }
+
+        if (typeof onSubmit !== 'function') {
+            console.error('onSubmit is not a function');
+            return;
+        }
+
         const task = {
             taskName,
             dueDate,
@@ -29,7 +57,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
             status,
             sectionID // Include sectionID here
         };
-    
+
         try {
             await onSubmit(task);
             toast({
@@ -39,6 +67,8 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
                 duration: 5000,
                 isClosable: true,
             });
+            resetForm();
+            onClose();
         } catch (error) {
             console.error('Error adding task:', error);
             toast({
@@ -49,13 +79,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
                 isClosable: true,
             });
         }
-
-        // Reset form fields
-        setTaskName('');
-        setDueDate('');
-        setAssignedTo('');
-        setStatus('Not Started');
-        onClose();
     };
 
     return (
@@ -121,7 +144,10 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
                             borderTopWidth="1px"
                         >
                             <Button type='submit' colorScheme='blue' mr={3}>Save</Button>
-                            <Button onClick={onClose}>Cancel</Button>
+                            <Button onClick={() => {
+                                resetForm();
+                                onClose();
+                            }}>Cancel</Button>
                         </ModalFooter>
                     </form>
                 </ModalBody>
