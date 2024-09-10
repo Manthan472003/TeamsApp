@@ -18,12 +18,9 @@ const TaskManager = () => {
     const [sections, setSections] = useState([]);
     const [tasksBySection, setTasksBySection] = useState({});
     const [users, setUsers] = useState([]);
-    const [tasks, setTasks] = useState([]);
-
     const [selectedSectionId, setSelectedSectionId] = useState(null);
     const [taskToEdit, setTaskToEdit] = useState(null);
     const toast = useToast();
-    const userId = localStorage.getItem('userId'); // Get logged-in user ID
 
     // Fetch sections from API
     const fetchSections = useCallback(async () => {
@@ -94,6 +91,7 @@ const TaskManager = () => {
         fetchUsers();
     }, [fetchSections, fetchUsers]);
 
+    // Fetch tasks when section changes
     useEffect(() => {
         if (selectedSectionId) {
             fetchTasksBySection(selectedSectionId);
@@ -101,7 +99,7 @@ const TaskManager = () => {
     }, [selectedSectionId, fetchTasksBySection]);
 
     // Add a new section
-    const addSection = async () => {
+    const addSection = async (newSection) => {
         try {
             await fetchSections(); // Refresh sections list
             toast({
@@ -137,9 +135,7 @@ const TaskManager = () => {
 
         try {
             await saveTask(task); // Call API to save task
-            console.log(`Task added to section ${task.sectionID}:`, task);
-            // Refresh tasks for the specific section only
-            await fetchTasksBySection(task.sectionID);
+            await fetchTasksBySection(task.sectionID); // Refresh tasks for the specific section
             toast({
                 title: "Task added.",
                 description: "The new task was successfully added.",
@@ -159,27 +155,28 @@ const TaskManager = () => {
         }
     };
 
-    // Update an existing task
-    const updateTask = async (updatedTask) => {
+    // Update an existing task's status
+    const handleStatusChange = async (taskId, newStatus) => {
         try {
+            const taskToUpdate = tasksBySection[selectedSectionId]?.find(task => task.id === taskId);
+            if (taskToUpdate) {
+                taskToUpdate.status = newStatus;
+                await updateTask(taskToUpdate); // Call API to update the task status in the backend
 
-              const updatedTasks = tasks.map(task => (task.id === updatedTask.id ? updatedTask : task));
-            setTasks(updatedTasks);
-    
-            // Show success toast
-            toast({
-                title: "Task updated.",
-                description: "The task was successfully updated.",
-                status: "success",
-                duration: 5000,
-                isClosable: true,
-            });
+                await fetchTasksBySection(selectedSectionId); // Refresh tasks for the specific section
+
+                toast({
+                    title: "Task status updated.",
+                    description: `Task status has been updated to ${newStatus}.`,
+                    status: "success",
+                    duration: 5000,
+                    isClosable: true,
+                });
+            }
         } catch (error) {
-            console.error('Error updating task:', error.response || error);
-            
-            // Show error toast
+            console.error('Error updating task status:', error);
             toast({
-                title: "Error updating task.",
+                title: "Error updating task status.",
                 description: error.message,
                 status: "error",
                 duration: 5000,
@@ -197,7 +194,6 @@ const TaskManager = () => {
     // Handle section selection and open task modal
     const handleSectionClick = (sectionId) => {
         setSelectedSectionId(sectionId);
-        fetchTasksBySection(sectionId); // Fetch tasks for the selected section
     };
 
     // Handle task deletion
@@ -241,21 +237,28 @@ const TaskManager = () => {
                     <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
                         <AccordionButton onClick={() => handleSectionClick(section.id)}>
                             <Box flex='1' textAlign='left'>
-                                <Text fontSize='xl' fontWeight='bold' color='tomato'>{section.sectionName}</Text>
+                                <Text fontSize='xl' fontWeight='bold' color='#149edf'>{section.sectionName}</Text>
                                 <Text fontSize='md' color='gray.500'>{section.description}</Text>
                             </Box>
                             <AccordionIcon />
                         </AccordionButton>
                         <AccordionPanel pb={4}>
-                            <Button onClick={() => onTaskOpen()} colorScheme='teal' textColor='Orange.500' border={2} variant='outline'
-                                sx={{ borderStyle: 'dotted', }} mb={3}>
+                            <Button
+                                onClick={() => onTaskOpen()}
+                                colorScheme='teal'
+                                textColor='Orange.500'
+                                border={2}
+                                variant='outline'
+                                sx={{ borderStyle: 'dotted', }}
+                                mb={3}
+                            >
                                 Add Task to {section.sectionName || 'Unnamed Section'}
                             </Button>
                             <TaskTable
                                 tasks={tasksBySection[section.id] || []}
                                 onEdit={handleEdit}
                                 onDelete={handleDelete}
-                                onStatusChange={updateTask}
+                                onStatusChange={handleStatusChange}
                                 users={users}
                             />
                         </AccordionPanel>
@@ -266,8 +269,7 @@ const TaskManager = () => {
             <AddTaskModal
                 isOpen={isTaskOpen}
                 onClose={onTaskClose}
-                onSubmit={(task) => addTaskToSection({ ...task, sectionID: selectedSectionId })}
-                userId={userId}
+                onTaskAdded={(task) => addTaskToSection({ ...task, sectionID: selectedSectionId })}
                 sectionID={selectedSectionId}
             />
 
@@ -275,13 +277,10 @@ const TaskManager = () => {
                 isOpen={isEditTaskOpen}
                 onClose={onEditTaskClose}
                 task={taskToEdit}
-                onUpdate={(updatedTask) => {
-                    updateTask(updatedTask); // Update local task list with updated task
-                    fetchTasksBySection(selectedSectionId); // Refresh tasks list from server
-                }}
+                onTaskUpdated={() => fetchTasksBySection(selectedSectionId)} // Refresh tasks list after updating
             />
         </Box>
     );
-}
+};
 
 export default TaskManager;

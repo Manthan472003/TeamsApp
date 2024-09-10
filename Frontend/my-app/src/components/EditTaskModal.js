@@ -89,17 +89,17 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
                                 onChange={(e) => setAssignedTo(e.target.value)}
                             />
                         </FormControl>
-                        <FormControl mt={4}>
+                        {/* <FormControl mt={4}>
                             <FormLabel>Status</FormLabel>
                             <Select
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value)}
                             >
-                                <option value="A">Not Started</option>
-                                <option value="B">In Progress</option>
-                                <option value="D">On Hold</option>
+                                <option value="Not Started">Not Started</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="On Hold">On Hold</option>
                             </Select>
-                        </FormControl>
+                        </FormControl> */}
                         {showMore && (
                             <>
                                 <FormControl mt={4}>

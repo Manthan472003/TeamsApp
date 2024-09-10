@@ -2,7 +2,7 @@ import React from 'react';
 import { Table, Thead, Tbody, Tr, Th, Td, Select, Button } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 
-// ........................................................... Table to display tasks
+// Table to display tasks
 const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     console.log('Rendering tasks:', tasks);
 
@@ -16,7 +16,9 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
 
     const handleStatusChange = (taskId, newStatus) => {
         if (onStatusChange) {
-            onStatusChange(taskId, newStatus);
+            onStatusChange(taskId, newStatus); // Use the onStatusChange prop
+        } else {
+            console.error('onStatusChange function is not defined');
         }
     };
 
@@ -29,9 +31,9 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     };
 
     const handleComplete = (task) => {
-        console.log('Completing task:', task);
+        console.log('Task marked as complete:', task); // Log to check if this function is triggered
         if (onStatusChange) {
-            onStatusChange(task.id, 'Completed');
+            onStatusChange(task.id, 'Completed'); // Call onStatusChange with status 'Completed'
         } else {
             console.error('onStatusChange function is not defined');
         }
@@ -49,6 +51,9 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
         }
     };
 
+    // Filter out tasks where the status is 'Completed'
+    const filteredTasks = tasks.filter(task => task.status !== 'Completed');
+
     return (
         <Table variant='striped' mt={4}>
             <Thead>
@@ -61,17 +66,17 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                 </Tr>
             </Thead>
             <Tbody>
-                {tasks.length > 0 ? (
-                    tasks.map((task, index) => (
+                {filteredTasks.length > 0 ? (
+                    filteredTasks.map((task, index) => (
                         <Tr
                             key={task.id}
                             style={{
-                                backgroundColor: index % 2 === 0 ? '#f9e79f' : '#d1f2eb'
+                                backgroundColor: index % 2 === 0 ? '#f9e79f' : '#d7f2ff'
                             }}
                         >
                             <Td>{task.taskName}</Td>
                             <Td>{task.dueDate}</Td>
-                            <Td>{getUserNameById(task.taskAssignedToID)}</Td> {/* Updated */}
+                            <Td>{getUserNameById(task.taskAssignedToID)}</Td>
                             <Td>
                                 <Select
                                     name="status"
@@ -81,10 +86,12 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                     size='sm'
                                     bg='#ffffff'
                                     rounded={7}
+                                    isDisabled={task.status === 'Completed'} // Disable if task is completed
                                 >
-                                    <option value="A">Not Started</option>
-                                    <option value="B">In Progress</option>
-                                    <option value="D">On Hold</option>
+                                    <option value="Not Started">Not Started</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="On Hold">On Hold</option>
+                                    <option value="Completed">Completed</option> {/* Added Completed status */}
                                 </Select>
                             </Td>
                             <Td>
@@ -113,6 +120,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                     size='sm'
                                     ml={2}
                                     onClick={() => handleComplete(task)}
+                                    isDisabled={task.status === 'Completed'} // Disable if task is completed
                                 >
                                     Completed
                                 </Button>
@@ -121,7 +129,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                     ))
                 ) : (
                     <Tr>
-                        <Td colSpan={6} textAlign="center" color="gray.500">
+                        <Td colSpan={5} textAlign="center" color="gray.500">
                             No tasks available
                         </Td>
                     </Tr>
