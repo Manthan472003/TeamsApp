@@ -20,9 +20,9 @@ const TaskManager = () => {
     const [users, setUsers] = useState([]);
     const [selectedSectionId, setSelectedSectionId] = useState(null);
     const [taskToEdit, setTaskToEdit] = useState(null);
+    const [currentUserId, setCurrentUserId] = useState(null); // Define currentUserId
     const toast = useToast();
 
-    // Fetch sections from API
     const fetchSections = useCallback(async () => {
         try {
             const response = await getSections();
@@ -43,12 +43,13 @@ const TaskManager = () => {
         }
     }, [toast]);
 
-    // Fetch users from API
     const fetchUsers = useCallback(async () => {
         try {
             const response = await getUsers();
             if (response && response.data) {
                 setUsers(response.data);
+                // Example: Set currentUserId from users
+                setCurrentUserId(response.data[0]?.id); // Adjust based on your application logic
             } else {
                 throw new Error('Unexpected response format');
             }
@@ -64,7 +65,6 @@ const TaskManager = () => {
         }
     }, [toast]);
 
-    // Fetch tasks for a specific section
     const fetchTasksBySection = useCallback(async (sectionId) => {
         try {
             const response = await getTasksBySection(sectionId);
@@ -85,20 +85,17 @@ const TaskManager = () => {
         }
     }, [toast]);
 
-    // Fetch initial data
     useEffect(() => {
         fetchSections();
         fetchUsers();
     }, [fetchSections, fetchUsers]);
 
-    // Fetch tasks when section changes
     useEffect(() => {
         if (selectedSectionId) {
             fetchTasksBySection(selectedSectionId);
         }
     }, [selectedSectionId, fetchTasksBySection]);
 
-    // Add a new section
     const addSection = async (newSection) => {
         try {
             await fetchSections(); // Refresh sections list
@@ -120,19 +117,18 @@ const TaskManager = () => {
         }
     };
 
-    // Add a new task to the selected section
     const addTaskToSection = async (task) => {
-        if (!task.sectionID) {
+        if (!task.sectionID || !currentUserId) {
             toast({
                 title: "Error adding task.",
-                description: "Section ID is missing.",
+                description: "Section ID or User ID is missing.",
                 status: "error",
                 duration: 5000,
                 isClosable: true,
             });
             return;
         }
-
+    
         try {
             await saveTask(task); // Call API to save task
             await fetchTasksBySection(task.sectionID); // Refresh tasks for the specific section
@@ -155,7 +151,6 @@ const TaskManager = () => {
         }
     };
 
-    // Update an existing task's status
     const handleStatusChange = async (taskId, newStatus) => {
         try {
             const taskToUpdate = tasksBySection[selectedSectionId]?.find(task => task.id === taskId);
@@ -185,22 +180,28 @@ const TaskManager = () => {
         }
     };
 
-    // Handle task edit
     const handleEdit = (task) => {
         setTaskToEdit(task);
         onEditTaskOpen();
     };
 
-    // Handle section selection and open task modal
     const handleSectionClick = (sectionId) => {
         setSelectedSectionId(sectionId);
     };
 
-    // Handle task deletion
     const handleDelete = async (task) => {
         try {
             await deleteTask(task.id); // Call API to delete task
-            await fetchTasksBySection(selectedSectionId); // Refresh tasks list
+    
+            // Update state to remove deleted task from tasksBySection
+            setTasksBySection(prev => {
+                const updatedTasks = { ...prev };
+                if (updatedTasks[selectedSectionId]) {
+                    updatedTasks[selectedSectionId] = updatedTasks[selectedSectionId].filter(t => t.id !== task.id);
+                }
+                return updatedTasks;
+            });
+    
             toast({
                 title: "Task deleted.",
                 description: "The task was successfully deleted.",
@@ -219,6 +220,7 @@ const TaskManager = () => {
             });
         }
     };
+    
 
     return (
         <Box>
@@ -269,15 +271,15 @@ const TaskManager = () => {
             <AddTaskModal
                 isOpen={isTaskOpen}
                 onClose={onTaskClose}
-                onTaskAdded={(task) => addTaskToSection({ ...task, sectionID: selectedSectionId })}
-                sectionID={selectedSectionId}
+                onSubmit={(task) => addTaskToSection({ ...task, sectionID: selectedSectionId, createdBy: currentUserId })}
+                sectionID={selectedSectionId} // Ensure this is correct
             />
 
             <EditTaskModal
                 isOpen={isEditTaskOpen}
                 onClose={onEditTaskClose}
                 task={taskToEdit}
-                onTaskUpdated={() => fetchTasksBySection(selectedSectionId)} // Refresh tasks list after updating
+                onUpdate={() => fetchTasksBySection(selectedSectionId)} // Refresh tasks list after updating
             />
         </Box>
     );

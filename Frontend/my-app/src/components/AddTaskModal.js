@@ -135,6 +135,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
                                 <option value="Not Started">Not Started</option>
                                 <option value="In Progress">In Progress</option>
                                 <option value="On Hold">On Hold</option>
+                                <option value="Completed">Completed</option> {/* Added Completed status */}
                             </Select>
                         </FormControl>
                         <ModalFooter

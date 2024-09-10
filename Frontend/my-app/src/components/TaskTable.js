@@ -2,10 +2,7 @@ import React from 'react';
 import { Table, Thead, Tbody, Tr, Th, Td, Select, Button } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 
-// Table to display tasks
 const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
-    console.log('Rendering tasks:', tasks);
-
     const handleEditClick = (task) => {
         if (onEdit) {
             onEdit(task);
@@ -16,7 +13,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
 
     const handleStatusChange = (taskId, newStatus) => {
         if (onStatusChange) {
-            onStatusChange(taskId, newStatus); // Use the onStatusChange prop
+            onStatusChange(taskId, newStatus);
         } else {
             console.error('onStatusChange function is not defined');
         }
@@ -31,27 +28,18 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     };
 
     const handleComplete = (task) => {
-        console.log('Task marked as complete:', task); // Log to check if this function is triggered
         if (onStatusChange) {
-            onStatusChange(task.id, 'Completed'); // Call onStatusChange with status 'Completed'
+            onStatusChange(task.id, 'Completed');
         } else {
             console.error('onStatusChange function is not defined');
         }
     };
 
-    // Helper function to get the user name by ID
     const getUserNameById = (userId) => {
-        console.log('Looking for userId:', userId, 'in users:', users);
         const user = users.find(user => user.id === userId);
-        if (user) {
-            return user.userName;
-        } else {
-            console.warn(`User with ID ${userId} not found in users array`);
-            return 'Unknown';
-        }
+        return user ? user.userName : 'Unknown';
     };
 
-    // Filter out tasks where the status is 'Completed'
     const filteredTasks = tasks.filter(task => task.status !== 'Completed');
 
     return (
@@ -86,12 +74,11 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                     size='sm'
                                     bg='#ffffff'
                                     rounded={7}
-                                    isDisabled={task.status === 'Completed'} // Disable if task is completed
+                                    isDisabled={task.status === 'Completed'}
                                 >
                                     <option value="Not Started">Not Started</option>
                                     <option value="In Progress">In Progress</option>
                                     <option value="On Hold">On Hold</option>
-                                    <option value="Completed">Completed</option> {/* Added Completed status */}
                                 </Select>
                             </Td>
                             <Td>
@@ -120,7 +107,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                     size='sm'
                                     ml={2}
                                     onClick={() => handleComplete(task)}
-                                    isDisabled={task.status === 'Completed'} // Disable if task is completed
+                                    isDisabled={task.status === 'Completed'}
                                 >
                                     Completed
                                 </Button>

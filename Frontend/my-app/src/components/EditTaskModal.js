@@ -12,7 +12,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
     const [taskName, setTaskName] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [assignedTo, setAssignedTo] = useState('');
-    const [status, setStatus] = useState('A');
+    const [status, setStatus] = useState('Not Started');
     const [subTask, setSubTask] = useState('');
     const [description, setDescription] = useState('');
     const [sectionId, setSectionId] = useState('');
@@ -23,7 +23,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
             setTaskName(task.taskName || '');
             setDueDate(task.dueDate || '');
             setAssignedTo(task.taskAssignedToID || '');
-            setStatus(task.status || 'A');
+            setStatus(task.status || 'Not Started');
             setSubTask(task.subTask || '');
             setDescription(task.description || '');
             setSectionId(task.sectionID || '');
@@ -44,7 +44,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
             status,
             subTask,
             description,
-            sectionID: sectionId
+            sectionID: sectionId // Ensure sectionID is correctly included
         };
 
         try {
@@ -64,7 +64,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
                 <ModalCloseButton />
                 <ModalBody pb={0} overflowY="auto" maxH="calc(100vh - 150px)">
                     <form onSubmit={handleSubmit}>
-                        <FormControl>
+                        <FormControl mb={4}>
                             <FormLabel>Task Name</FormLabel>
                             <Input
                                 ref={initialRef}
@@ -73,7 +73,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
                                 onChange={(e) => setTaskName(e.target.value)}
                             />
                         </FormControl>
-                        <FormControl>
+                        <FormControl mb={4}>
                             <FormLabel>Due Date</FormLabel>
                             <Input
                                 value={dueDate}
@@ -81,7 +81,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
                                 onChange={(e) => setDueDate(e.target.value)}
                             />
                         </FormControl>
-                        <FormControl mt={4}>
+                        <FormControl mb={4}>
                             <FormLabel>Assigned To</FormLabel>
                             <Input
                                 placeholder='Enter Assigned Person'
@@ -89,7 +89,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
                                 onChange={(e) => setAssignedTo(e.target.value)}
                             />
                         </FormControl>
-                        {/* <FormControl mt={4}>
+                        <FormControl mb={4}>
                             <FormLabel>Status</FormLabel>
                             <Select
                                 value={status}
@@ -98,11 +98,12 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
                                 <option value="Not Started">Not Started</option>
                                 <option value="In Progress">In Progress</option>
                                 <option value="On Hold">On Hold</option>
+                                <option value="Completed">Completed</option>
                             </Select>
-                        </FormControl> */}
+                        </FormControl>
                         {showMore && (
                             <>
-                                <FormControl mt={4}>
+                                <FormControl mb={4}>
                                     <FormLabel>Sub-Task</FormLabel>
                                     <Input
                                         placeholder='Enter Sub-Task'
@@ -110,7 +111,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
                                         onChange={(e) => setSubTask(e.target.value)}
                                     />
                                 </FormControl>
-                                <FormControl mt={4}>
+                                <FormControl mb={4}>
                                     <FormLabel>Description</FormLabel>
                                     <Input
                                         placeholder='Enter Description'
