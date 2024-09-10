@@ -3,7 +3,8 @@ import {
     Button, useDisclosure, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast
 } from '@chakra-ui/react';
 import { getSections } from '../Services/SectionService';
-import { saveTask, getTasksBySection, deleteTask } from '../Services/TaskService';
+import { saveTask, getTasksBySection, deleteTask, updateTask } from '../Services/TaskService';
+import { getUsers } from '../Services/UserService'; // Assuming you have a UserService for fetching users
 import AddSectionModal from './AddSectionModal';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
@@ -16,6 +17,7 @@ const TaskManager = () => {
 
     const [sections, setSections] = useState([]);
     const [tasksBySection, setTasksBySection] = useState({});
+    const [users, setUsers] = useState([]); // State for users
     const [selectedSectionId, setSelectedSectionId] = useState(null);
     const [taskToEdit, setTaskToEdit] = useState(null);
     const toast = useToast();
@@ -42,12 +44,32 @@ const TaskManager = () => {
         }
     }, [toast]);
 
+    // Fetch users from API
+    const fetchUsers = useCallback(async () => {
+        try {
+            const response = await getUsers();
+            if (response && response.data) {
+                setUsers(response.data);
+            } else {
+                throw new Error('Unexpected response format');
+            }
+        } catch (error) {
+            console.error('Fetch Users Error:', error);
+            toast({
+                title: "Error fetching users.",
+                description: "Unable to fetch users. Please try again.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+    }, [toast]);
+
     // Fetch tasks for a specific section
     const fetchTasksBySection = useCallback(async (sectionId) => {
         try {
             const response = await getTasksBySection(sectionId);
             if (response && response.data) {
-                console.log(`Fetched tasks for section ${sectionId}:`, response.data);
                 setTasksBySection(prev => ({ ...prev, [sectionId]: response.data }));
             } else {
                 throw new Error('Unexpected response format');
@@ -64,27 +86,17 @@ const TaskManager = () => {
         }
     }, [toast]);
 
-    useEffect(() => {
-        console.log('Sections:', sections);
-        console.log('Tasks by Section:', tasksBySection);
-    }, [sections, tasksBySection]);
-
-
-
-
+    // Fetch initial data
     useEffect(() => {
         fetchSections();
-    }, [fetchSections]);
+        fetchUsers();
+    }, [fetchSections, fetchUsers]);
 
     useEffect(() => {
         if (selectedSectionId) {
             fetchTasksBySection(selectedSectionId);
         }
     }, [selectedSectionId, fetchTasksBySection]);
-
-    useEffect(() => {
-        console.log('Tasks by Section:', tasksBySection);
-    }, [tasksBySection]);
 
     // Add a new section
     const addSection = async () => {
@@ -145,20 +157,38 @@ const TaskManager = () => {
         }
     };
 
-
-
     // Update an existing task
-    const updateTask = (taskId, updatedTask) => {
-        setTasksBySection(prev => {
-            const updatedTasks = { ...prev };
-            Object.keys(updatedTasks).forEach(sectionId => {
-                updatedTasks[sectionId] = updatedTasks[sectionId].map(task =>
-                    task.id === taskId ? updatedTask : task
-                );
+    const updateTask = async (taskId, updatedTask) => {
+        try {
+            await updateTask(updatedTask); // Call the correct updateTask function
+            setTasksBySection(prev => {
+                const updatedTasks = { ...prev };
+                Object.keys(updatedTasks).forEach(sectionId => {
+                    updatedTasks[sectionId] = updatedTasks[sectionId].map(task =>
+                        task.id === taskId ? updatedTask : task
+                    );
+                });
+                return updatedTasks;
             });
-            return updatedTasks;
-        });
+            toast({
+                title: "Task updated.",
+                description: "The task was successfully updated.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error('Error updating task:', error.response || error);
+            toast({
+                title: "Error updating task.",
+                description: error.message,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
     };
+
 
     // Handle task edit
     const handleEdit = (task) => {
@@ -228,10 +258,11 @@ const TaskManager = () => {
                                 tasks={tasksBySection[section.id] || []}
                                 onEdit={handleEdit}
                                 onDelete={handleDelete}
+                                onStatusChange={updateTask} // Pass the updateTask function
+                                users={users} // Pass the list of users
                             />
                         </AccordionPanel>
                     </AccordionItem>
-
                 ))}
             </Accordion>
 

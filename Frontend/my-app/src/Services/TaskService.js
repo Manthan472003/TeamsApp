@@ -8,7 +8,7 @@ const API_URL = 'http://localhost:8080/tasks';
 export const getTasks = () => axios.get(API_URL);
 
 // Fetch tasks for a specific section
-export const getTasksBySection = (sectionId) => axios.get(`${API_URL}?sectionId=${sectionId}`);
+export const getTasksBySection = (sectionId) => axios.get(`${API_URL}/section/${sectionId}`);
 
 // Save a new task
 export const saveTask = (task) => axios.post(API_URL, task);

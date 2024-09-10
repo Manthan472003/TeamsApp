@@ -3,7 +3,7 @@ import { Table, Thead, Tbody, Tr, Th, Td, Select, Button } from '@chakra-ui/reac
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 
 // ........................................................... Table to display tasks
-const TaskTable = ({ tasks = [], onEdit, onDelete, onStatusChange }) => {
+const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     console.log('Rendering tasks:', tasks);
 
     const handleEditClick = (task) => {
@@ -37,13 +37,24 @@ const TaskTable = ({ tasks = [], onEdit, onDelete, onStatusChange }) => {
         }
     };
 
+    // Helper function to get the user name by ID
+    const getUserNameById = (userId) => {
+        console.log('Looking for userId:', userId, 'in users:', users);
+        const user = users.find(user => user.id === userId);
+        if (user) {
+            return user.userName;
+        } else {
+            console.warn(`User with ID ${userId} not found in users array`);
+            return 'Unknown';
+        }
+    };
+
     return (
         <Table variant='striped' mt={4}>
             <Thead>
                 <Tr>
                     <Th width='30%'>Task Name</Th>
                     <Th width='10%'>Due Date</Th>
-                    {/* <Th width='20%'>Tags</Th> */}
                     <Th width='20%'>Assigned To</Th>
                     <Th width='15%'>Status</Th>
                     <Th width='25%'>Action</Th>
@@ -60,14 +71,7 @@ const TaskTable = ({ tasks = [], onEdit, onDelete, onStatusChange }) => {
                         >
                             <Td>{task.taskName}</Td>
                             <Td>{task.dueDate}</Td>
-                            {/* <Td>
-                                {task.tags.map((tag, idx) => (
-                                    <Tag key={idx} colorScheme='green' mr={2}>
-                                        <TagLabel>{tag}</TagLabel>
-                                    </Tag>
-                                ))}
-                            </Td> */}
-                            <Td>{task.taskAssignedTo}</Td>
+                            <Td>{getUserNameById(task.taskAssignedToID)}</Td> {/* Updated */}
                             <Td>
                                 <Select
                                     name="status"
@@ -75,7 +79,7 @@ const TaskTable = ({ tasks = [], onEdit, onDelete, onStatusChange }) => {
                                     value={task.status}
                                     onChange={(e) => handleStatusChange(task.id, e.target.value)}
                                     size='sm'
-                                    bg='#ffffff' 
+                                    bg='#ffffff'
                                     rounded={7}
                                 >
                                     <option value="A">Not Started</option>
@@ -111,7 +115,7 @@ const TaskTable = ({ tasks = [], onEdit, onDelete, onStatusChange }) => {
                                     ml={2}
                                     onClick={() => handleComplete(task)}
                                 >
-                                    Complete
+                                    Completed
                                 </Button>
                             </Td>
                         </Tr>

@@ -11,6 +11,9 @@ router.get('/', taskController.getAllTasks);
 // Route for getting a task by ID
 router.get('/:id', taskController.getTaskById);
 
+// Route for getting tasks by section ID
+router.get('/section/:sectionID', taskController.getTasksBySectionID); // New route
+
 // Route for updating a task by ID
 router.put('/:id', taskController.updateTaskById);
 

@@ -54,7 +54,7 @@ const createTask = async (req, res) => {
 
         return res.status(201).json({ message: 'Task created successfully.', newTask });
     } catch (error) {
-        console.error(error); // Log error for debugging
+        console.error('Error creating task:', error); // Log error for debugging
         return res.status(500).json({ message: 'Error creating task.' });
     }
 };
@@ -65,7 +65,7 @@ const getAllTasks = async (req, res) => {
         const tasks = await Task.findAll();
         return res.status(200).json(tasks);
     } catch (error) {
-        console.error(error); // Log error for debugging
+        console.error('Error retrieving tasks:', error); // Log error for debugging
         return res.status(500).json({ message: 'Error retrieving tasks.' });
     }
 };
@@ -74,15 +74,22 @@ const getAllTasks = async (req, res) => {
 const getTaskById = async (req, res) => {
     try {
         const { id } = req.params;
+
+        // Validate ID
+        if (!id) {
+            return res.status(400).json({ message: 'ID parameter is required.' });
+        }
+
         const task = await Task.findOne({
             where: { id }
         });
         if (!task) {
             return res.status(404).json({ message: 'Task not found.' });
         }
+
         return res.status(200).json(task);
     } catch (error) {
-        console.error(error); // Log error for debugging
+        console.error('Error retrieving task:', error); // Log error for debugging
         return res.status(500).json({ message: 'Error retrieving task.' });
     }
 };
@@ -94,6 +101,9 @@ const updateTaskById = async (req, res) => {
         const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID } = req.body;
 
         // Validate required fields
+        if (!id) {
+            return res.status(400).json({ message: 'ID parameter is required for update.' });
+        }
         if (!taskName || !sectionID) {
             return res.status(400).json({ message: 'Task name and section ID are required for update.' });
         }
@@ -148,7 +158,7 @@ const updateTaskById = async (req, res) => {
 
         return res.status(200).json({ message: 'Task updated successfully.', task });
     } catch (error) {
-        console.error(error); // Log error for debugging
+        console.error('Error updating task:', error); // Log error for debugging
         return res.status(500).json({ message: 'Error updating task.' });
     }
 };
@@ -157,6 +167,12 @@ const updateTaskById = async (req, res) => {
 const deleteTaskById = async (req, res) => {
     try {
         const { id } = req.params;
+
+        // Validate ID
+        if (!id) {
+            return res.status(400).json({ message: 'ID parameter is required.' });
+        }
+
         const task = await Task.findOne({
             where: { id }
         });
@@ -167,8 +183,32 @@ const deleteTaskById = async (req, res) => {
         await task.destroy();
         return res.status(200).json({ message: 'Task deleted successfully.' });
     } catch (error) {
-        console.error(error); // Log error for debugging
+        console.error('Error deleting task:', error); // Log error for debugging
         return res.status(500).json({ message: 'Error deleting task.' });
+    }
+};
+
+// Get tasks by sectionID
+const getTasksBySectionID = async (req, res) => {
+    try {
+        const { sectionID } = req.params;
+
+        // Check if section exists
+        const section = await Section.findOne({
+            where: { id: sectionID }
+        });
+        if (!section) {
+            return res.status(404).json({ message: 'Section does not exist.' });
+        }
+
+        const tasks = await Task.findAll({
+            where: { sectionID }
+        });
+
+        return res.status(200).json(tasks);
+    } catch (error) {
+        console.error(error); // Log error for debugging
+        return res.status(500).json({ message: 'Error retrieving tasks by sectionID.' });
     }
 };
 
@@ -177,5 +217,6 @@ module.exports = {
     getAllTasks,
     getTaskById,
     updateTaskById,
-    deleteTaskById
+    deleteTaskById,
+    getTasksBySectionID
 };
