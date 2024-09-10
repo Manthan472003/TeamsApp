@@ -1,23 +1,36 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
     Select, Button, Modal,
     ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, FormControl, FormLabel, Input,
-    ModalCloseButton,Stack,Tag,TagLabel
+    ModalCloseButton, Stack, Tag, TagLabel
 } from '@chakra-ui/react';
 import TagDropdown from './TagDropdown';
 
-
-//........................................................... Modal for editing a task
 const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
     const initialRef = useRef(null);
-    const [taskName, setTaskName] = useState(task.taskName || '');
-    const [dueDate, setDueDate] = useState(task.dueDate || '');
-    const [selectedTags, setSelectedTags] = useState(task.tags || []);
-    const [assignedTo, setAssignedTo] = useState(task.taskAssignedTo || '');
-    const [status, setStatus] = useState(task.status || 'A');
-    const [subTask, setSubTask] = useState(task.subTask || '');
-    const [description, setDescription] = useState(task.description || '');
+
+    // Initialize state variables with default values
+    const [taskName, setTaskName] = useState('');
+    const [dueDate, setDueDate] = useState('');
+    const [selectedTags, setSelectedTags] = useState([]);
+    const [assignedTo, setAssignedTo] = useState('');
+    const [status, setStatus] = useState('A');
+    const [subTask, setSubTask] = useState('');
+    const [description, setDescription] = useState('');
     const [showMore, setShowMore] = useState(false);
+
+    // Effect to update state when `task` prop changes
+    useEffect(() => {
+        if (task) {
+            setTaskName(task.taskName || '');
+            setDueDate(task.dueDate || '');
+            setSelectedTags(task.tags || []);
+            setAssignedTo(task.taskAssignedTo || '');
+            setStatus(task.status || 'A');
+            setSubTask(task.subTask || '');
+            setDescription(task.description || '');
+        }
+    }, [task]);
 
     const handleTagSelect = (tags) => {
         setSelectedTags(tags);
@@ -25,6 +38,9 @@ const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
 
     const handleSubmit = (event) => {
         event.preventDefault();
+        if (!task) return; // Guard clause for undefined task
+
+        // Submit the updated task with the section ID included
         onSubmit(task.id, {
             ...task,
             taskName,
@@ -130,4 +146,4 @@ const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
     );
 };
 
-export default EditTaskModal
+export default EditTaskModal;

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const taskController = require('../Controllers/taskController');
 
-// Route for creating a new task (Signup)
+// Route for creating a new task
 router.post('/', taskController.createTask);
 
 // Route for getting all tasks

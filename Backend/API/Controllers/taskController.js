@@ -54,7 +54,8 @@ const createTask = async (req, res) => {
 
         return res.status(201).json({ message: 'Task created successfully.', newTask });
     } catch (error) {
-        return res.status(500).json({ message: 'Error creating task.', error });
+        console.error(error); // Log error for debugging
+        return res.status(500).json({ message: 'Error creating task.' });
     }
 };
 
@@ -64,7 +65,8 @@ const getAllTasks = async (req, res) => {
         const tasks = await Task.findAll();
         return res.status(200).json(tasks);
     } catch (error) {
-        return res.status(500).json({ message: 'Error retrieving tasks.', error });
+        console.error(error); // Log error for debugging
+        return res.status(500).json({ message: 'Error retrieving tasks.' });
     }
 };
 
@@ -80,7 +82,8 @@ const getTaskById = async (req, res) => {
         }
         return res.status(200).json(task);
     } catch (error) {
-        return res.status(500).json({ message: 'Error retrieving task.', error });
+        console.error(error); // Log error for debugging
+        return res.status(500).json({ message: 'Error retrieving task.' });
     }
 };
 
@@ -145,7 +148,8 @@ const updateTaskById = async (req, res) => {
 
         return res.status(200).json({ message: 'Task updated successfully.', task });
     } catch (error) {
-        return res.status(500).json({ message: 'Error updating task.', error });
+        console.error(error); // Log error for debugging
+        return res.status(500).json({ message: 'Error updating task.' });
     }
 };
 
@@ -163,7 +167,8 @@ const deleteTaskById = async (req, res) => {
         await task.destroy();
         return res.status(200).json({ message: 'Task deleted successfully.' });
     } catch (error) {
-        return res.status(500).json({ message: 'Error deleting task.', error });
+        console.error(error); // Log error for debugging
+        return res.status(500).json({ message: 'Error deleting task.' });
     }
 };
 

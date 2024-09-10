@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
     Button, useDisclosure, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast
 } from '@chakra-ui/react';
-import { getSections, saveSection } from '../Services/SectionService';
+import { getSections } from '../Services/SectionService';
+import { saveTask } from '../Services/TaskService';
 import AddSectionModal from './AddSectionModal';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
@@ -14,14 +15,14 @@ const TaskManager = () => {
     const { isOpen: isEditTaskOpen, onOpen: onEditTaskOpen, onClose: onEditTaskClose } = useDisclosure();
 
     const [sections, setSections] = useState([]);
-    const [selectedSectionIndex, setSelectedSectionIndex] = useState(null);
+    const [selectedSectionId, setSelectedSectionId] = useState(null);
     const [taskToEdit, setTaskToEdit] = useState(null);
     const toast = useToast();
+    const userId = localStorage.getItem('userId'); // Get logged-in user ID
 
     const fetchSections = useCallback(async () => {
         try {
             const response = await getSections();
-            console.log('Fetched sections:', response.data);
             if (response && response.data) {
                 setSections(response.data);
             } else {
@@ -64,15 +65,38 @@ const TaskManager = () => {
         }
     };
 
-    const addTaskToSection = (task) => {
-        if (selectedSectionIndex === null) return;
+    const addTaskToSection = async (task) => {
+        if (!task.sectionID) {
+            toast({
+                title: "Error adding task.",
+                description: "Section ID is missing.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+            return;
+        }
 
-        const updatedSections = [...sections];
-        updatedSections[selectedSectionIndex].tasks = [
-            ...(updatedSections[selectedSectionIndex].tasks || []),
-            task
-        ];
-        setSections(updatedSections);
+        try {
+            await saveTask(task); // Call API to create task
+            await fetchSections(); // Refresh sections list after task creation
+            toast({
+                title: "Task added.",
+                description: "The new task was successfully added.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error('Error adding task:', error.response || error);
+            toast({
+                title: "Error adding task.",
+                description: error.message,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
     };
 
     const updateTask = (taskId, updatedTask) => {
@@ -88,8 +112,8 @@ const TaskManager = () => {
         onEditTaskOpen();
     };
 
-    const handleSectionOpen = (index) => {
-        setSelectedSectionIndex(index);
+    const handleSectionOpen = (sectionId) => {
+        setSelectedSectionId(sectionId);
         onTaskOpen();
     };
 
@@ -102,28 +126,26 @@ const TaskManager = () => {
             <AddSectionModal
                 isOpen={isSectionOpen}
                 onClose={onSectionClose}
-                onSectionAdded={addSection} // Ensure this is correctly passed and called
+                onSectionAdded={addSection}
             />
 
             <Accordion defaultIndex={sections.length > 0 ? [0] : []} allowMultiple>
-                {sections.map((section, index) => (
+                {sections.map(section => (
                     <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
                         <AccordionButton>
                             <Box flex='1' textAlign='left'>
-                                <Text fontSize='xl' fontWeight='bold' color='tomato'>
-                                    {section.sectionName || 'Unnamed Section'}
-                                </Text>
+                                <Text fontSize='xl' fontWeight='bold' color='tomato'>{section.sectionName}</Text>
+                                <Text fontSize='md' color='gray.500'>{section.description}</Text>
                             </Box>
                             <AccordionIcon />
                         </AccordionButton>
-                        <AccordionPanel>
-                            <Button onClick={() => handleSectionOpen(index)}>
+                        <AccordionPanel pb={4}>
+                            <Button onClick={() => handleSectionOpen(section.id)} colorScheme='blue' mb={3}>
                                 Add Task to {section.sectionName || 'Unnamed Section'}
                             </Button>
                             <TaskTable
-                                tasks={section.tasks || []}
+                                tasks={section.tasks}
                                 onEdit={handleEdit}
-                                onDelete={(task) => console.log('Delete', task)}
                             />
                         </AccordionPanel>
                     </AccordionItem>
@@ -133,21 +155,17 @@ const TaskManager = () => {
             <AddTaskModal
                 isOpen={isTaskOpen}
                 onClose={onTaskClose}
-                sectionIndex={selectedSectionIndex}
-                onSubmit={addTaskToSection}
+                onSubmit={(task) => addTaskToSection({ ...task, sectionID: selectedSectionId })}
+                userId={userId} // Pass the user ID
+                sectionID={selectedSectionId} // Pass the section ID to the modal
             />
 
-            {taskToEdit && (
-                <EditTaskModal
-                    isOpen={isEditTaskOpen}
-                    onClose={onEditTaskClose}
-                    task={taskToEdit}
-                    onSubmit={(updatedTask) => {
-                        updateTask(taskToEdit.id, updatedTask);
-                        onEditTaskClose();
-                    }}
-                />
-            )}
+            <EditTaskModal
+                isOpen={isEditTaskOpen}
+                onClose={onEditTaskClose}
+                task={taskToEdit}
+                onUpdate={updateTask}
+            />
         </Box>
     );
 };

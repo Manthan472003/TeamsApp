@@ -33,7 +33,7 @@ const UserDropdown = ({ selectedUser, onUserSelect }) => {
         >
             {users.map(user => (
                 <option key={user.id} value={user.id}>
-                    {user.UserName || 'Unnamed User'}
+                    {user.userName || 'Unnamed User'}
                 </option>
             ))}
         </Select>

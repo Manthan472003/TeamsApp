@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, chakra, Box, Link, Avatar, FormControl, FormHelperText, InputRightElement, Text } from '@chakra-ui/react';
+import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, InputRightElement, chakra, Box, Link, Avatar, FormControl, Text } from '@chakra-ui/react';
 import { FaUserAlt, FaLock } from 'react-icons/fa';
 import axios from 'axios';
 
@@ -17,35 +17,58 @@ const Login = () => {
   const handleShowClick = () => setShowPassword(!showPassword);
   const handleToggle = () => navigate('/signup');
 
+  const validateForm = () => {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailPattern.test(email) && password.length >= 6;
+  };
+
   const handleLogin = async (event) => {
     event.preventDefault();
     setError('');
-  
+
+    if (!validateForm()) {
+      setError('Please enter a valid email and a password with at least 6 characters.');
+      return;
+    }
+
     try {
       const response = await axios.post('http://localhost:8080/users/login', { email, password });
-  
-      // Assuming the backend returns a success message
+
       if (response.status === 200) {
-        navigate('/home');
+        console.log(response.data); // Check the response data
+        const { userName, userId } = response.data; // Get the username and userId from the response
+        localStorage.setItem('userName', userName || email); // Store the username or email if no userName is available
+        localStorage.setItem('userId', userId); // Store the userId
+
+        navigate('/home'); // Navigate to home after successful login
       }
     } catch (error) {
-      if (error.response && error.response.status === 400) {
-        setError('Incorrect email or password');
+      if (error.response) {
+        switch (error.response.status) {
+          case 400:
+            setError('Incorrect email or password');
+            break;
+          case 401:
+            setError('Unauthorized');
+            break;
+          default:
+            setError('An error occurred. Please try again later.');
+        }
       } else {
-        setError('An error occurred. Please try again later.');
+        setError('Network error. Please check your connection.');
       }
     }
   };
-  
 
   return (
     <Flex
       flexDirection="column"
-      width="100wh"
+      width="100%"
       height="100vh"
       backgroundColor="#E6FFFA"
       justifyContent="center"
       alignItems="center"
+      p={{ base: 4, md: 8 }}
     >
       <Stack flexDir="column" mb="2" justifyContent="center" alignItems="center">
         <Avatar bg="teal.500" />
@@ -55,10 +78,10 @@ const Login = () => {
             <Stack spacing={4} p="1rem" backgroundColor="whiteAlpha.900" boxShadow="md">
               <FormControl>
                 <InputGroup>
-                  <InputLeftElement pointerEvents="none" children={<CFaUserAlt color="gray.300" />} />
+                  <InputLeftElement pointerEvents="none" aria-label="Email Icon" children={<CFaUserAlt color="gray.300" />} />
                   <Input
                     type="email"
-                    placeholder="email address"
+                    placeholder="Email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     isRequired
@@ -67,7 +90,7 @@ const Login = () => {
               </FormControl>
               <FormControl>
                 <InputGroup>
-                  <InputLeftElement pointerEvents="none" color="gray.300" children={<CFaLock color="gray.300" />} />
+                  <InputLeftElement pointerEvents="none" aria-label="Password Icon" color="gray.300" children={<CFaLock color="gray.300" />} />
                   <Input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Password"
@@ -81,9 +104,6 @@ const Login = () => {
                     </Button>
                   </InputRightElement>
                 </InputGroup>
-                <FormHelperText textAlign="right">
-                  <Link>forgot password?</Link>
-                </FormHelperText>
               </FormControl>
               {error && <Text color="red.500">{error}</Text>}
               <Button borderRadius={0} type="submit" variant="solid" colorScheme="teal" width="full">
@@ -102,5 +122,7 @@ const Login = () => {
     </Flex>
   );
 };
+
+
 
 export default Login;

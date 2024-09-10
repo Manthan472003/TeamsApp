@@ -3,45 +3,58 @@ import {
     Select, Button, Modal,
     ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, FormControl, FormLabel, Input,
     ModalCloseButton,
+    useToast
 } from '@chakra-ui/react';
-import TagDropdown from './TagDropdown';
-import UserDropdown from './UserDropdown';  // Import UserDropdown
+import UserDropdown from './UserDropdown';
 
-const AddTaskModal = ({ isOpen, onClose, sectionIndex, onSubmit }) => {
+const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
     const initialRef = useRef(null);
     const [taskName, setTaskName] = useState('');
     const [dueDate, setDueDate] = useState('');
-    const [selectedTags, setSelectedTags] = useState([]);
     const [assignedTo, setAssignedTo] = useState('');
-    const [status, setStatus] = useState('A');
-
-    const handleTagSelect = (tags) => {
-        setSelectedTags(tags);
-    };
+    const [status, setStatus] = useState('Not Started');
+    const toast = useToast();
 
     const handleUserSelect = (userId) => {
         setAssignedTo(userId);
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         const task = {
-            id: Date.now(), // Unique ID for each task
             taskName,
             dueDate,
-            tags: selectedTags,
-            taskAssignedTo: assignedTo,
-            status
+            taskAssignedToID: assignedTo,
+            taskCreatedByID: parseInt(userId, 10),
+            status,
+            sectionID // Include sectionID here
         };
-        console.log('Submitting task:', { sectionIndex, task });
+    
+        try {
+            await onSubmit(task);
+            toast({
+                title: "Task added.",
+                description: "The new task was successfully added.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error('Error adding task:', error);
+            toast({
+                title: "Error adding task.",
+                description: error.response?.data?.message || "An error occurred while adding the task.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
 
-        onSubmit(sectionIndex, task);
-
+        // Reset form fields
         setTaskName('');
         setDueDate('');
-        setSelectedTags([]);
         setAssignedTo('');
-        setStatus('A');
+        setStatus('Not Started');
         onClose();
     };
 
@@ -71,6 +84,7 @@ const AddTaskModal = ({ isOpen, onClose, sectionIndex, onSubmit }) => {
                                 placeholder='Enter Task Name'
                                 value={taskName}
                                 onChange={(e) => setTaskName(e.target.value)}
+                                required
                             />
                         </FormControl>
                         <FormControl mb={4}>
@@ -79,13 +93,7 @@ const AddTaskModal = ({ isOpen, onClose, sectionIndex, onSubmit }) => {
                                 value={dueDate}
                                 type='date'
                                 onChange={(e) => setDueDate(e.target.value)}
-                            />
-                        </FormControl>
-                        <FormControl mb={4}>
-                            <FormLabel>Tags</FormLabel>
-                            <TagDropdown
-                                selectedTags={selectedTags}
-                                onTagSelect={handleTagSelect}
+                                required
                             />
                         </FormControl>
                         <FormControl mb={4}>
@@ -101,9 +109,9 @@ const AddTaskModal = ({ isOpen, onClose, sectionIndex, onSubmit }) => {
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value)}
                             >
-                                <option value="A">Not Started</option>
-                                <option value="B">In Progress</option>
-                                <option value="D">On Hold</option>
+                                <option value="Not Started">Not Started</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="On Hold">On Hold</option>
                             </Select>
                         </FormControl>
                         <ModalFooter

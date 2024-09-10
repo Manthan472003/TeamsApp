@@ -1,14 +1,15 @@
-import React from 'react'
+import React from 'react';
 import {
-    Table, Thead, Tbody, Tr, Th, Td, Tag, TagLabel, Select, Button, Checkbox} from '@chakra-ui/react';
+    Table, Thead, Tbody, Tr, Th, Td, Button, Select, Checkbox
+} from '@chakra-ui/react';
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 
-// ...........................................................Table to display tasks
 const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
     console.log('Rendering tasks:', tasks);
 
     const handleStatusChange = (taskId, newStatus) => {
         console.log(`Update status of task ${taskId} to ${newStatus}`);
+        // Implement status update logic here
     };
 
     const handleDelete = (task) => {
@@ -26,10 +27,10 @@ const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
                 <Tr>
                     <Th>Task Name</Th>
                     <Th>Due Date</Th>
-                    <Th>Tags</Th>
+                    {/* <Th>Tags</Th> */}
                     <Th>Assigned To</Th>
                     <Th>Status</Th>
-                    <Th>Action</Th>
+                    <Th>Actions</Th>
                 </Tr>
             </Thead>
             <Tbody>
@@ -38,13 +39,13 @@ const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
                         <Tr key={task.id}>
                             <Td>{task.taskName}</Td>
                             <Td>{task.dueDate}</Td>
-                            <Td>
+                            {/* <Td>
                                 {task.tags.map((tag, idx) => (
                                     <Tag key={idx} colorScheme='green' mr={2}>
                                         <TagLabel>{tag}</TagLabel>
                                     </Tag>
                                 ))}
-                            </Td>
+                            </Td> */}
                             <Td>{task.taskAssignedTo}</Td>
                             <Td>
                                 <Select
@@ -96,7 +97,6 @@ const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
             </Tbody>
         </Table>
     );
-};  
+};
 
-
-export default TaskTable
+export default TaskTable;
