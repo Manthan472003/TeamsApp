@@ -4,7 +4,7 @@ import {
     ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, FormControl, FormLabel, Input,
     ModalCloseButton, Stack, Tag, TagLabel
 } from '@chakra-ui/react';
-import TagDropdown from './TagDropdown';
+// import TagDropdown from './TagDropdown';
 
 const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
     const initialRef = useRef(null);
@@ -32,9 +32,9 @@ const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
         }
     }, [task]);
 
-    const handleTagSelect = (tags) => {
-        setSelectedTags(tags);
-    };
+    // const handleTagSelect = (tags) => {
+    //     setSelectedTags(tags);
+    // };
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -79,7 +79,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
                                 onChange={(e) => setDueDate(e.target.value)}
                             />
                         </FormControl>
-                        <FormControl mt={4}>
+                        {/* <FormControl mt={4}>
                             <FormLabel>Tags</FormLabel>
                             <TagDropdown
                                 selectedTags={selectedTags}
@@ -92,7 +92,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onSubmit }) => {
                                     </Tag>
                                 ))}
                             </Stack>
-                        </FormControl>
+                        </FormControl> */}
                         <FormControl mt={4}>
                             <FormLabel>Assigned To</FormLabel>
                             <Input

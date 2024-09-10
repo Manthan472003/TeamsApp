@@ -1,9 +1,14 @@
+// TaskService.js
+
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/tasks';
 
 // Fetch all tasks
 export const getTasks = () => axios.get(API_URL);
+
+// Fetch tasks for a specific section
+export const getTasksBySection = (sectionId) => axios.get(`${API_URL}?sectionId=${sectionId}`);
 
 // Save a new task
 export const saveTask = (task) => axios.post(API_URL, task);

@@ -3,7 +3,7 @@ import {
     Button, useDisclosure, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast
 } from '@chakra-ui/react';
 import { getSections } from '../Services/SectionService';
-import { saveTask } from '../Services/TaskService';
+import { saveTask, getTasksBySection, deleteTask } from '../Services/TaskService';
 import AddSectionModal from './AddSectionModal';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
@@ -16,10 +16,12 @@ const TaskManager = () => {
 
     const [sections, setSections] = useState([]);
     const [selectedSectionId, setSelectedSectionId] = useState(null);
+    const [tasks, setTasks] = useState([]);
     const [taskToEdit, setTaskToEdit] = useState(null);
     const toast = useToast();
     const userId = localStorage.getItem('userId'); // Get logged-in user ID
 
+    // Fetch sections from API
     const fetchSections = useCallback(async () => {
         try {
             const response = await getSections();
@@ -40,10 +42,38 @@ const TaskManager = () => {
         }
     }, [toast]);
 
+    // Fetch tasks for the selected section
+    const fetchTasksBySection = useCallback(async (sectionId) => {
+        try {
+            const response = await getTasksBySection(sectionId);
+            if (response && response.data) {
+                setTasks(response.data);
+            } else {
+                throw new Error('Unexpected response format');
+            }
+        } catch (error) {
+            console.error('Fetch Tasks Error:', error);
+            toast({
+                title: "Error fetching tasks.",
+                description: "Unable to fetch tasks. Please try again.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+    }, [toast]);
+
     useEffect(() => {
         fetchSections();
     }, [fetchSections]);
 
+    useEffect(() => {
+        if (selectedSectionId) {
+            fetchTasksBySection(selectedSectionId);
+        }
+    }, [selectedSectionId, fetchTasksBySection]);
+
+    // Add a new section
     const addSection = async () => {
         try {
             await fetchSections(); // Refresh sections list
@@ -65,6 +95,7 @@ const TaskManager = () => {
         }
     };
 
+    // Add a new task to the selected section
     const addTaskToSection = async (task) => {
         if (!task.sectionID) {
             toast({
@@ -79,7 +110,7 @@ const TaskManager = () => {
 
         try {
             await saveTask(task); // Call API to create task
-            await fetchSections(); // Refresh sections list after task creation
+            await fetchTasksBySection(task.sectionID); // Refresh tasks list after task creation
             toast({
                 title: "Task added.",
                 description: "The new task was successfully added.",
@@ -99,22 +130,47 @@ const TaskManager = () => {
         }
     };
 
+    // Update an existing task
     const updateTask = (taskId, updatedTask) => {
-        const updatedSections = sections.map(section => ({
-            ...section,
-            tasks: section.tasks.map(task => (task.id === taskId ? updatedTask : task))
-        }));
-        setSections(updatedSections);
+        const updatedTasks = tasks.map(task => (task.id === taskId ? updatedTask : task));
+        setTasks(updatedTasks);
     };
 
+    // Handle task edit
     const handleEdit = (task) => {
         setTaskToEdit(task);
         onEditTaskOpen();
     };
 
+    // Handle section selection and open task modal
     const handleSectionOpen = (sectionId) => {
         setSelectedSectionId(sectionId);
+        fetchTasksBySection(sectionId); // Fetch tasks for the selected section
         onTaskOpen();
+    };
+
+    // Handle task deletion
+    const handleDelete = async (task) => {
+        try {
+            await deleteTask(task.id); // Call API to delete task
+            await fetchTasksBySection(selectedSectionId); // Refresh tasks list
+            toast({
+                title: "Task deleted.",
+                description: "The task was successfully deleted.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error('Error deleting task:', error.response || error);
+            toast({
+                title: "Error deleting task.",
+                description: error.message,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
     };
 
     return (
@@ -144,8 +200,9 @@ const TaskManager = () => {
                                 Add Task to {section.sectionName || 'Unnamed Section'}
                             </Button>
                             <TaskTable
-                                tasks={section.tasks}
+                                tasks={tasks} // Pass tasks for the selected section
                                 onEdit={handleEdit}
+                                onDelete={handleDelete}
                             />
                         </AccordionPanel>
                     </AccordionItem>

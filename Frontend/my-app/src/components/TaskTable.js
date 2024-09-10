@@ -1,42 +1,63 @@
 import React from 'react';
-import {
-    Table, Thead, Tbody, Tr, Th, Td, Button, Select, Checkbox
-} from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Select, Button } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 
-const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
+// ........................................................... Table to display tasks
+const TaskTable = ({ tasks = [], onEdit, onDelete, onStatusChange }) => {
     console.log('Rendering tasks:', tasks);
 
+    const handleEditClick = (task) => {
+        if (onEdit) {
+            onEdit(task);
+        } else {
+            console.error('onEdit function is not defined');
+        }
+    };
+
     const handleStatusChange = (taskId, newStatus) => {
-        console.log(`Update status of task ${taskId} to ${newStatus}`);
-        // Implement status update logic here
+        if (onStatusChange) {
+            onStatusChange(taskId, newStatus);
+        }
     };
 
     const handleDelete = (task) => {
-        console.log('Deleting task:', task);
         if (onDelete) {
-            onDelete(task); // Ensure this function is properly implemented
+            onDelete(task);
         } else {
             console.error('onDelete function is not defined');
         }
     };
 
+    const handleComplete = (task) => {
+        console.log('Completing task:', task);
+        if (onStatusChange) {
+            onStatusChange(task.id, 'Completed');
+        } else {
+            console.error('onStatusChange function is not defined');
+        }
+    };
+
     return (
-        <Table variant='simple' mt={4}>
+        <Table variant='striped' mt={4}>
             <Thead>
                 <Tr>
-                    <Th>Task Name</Th>
-                    <Th>Due Date</Th>
-                    {/* <Th>Tags</Th> */}
-                    <Th>Assigned To</Th>
-                    <Th>Status</Th>
-                    <Th>Actions</Th>
+                    <Th width='30%'>Task Name</Th>
+                    <Th width='10%'>Due Date</Th>
+                    {/* <Th width='20%'>Tags</Th> */}
+                    <Th width='20%'>Assigned To</Th>
+                    <Th width='15%'>Status</Th>
+                    <Th width='25%'>Action</Th>
                 </Tr>
             </Thead>
             <Tbody>
                 {tasks.length > 0 ? (
-                    tasks.map((task) => (
-                        <Tr key={task.id}>
+                    tasks.map((task, index) => (
+                        <Tr
+                            key={task.id}
+                            style={{
+                                backgroundColor: index % 2 === 0 ? '#f9e79f' : '#d1f2eb'
+                            }}
+                        >
                             <Td>{task.taskName}</Td>
                             <Td>{task.dueDate}</Td>
                             {/* <Td>
@@ -53,10 +74,14 @@ const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
                                     id={`status-${task.id}`}
                                     value={task.status}
                                     onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                                    size='sm'
+                                    bg='#ffffff' 
+                                    rounded={7}
                                 >
                                     <option value="A">Not Started</option>
                                     <option value="B">In Progress</option>
                                     <option value="D">On Hold</option>
+                                    <option value="C">Completed</option>
                                 </Select>
                             </Td>
                             <Td>
@@ -65,7 +90,7 @@ const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
                                     colorScheme='green'
                                     size='sm'
                                     leftIcon={<EditIcon />}
-                                    onClick={() => onEdit(task)}
+                                    onClick={() => handleEditClick(task)}
                                 >
                                     Edit
                                 </Button>
@@ -79,17 +104,21 @@ const TaskTable = ({ tasks = [], onEdit, onDelete }) => {
                                 >
                                     Delete
                                 </Button>
-                            </Td>
-                            <Td>
-                                <Checkbox ml={2} mr={1} size='lg' colorScheme='green'>
-                                    COMPLETED
-                                </Checkbox>
+                                <Button
+                                    variant='solid'
+                                    colorScheme='green'
+                                    size='sm'
+                                    ml={2}
+                                    onClick={() => handleComplete(task)}
+                                >
+                                    Complete
+                                </Button>
                             </Td>
                         </Tr>
                     ))
                 ) : (
                     <Tr>
-                        <Td colSpan={7} textAlign="center" color="gray.500">
+                        <Td colSpan={6} textAlign="center" color="gray.500">
                             No tasks available
                         </Td>
                     </Tr>
