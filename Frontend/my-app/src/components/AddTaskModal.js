@@ -46,42 +46,37 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
         setAssignedTo(userId);
     };
 
+    useEffect(() => {
+        console.log('Updated selectedTags:', selectedTags);
+    }, [selectedTags]);
+    
+
     // Handle tag selection
     const handleTagSelect = (tags) => {
+        console.log('Received tags in AddTaskModal:', tags); // Check this output
         setSelectedTags(tags);
     };
+
 
     // Handle form submission
     const handleSubmit = async (event) => {
         event.preventDefault();
-
-        // Basic validation
-        if (!taskName || !dueDate || !assignedTo || !userId) {
-            toast({
-                title: "Error",
-                description: "Please fill in all required fields.",
-                status: "error",
-                duration: 5000,
-                isClosable: true,
-            });
-            return;
-        }
-
-        if (typeof onSubmit !== 'function') {
-            console.error('onSubmit is not a function');
-            return;
-        }
-
+    
+        // Ensure selectedTags contains valid IDs
+        const validTagIDs = selectedTags.filter(id => id != null); // Remove any null or undefined IDs
+    
         const task = {
             taskName,
             dueDate,
             taskAssignedToID: assignedTo,
             taskCreatedByID: parseInt(userId, 10),
             status,
-            sectionID, // Include sectionID here
-            tagIDs: selectedTags // Include selected tags here
+            sectionID,
+            tagIDs: validTagIDs // Ensure this array contains IDs
         };
-
+    
+        console.log('Submitting task:', task); // Verify that tagIDs are included correctly
+    
         try {
             await onSubmit(task);
             toast({
@@ -104,6 +99,11 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             });
         }
     };
+    
+
+
+
+
 
     return (
         <Modal initialFocusRef={initialRef} isOpen={isOpen} onClose={onClose} size="md">
@@ -156,6 +156,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                 selectedTags={selectedTags}
                                 onTagSelect={handleTagSelect}
                             />
+
                         </FormControl>
                         <FormControl mb={4}>
                             <FormLabel>Status</FormLabel>

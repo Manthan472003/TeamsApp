@@ -47,56 +47,83 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
         setSelectedTagIds(new Set(selectedTags));
     }, [selectedTags]);
 
-    const handleTagSelect = (tag) => {
-        const newSelectedTagIds = new Set(selectedTagIds);
-        if (newSelectedTagIds.has(tag.id)) {
-            newSelectedTagIds.delete(tag.id);
-        } else {
-            newSelectedTagIds.add(tag.id);
-        }
-        setSelectedTagIds(newSelectedTagIds);
-        onTagSelect(Array.from(newSelectedTagIds));
-    };
+// Inside TagDropdown component
+const handleTagSelect = (tag) => {
+    const newSelectedTagIds = new Set(selectedTagIds);
+    if (newSelectedTagIds.has(tag.id)) {
+        newSelectedTagIds.delete(tag.id);
+    } else {
+        newSelectedTagIds.add(tag.id);
+    }
+    const filteredTags = Array.from(newSelectedTagIds).filter(id => id != null); // Remove undefined values
+    console.log('Updated selected tags in TagDropdown:', filteredTags); // Debugging line
+    setSelectedTagIds(new Set(filteredTags));
+    onTagSelect(filteredTags); // This should pass the correct tag IDs
+};
+
+
+    
+    
 
     const handleAddCustomTag = async () => {
-        if (customTag && !tags.find(tag => tag.name === customTag)) {
-            const newTag = { tagName: customTag }; // Adjust according to your backend requirement
+        if (customTag.trim() === '') {
+            toast({
+                title: "Invalid Tag",
+                description: "Please enter a valid tag.",
+                status: "warning",
+                duration: 5000,
+                isClosable: true,
+            });
+            return;
+        }
 
-            try {
-                const response = await saveTag(newTag);
-                if (response.status === 201) {
-                    const newTagId = response.data.task.id; // Adjust according to your backend response
-                    setTags([...tags, { id: newTagId, name: customTag }]);
-                    const updatedSelectedTags = Array.from(selectedTagIds).concat(newTagId);
-                    setSelectedTagIds(new Set(updatedSelectedTags));
-                    onTagSelect(updatedSelectedTags);
-                    setCustomTag('');
-                    toast({
-                        title: "Tag Added",
-                        description: "Your custom tag has been added successfully.",
-                        status: "success",
-                        duration: 5000,
-                        isClosable: true,
-                    });
-                } else {
-                    toast({
-                        title: "Error Adding Tag",
-                        description: "There was an issue adding the tag. Please try again.",
-                        status: "error",
-                        duration: 5000,
-                        isClosable: true,
-                    });
-                }
-            } catch (error) {
-                console.error('Error saving tag:', error);
+        if (tags.some(tag => tag.name === customTag)) {
+            toast({
+                title: "Tag Already Exists",
+                description: "This tag already exists. Please choose a different tag.",
+                status: "warning",
+                duration: 5000,
+                isClosable: true,
+            });
+            return;
+        }
+
+        const newTag = { tagName: customTag };
+
+        try {
+            const response = await saveTag(newTag);
+            if (response.status === 201) {
+                const newTagId = response.data.id; // Adjust according to your backend response
+                setTags([...tags, { id: newTagId, name: customTag }]);
+                const updatedSelectedTags = Array.from(selectedTagIds).concat(newTagId);
+                setSelectedTagIds(new Set(updatedSelectedTags));
+                onTagSelect(updatedSelectedTags);
+                setCustomTag('');
                 toast({
-                    title: "Error",
-                    description: "There was an error connecting to the server. Please try again.",
+                    title: "Tag Added",
+                    description: "Your custom tag has been added successfully.",
+                    status: "success",
+                    duration: 5000,
+                    isClosable: true,
+                });
+            } else {
+                toast({
+                    title: "Error Adding Tag",
+                    description: "There was an issue adding the tag. Please try again.",
                     status: "error",
                     duration: 5000,
                     isClosable: true,
                 });
             }
+        } catch (error) {
+            console.error('Error saving tag:', error);
+            toast({
+                title: "Error",
+                description: "There was an error connecting to the server. Please try again.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
         }
     };
 
@@ -139,7 +166,7 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
                         )}
                     </MenuList>
                 </Menu>
-                <Box >
+                <Box>
                     <Flex align="center">
                         <Input
                             value={customTag}
@@ -150,7 +177,7 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
                         <Button
                             onClick={handleAddCustomTag}
                             colorScheme="teal"
-                            width="300px" 
+                            width="300px"
                         >
                             Add Custom Tag
                         </Button>
@@ -162,3 +189,4 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
 };
 
 export default TagDropdown;
+

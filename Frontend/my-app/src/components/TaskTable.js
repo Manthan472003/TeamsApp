@@ -1,13 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Thead, Tbody, Tr, Th, Td, Select, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon, CheckIcon } from '@chakra-ui/icons';
+import { getTags } from '../Services/TagService'; // Adjust import according to your file structure
+
 
 const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
     const { isOpen: isCompleteOpen, onOpen: onCompleteOpen, onClose: onCompleteClose } = useDisclosure();
-    
+
     const [taskToDelete, setTaskToDelete] = useState(null);
     const [taskToComplete, setTaskToComplete] = useState(null);
+    const [tags, setTags] = useState([]);
+
+    useEffect(() => {
+        const fetchTags = async () => {
+            try {
+                const response = await getTags();
+                setTags(response.data); // Assuming response.data contains the array of tags
+            } catch (error) {
+                console.error('Error fetching tags:', error);
+            }
+        };
+
+        fetchTags();
+    }, []);
+
 
     const handleEditClick = (task) => {
         if (onEdit) {
@@ -29,6 +46,20 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
         } else {
             console.error('onStatusChange function is not defined');
         }
+    };
+
+    
+    const getTagNamesByIds = (tagIds) => {
+        const tagMap = new Map(tags.map(tag => [tag.id, tag.tagName]));
+
+        return tagIds.map(id => {
+            const tagName = tagMap.get(id);
+            if (!tagName) {
+                console.error(`No tag found for ID: ${id}`);
+                return 'Unknown'; 
+            }
+            return tagName+",";
+        });
     };
 
     const handleDeleteClick = (task) => {
@@ -76,11 +107,12 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
             <Table variant='striped' mt={4}>
                 <Thead>
                     <Tr>
-                        <Th width='30%'>Task Name</Th>
+                        <Th width='27%'>Task Name</Th>
+                        <Th width='13%'>Tag</Th>
                         <Th width='10%'>Due Date</Th>
-                        <Th width='20%'>Assigned To</Th>
+                        <Th width='13%'>Assigned To</Th>
                         <Th width='15%'>Status</Th>
-                        <Th width='25%'>Action</Th>
+                        <Th width='27%'>Action</Th>
                     </Tr>
                 </Thead>
                 <Tbody>
@@ -93,6 +125,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                 }}
                             >
                                 <Td>{task.taskName}</Td>
+                                <Td>{getTagNamesByIds(task.tagIDs || [])}</Td>
                                 <Td>{formatDate(task.dueDate)}</Td>
                                 <Td>{getUserNameById(task.taskAssignedToID)}</Td>
                                 <Td>
