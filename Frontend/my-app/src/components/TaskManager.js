@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-    Button, useDisclosure, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast
+    Button, useDisclosure, Spacer, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast
 } from '@chakra-ui/react';
-import { getSections } from '../Services/SectionService';
+import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
+
+import { getSections, deleteSection } from '../Services/SectionService';
 import { saveTask, getTasksBySection, deleteTask, updateTask } from '../Services/TaskService';
 import { getUsers } from '../Services/UserService';
 import AddSectionModal from './AddSectionModal';
@@ -128,7 +130,7 @@ const TaskManager = () => {
             });
             return;
         }
-    
+
         try {
             await saveTask(task); // Call API to save task
             await fetchTasksBySection(task.sectionID); // Refresh tasks for the specific section
@@ -183,7 +185,16 @@ const TaskManager = () => {
     const handleEdit = (task) => {
         setTaskToEdit(task);
         onEditTaskOpen();
+
+        toast({
+            title: "Editing Task",
+            description: `You are now editing the task : ${task.taskName}`, // Assumes the task has a title property
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+        });
     };
+
 
     const handleSectionClick = (sectionId) => {
         setSelectedSectionId(sectionId);
@@ -192,7 +203,7 @@ const TaskManager = () => {
     const handleDelete = async (task) => {
         try {
             await deleteTask(task.id); // Call API to delete task
-    
+
             // Update state to remove deleted task from tasksBySection
             setTasksBySection(prev => {
                 const updatedTasks = { ...prev };
@@ -201,7 +212,7 @@ const TaskManager = () => {
                 }
                 return updatedTasks;
             });
-    
+
             toast({
                 title: "Task deleted.",
                 description: "The task was successfully deleted.",
@@ -220,7 +231,36 @@ const TaskManager = () => {
             });
         }
     };
-    
+    // Function to handle section edit
+    const handleEditSection = (section) => {
+        console.log('Edit section:', section);
+    };
+
+    // Function to handle section delete
+    const handleDeleteSection = async (section) => {
+        try {
+            await deleteSection(section.id);
+            await fetchSections();
+            toast({
+                title: "Section deleted.",
+                description: "The section was successfully deleted.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error('Error deleting section:', error.response || error);
+            toast({
+                title: "Error deleting section.",
+                description: error.message,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+    };
+
+
 
     return (
         <Box>
@@ -234,14 +274,33 @@ const TaskManager = () => {
                 onSectionAdded={addSection}
             />
 
-            <Accordion defaultIndex={sections.length > 0 ? [0] : []} allowMultiple>
+            <Accordion defaultIndex={[0]} allowMultiple
+            >
                 {sections.map(section => (
-                    <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
+                    <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4} >
                         <AccordionButton onClick={() => handleSectionClick(section.id)}>
                             <Box flex='1' textAlign='left'>
                                 <Text fontSize='xl' fontWeight='bold' color='#149edf'>{section.sectionName}</Text>
                                 <Text fontSize='md' color='gray.500'>{section.description}</Text>
                             </Box>
+                            <Spacer />
+                            <Button 
+                            variant='solid'
+                            colorScheme='green'
+                            size='sm'
+                            ml={2}
+                            leftIcon={<EditIcon />}
+                            onClick={(e) => { e.stopPropagation(); handleEditSection(section); }} mr={2}>
+                            </Button>
+                            <Button 
+                             variant='solid'
+                             colorScheme='red'
+                             size='sm'
+                             ml={2}
+                             leftIcon={<DeleteIcon />}
+                             onClick={(e) => { e.stopPropagation(); handleDeleteSection(section); }}>
+                                
+                            </Button>
                             <AccordionIcon />
                         </AccordionButton>
                         <AccordionPanel pb={4}>
@@ -251,7 +310,7 @@ const TaskManager = () => {
                                 textColor='Orange.500'
                                 border={2}
                                 variant='outline'
-                                sx={{ borderStyle: 'dotted', }}
+                                sx={{ borderStyle: 'dotted' }}
                                 mb={3}
                             >
                                 Add Task to {section.sectionName || 'Unnamed Section'}
@@ -267,6 +326,7 @@ const TaskManager = () => {
                     </AccordionItem>
                 ))}
             </Accordion>
+
 
             <AddTaskModal
                 isOpen={isTaskOpen}

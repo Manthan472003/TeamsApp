@@ -11,6 +11,9 @@ router.get('/', sectionController.getAllSections);
 // Route for getting a section by ID
 router.get('/:id', sectionController.getSectionById);
 
+//Route for updating sectionName by ID
+router.put('/:id', sectionController.updateSectionById);
+
 // Route for deleting a section by ID
 router.delete('/:id', sectionController.deleteSectionById);
 

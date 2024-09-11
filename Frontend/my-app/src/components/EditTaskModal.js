@@ -2,9 +2,11 @@ import React, { useRef, useState, useEffect } from 'react';
 import {
     Select, Button, Modal,
     ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, FormControl, FormLabel, Input,
-    ModalCloseButton,
+    ModalCloseButton, useToast
 } from '@chakra-ui/react';
 import { updateTask } from '../Services/TaskService';
+import UserDropdown from './UserDropdown';
+
 
 const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
     const initialRef = useRef(null);
@@ -17,6 +19,8 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
     const [description, setDescription] = useState('');
     const [sectionId, setSectionId] = useState('');
     const [showMore, setShowMore] = useState(false);
+    const toast = useToast();
+
 
     useEffect(() => {
         if (task) {
@@ -29,6 +33,10 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
             setSectionId(task.sectionID || '');
         }
     }, [task]);
+
+    const handleUserSelect = (userId) => {
+        setAssignedTo(userId);
+    };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -49,10 +57,28 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
 
         try {
             await updateTask(payload);
-            onUpdate(payload); // Notify parent component of the update
+            onUpdate(payload); 
             onClose();
+
+            // Show success toast notification
+            toast({
+                title: "Task Updated",
+                description: "The task has been successfully updated.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
         } catch (error) {
             console.error('Failed to update task:', error.response ? error.response.data : error.message);
+            
+            // Show error toast notification
+            toast({
+                title: "Update Failed",
+                description: "There was an error updating the task.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
         }
     };
 
@@ -83,10 +109,9 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
                         </FormControl>
                         <FormControl mb={4}>
                             <FormLabel>Assigned To</FormLabel>
-                            <Input
-                                placeholder='Enter Assigned Person'
-                                value={assignedTo}
-                                onChange={(e) => setAssignedTo(e.target.value)}
+                            <UserDropdown
+                                selectedUser={assignedTo}
+                                onUserSelect={handleUserSelect}
                             />
                         </FormControl>
                         <FormControl mb={4}>
@@ -98,7 +123,6 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
                                 <option value="Not Started">Not Started</option>
                                 <option value="In Progress">In Progress</option>
                                 <option value="On Hold">On Hold</option>
-                                <option value="Completed">Completed</option>
                             </Select>
                         </FormControl>
                         {showMore && (

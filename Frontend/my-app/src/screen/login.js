@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, InputRightElement, chakra, Box, Link, Avatar, FormControl, Text } from '@chakra-ui/react';
+import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, InputRightElement, chakra, Box, Avatar, FormControl, Text } from '@chakra-ui/react';
 import { FaUserAlt, FaLock } from 'react-icons/fa';
 import axios from 'axios';
 

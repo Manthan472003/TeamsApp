@@ -43,3 +43,6 @@ export const deleteSection = async (sectionId) => {
         throw new Error('Failed to delete section');
     }
 };
+
+// Update an existing Section
+export const updateSection = (section) => axios.put(`${API_URL}/${section.id}`, section);
