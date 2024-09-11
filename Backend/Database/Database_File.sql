@@ -1,87 +1,94 @@
-CREATE database TeamsApp;
-use TeamsApp;
-CREATE TABLE sectiontable (
-  id int NOT NULL AUTO_INCREMENT,
-  sectionName varchar(45) NOT NULL,
-  createdAt timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY id_UNIQUE (id)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE DATABASE TeamsApp;
+USE TeamsApp;
 
-CREATE TABLE imagetable (
-  id int NOT NULL AUTO_INCREMENT,
-  imageLink longtext NOT NULL,
-  createdAt timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY id_UNIQUE (id)
+CREATE TABLE `imagetable` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `imageLink` longtext NOT NULL,
+  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE tagstable (
-  id int NOT NULL AUTO_INCREMENT,
-  tagName varchar(300) NOT NULL,
-  createdAt timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY id_UNIQUE (id)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `sectiontable` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `sectionName` varchar(45) NOT NULL,
+  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE taskimagetable (
-  taskID int NOT NULL,
-  imageID int NOT NULL,
-  createdAt timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  KEY TaskIDForImage_idx (TaskID),
-  KEY ImageID_idx (ImageID),
-  CONSTRAINT ImageID FOREIGN KEY (ImageID) REFERENCES imagetable (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT TaskIDForImage FOREIGN KEY (TaskID) REFERENCES taskstable (id) ON DELETE CASCADE ON UPDATE CASCADE
+CREATE TABLE `tagstable` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tagName` varchar(300) NOT NULL,
+  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `taskimagetable` (
+  `taskID` int NOT NULL,
+  `imageID` int NOT NULL,
+  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY `TaskIDForImage_idx` (`taskID`),
+  KEY `ImageID_idx` (`imageID`),
+  CONSTRAINT `ImageID` FOREIGN KEY (`imageID`) REFERENCES `imagetable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `TaskIDForImage` FOREIGN KEY (`taskID`) REFERENCES `taskstable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE taskstable (
-  id int NOT NULL AUTO_INCREMENT,
-  taskName varchar(255) NOT NULL,
-  description longtext,
-  dueDate date DEFAULT NULL,
-  subTask longtext,
-  taskAssignedToID int DEFAULT NULL,
-  taskCreatedByID int DEFAULT NULL,
-  status enum('Not Started','In Progress','Completed','On Hold') DEFAULT 'Not Started',
-  sectionID int DEFAULT NULL,
-  createdAt timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY id_UNIQUE (id),
-  KEY assigneeID_idx (taskCreatedByID),
-  KEY sectionID_idx (sectionID),
-  KEY taskAssignedToID_idx (TaskAssignedToID),
-  CONSTRAINT sectionID FOREIGN KEY (sectionID) REFERENCES sectiontable (id) ON DELETE SET NULL ON UPDATE SET NULL,
-  CONSTRAINT taskAssignedToID FOREIGN KEY (taskAssignedToID) REFERENCES usertable (id) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT taskCreatedByID FOREIGN KEY (taskCreatedByID) REFERENCES usertable (id) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE tasktagtable (
-  id int NOT NULL AUTO_INCREMENT,
-  taskID int NOT NULL,
-  tagID int NOT NULL,
-  createdAt timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY id_UNIQUE (id),
-  KEY taskID_idx (taskID),
-  KEY tagID_idx (tagID),
-  CONSTRAINT tagID FOREIGN KEY (tagID) REFERENCES tagstable (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT taskID FOREIGN KEY (taskID) REFERENCES taskstable (id) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `taskstable` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `taskName` varchar(255) NOT NULL,
+  `description` text,
+  `dueDate` datetime DEFAULT NULL,
+  `subTask` text,
+  `taskAssignedToID` int DEFAULT NULL,
+  `taskCreatedByID` int DEFAULT NULL,
+  `status` enum('Not Started','In Progress','Completed','On Hold') DEFAULT 'Not Started',
+  `sectionID` int DEFAULT NULL,
+  `tagIDs` json DEFAULT NULL,
+  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  KEY `AssigneeID_idx` (`taskCreatedByID`),
+  KEY `SectionID_idx` (`sectionID`),
+  KEY `TaskAssignedToID_idx` (`taskAssignedToID`),
+  CONSTRAINT `SectionID` FOREIGN KEY (`sectionID`) REFERENCES `sectiontable` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `TaskAssignedToID` FOREIGN KEY (`taskAssignedToID`) REFERENCES `usertable` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `TaskCreatedByID` FOREIGN KEY (`taskCreatedByID`) REFERENCES `usertable` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE usertable (
-  id int NOT NULL AUTO_INCREMENT,
-  userName varchar(200) NOT NULL,
-  email varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  password varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  createdAt timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY id_UNIQUE (id),
-  UNIQUE KEY email_UNIQUE (email)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `tasktagtable` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `taskID` int NOT NULL,
+  `tagID` int NOT NULL,
+  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  KEY `TaskID_idx` (`taskID`),
+  KEY `TagsID_idx` (`tagID`),
+  CONSTRAINT `TagID` FOREIGN KEY (`tagID`) REFERENCES `tagstable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `TaskID` FOREIGN KEY (`taskID`) REFERENCES `taskstable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+CREATE TABLE `usertable` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `userName` varchar(200) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(45) NOT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  UNIQUE KEY `email_UNIQUE` (`email`),
+  UNIQUE KEY `Email` (`email`),
+  UNIQUE KEY `Email_2` (`email`),
+  UNIQUE KEY `Email_3` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
