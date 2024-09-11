@@ -6,9 +6,9 @@ import {
 } from '@chakra-ui/react';
 import { updateTask } from '../Services/TaskService';
 import UserDropdown from './UserDropdown';
+import TagDropdown from './TagDropdown';  // Import TagDropdown
 
-
-const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
+const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => {} }) => {
     const initialRef = useRef(null);
 
     const [taskName, setTaskName] = useState('');
@@ -18,9 +18,9 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
     const [subTask, setSubTask] = useState('');
     const [description, setDescription] = useState('');
     const [sectionId, setSectionId] = useState('');
+    const [selectedTags, setSelectedTags] = useState([]); // State for selected tags
     const [showMore, setShowMore] = useState(false);
     const toast = useToast();
-
 
     useEffect(() => {
         if (task) {
@@ -31,11 +31,16 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
             setSubTask(task.subTask || '');
             setDescription(task.description || '');
             setSectionId(task.sectionID || '');
+            setSelectedTags(task.tagIDs || []); // Initialize selected tags
         }
     }, [task]);
 
     const handleUserSelect = (userId) => {
         setAssignedTo(userId);
+    };
+
+    const handleTagSelect = (tags) => {
+        setSelectedTags(tags);
     };
 
     const handleSubmit = async (event) => {
@@ -52,15 +57,15 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
             status,
             subTask,
             description,
-            sectionID: sectionId // Ensure sectionID is correctly included
+            sectionID: sectionId,
+            tagIDs: selectedTags // Include selected tags
         };
 
         try {
             await updateTask(payload);
-            onUpdate(payload); 
+            onUpdate(payload);
             onClose();
 
-            // Show success toast notification
             toast({
                 title: "Task Updated",
                 description: "The task has been successfully updated.",
@@ -70,8 +75,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
             });
         } catch (error) {
             console.error('Failed to update task:', error.response ? error.response.data : error.message);
-            
-            // Show error toast notification
+
             toast({
                 title: "Update Failed",
                 description: "There was an error updating the task.",
@@ -112,6 +116,13 @@ const EditTaskModal = ({ isOpen, onClose, task, onUpdate = () => { } }) => {
                             <UserDropdown
                                 selectedUser={assignedTo}
                                 onUserSelect={handleUserSelect}
+                            />
+                        </FormControl>
+                        <FormControl mb={4}>
+                            <FormLabel>Tags</FormLabel>
+                            <TagDropdown
+                                selectedTags={selectedTags}
+                                onTagSelect={handleTagSelect}
                             />
                         </FormControl>
                         <FormControl mb={4}>

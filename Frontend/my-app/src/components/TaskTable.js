@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, Select, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Select, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, HStack, Tag, TagLabel, useDisclosure } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon, CheckIcon } from '@chakra-ui/icons';
 import { getTags } from '../Services/TagService'; // Adjust import according to your file structure
-
 
 const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
@@ -24,7 +23,6 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
 
         fetchTags();
     }, []);
-
 
     const handleEditClick = (task) => {
         if (onEdit) {
@@ -48,7 +46,6 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
         }
     };
 
-    
     const getTagNamesByIds = (tagIds) => {
         const tagMap = new Map(tags.map(tag => [tag.id, tag.tagName]));
 
@@ -56,9 +53,9 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
             const tagName = tagMap.get(id);
             if (!tagName) {
                 console.error(`No tag found for ID: ${id}`);
-                return 'Unknown'; 
+                return 'Unknown';
             }
-            return tagName+",";
+            return tagName;
         });
     };
 
@@ -108,11 +105,11 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                 <Thead>
                     <Tr>
                         <Th width='27%'>Task Name</Th>
-                        <Th width='13%'>Tag</Th>
+                        <Th width='17%'>Tags</Th>
                         <Th width='10%'>Due Date</Th>
-                        <Th width='13%'>Assigned To</Th>
-                        <Th width='15%'>Status</Th>
-                        <Th width='27%'>Action</Th>
+                        <Th width='11%'>Assigned To</Th>
+                        <Th width='12%'>Status</Th>
+                        <Th width='25%'>Action</Th>
                     </Tr>
                 </Thead>
                 <Tbody>
@@ -125,7 +122,21 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                 }}
                             >
                                 <Td>{task.taskName}</Td>
-                                <Td>{getTagNamesByIds(task.tagIDs || [])}</Td>
+                                <Td>
+                                    <HStack spacing={2}>
+                                        {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (
+                                            <Tag
+                                                size='lg'
+                                                key={idx}
+                                                borderRadius='6px'
+                                                variant='solid'
+                                                colorScheme='green'
+                                            >
+                                                <TagLabel>{tagName}</TagLabel>
+                                            </Tag>
+                                        ))}
+                                    </HStack>
+                                </Td>
                                 <Td>{formatDate(task.dueDate)}</Td>
                                 <Td>{getUserNameById(task.taskAssignedToID)}</Td>
                                 <Td>
@@ -180,7 +191,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                         ))
                     ) : (
                         <Tr>
-                            <Td colSpan={5} textAlign="center" color="gray.500">
+                            <Td colSpan={6} textAlign="center" color="gray.500">
                                 No tasks available
                             </Td>
                         </Tr>
@@ -230,5 +241,6 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
         </>
     );
 };
+
 
 export default TaskTable;
