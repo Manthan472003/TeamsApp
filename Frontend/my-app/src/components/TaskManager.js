@@ -4,25 +4,28 @@ import {
 } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 
-import { getSections, deleteSection } from '../Services/SectionService';
+import { getSections, deleteSection, updateSection } from '../Services/SectionService';
 import { saveTask, getTasksBySection, deleteTask, updateTask } from '../Services/TaskService';
 import { getUsers } from '../Services/UserService';
 import AddSectionModal from './AddSectionModal';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import TaskTable from './TaskTable';
+import EditSectionModal from './EditSectionModal'; 
 
 const TaskManager = () => {
     const { isOpen: isSectionOpen, onOpen: onSectionOpen, onClose: onSectionClose } = useDisclosure();
     const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
     const { isOpen: isEditTaskOpen, onOpen: onEditTaskOpen, onClose: onEditTaskClose } = useDisclosure();
+    const { isOpen: isEditSectionOpen, onOpen: onEditSectionOpen, onClose: onEditSectionClose } = useDisclosure();
 
     const [sections, setSections] = useState([]);
     const [tasksBySection, setTasksBySection] = useState({});
     const [users, setUsers] = useState([]);
     const [selectedSectionId, setSelectedSectionId] = useState(null);
     const [taskToEdit, setTaskToEdit] = useState(null);
-    const [currentUserId, setCurrentUserId] = useState(null); // Define currentUserId
+    const [currentUserId, setCurrentUserId] = useState(null);
+    const [sectionToEdit, setSectionToEdit] = useState(null);
     const toast = useToast();
 
     const fetchSections = useCallback(async () => {
@@ -50,7 +53,6 @@ const TaskManager = () => {
             const response = await getUsers();
             if (response && response.data) {
                 setUsers(response.data);
-                // Example: Set currentUserId from users
                 setCurrentUserId(response.data[0]?.id); // Adjust based on your application logic
             } else {
                 throw new Error('Unexpected response format');
@@ -188,13 +190,12 @@ const TaskManager = () => {
 
         toast({
             title: "Editing Task",
-            description: `You are now editing the task : ${task.taskName}`, // Assumes the task has a title property
+            description: `You are now editing the task: ${task.taskName}`, // Assumes the task has a title property
             status: "info",
             duration: 3000,
             isClosable: true,
         });
     };
-
 
     const handleSectionClick = (sectionId) => {
         setSelectedSectionId(sectionId);
@@ -231,16 +232,17 @@ const TaskManager = () => {
             });
         }
     };
-    // Function to handle section edit
+
     const handleEditSection = (section) => {
-        console.log('Edit section:', section);
+        setSectionToEdit(section);
+        onEditSectionOpen(); // Open the edit section modal
     };
 
     // Function to handle section delete
     const handleDeleteSection = async (section) => {
         try {
             await deleteSection(section.id);
-            await fetchSections();
+            await fetchSections(); // Refresh sections list
             toast({
                 title: "Section deleted.",
                 description: "The section was successfully deleted.",
@@ -260,7 +262,38 @@ const TaskManager = () => {
         }
     };
 
+    const handleUpdateSection = async (section) => {
+        try {
+            const response = await updateSection(section); // Call to API service
+            if (response.status === 200) {
+                // Update the local state to reflect the changes
+                setSections(prevSections => 
+                    prevSections.map(sec => 
+                        sec.id === section.id ? response.data.section : sec
+                    )
+                );
 
+                toast({
+                    title: "Section updated.",
+                    description: "The section was successfully updated.",
+                    status: "success",
+                    duration: 5000,
+                    isClosable: true,
+                });
+            } else {
+                throw new Error(response.data.message);
+            }
+        } catch (error) {
+            console.error('Error updating section:', error);
+            toast({
+                title: "Error updating section.",
+                description: error.message || "Unable to update section.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+    };
 
     return (
         <Box>
@@ -274,32 +307,30 @@ const TaskManager = () => {
                 onSectionAdded={addSection}
             />
 
-            <Accordion defaultIndex={[0]} allowMultiple
-            >
+            <Accordion defaultIndex={[0]} allowMultiple>
                 {sections.map(section => (
-                    <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4} >
+                    <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
                         <AccordionButton onClick={() => handleSectionClick(section.id)}>
                             <Box flex='1' textAlign='left'>
                                 <Text fontSize='xl' fontWeight='bold' color='#149edf'>{section.sectionName}</Text>
                                 <Text fontSize='md' color='gray.500'>{section.description}</Text>
                             </Box>
                             <Spacer />
-                            <Button 
-                            variant='solid'
-                            colorScheme='green'
-                            size='sm'
-                            ml={2}
-                            leftIcon={<EditIcon />}
-                            onClick={(e) => { e.stopPropagation(); handleEditSection(section); }} mr={2}>
+                            <Button
+                                variant='solid'
+                                colorScheme='green'
+                                size='sm'
+                                ml={2}
+                                leftIcon={<EditIcon />}
+                                onClick={() => handleEditSection(section)} mr={2}>
                             </Button>
-                            <Button 
-                             variant='solid'
-                             colorScheme='red'
-                             size='sm'
-                             ml={2}
-                             leftIcon={<DeleteIcon />}
-                             onClick={(e) => { e.stopPropagation(); handleDeleteSection(section); }}>
-                                
+                            <Button
+                                variant='solid'
+                                colorScheme='red'
+                                size='sm'
+                                ml={2}
+                                leftIcon={<DeleteIcon />}
+                                onClick={(e) => { e.stopPropagation(); handleDeleteSection(section); }}>
                             </Button>
                             <AccordionIcon />
                         </AccordionButton>
@@ -327,19 +358,25 @@ const TaskManager = () => {
                 ))}
             </Accordion>
 
-
             <AddTaskModal
                 isOpen={isTaskOpen}
                 onClose={onTaskClose}
                 onSubmit={(task) => addTaskToSection({ ...task, sectionID: selectedSectionId, createdBy: currentUserId })}
-                sectionID={selectedSectionId} // Ensure this is correct
+                sectionID={selectedSectionId}
             />
 
             <EditTaskModal
                 isOpen={isEditTaskOpen}
                 onClose={onEditTaskClose}
                 task={taskToEdit}
-                onUpdate={() => fetchTasksBySection(selectedSectionId)} // Refresh tasks list after updating
+                onUpdate={() => fetchTasksBySection(selectedSectionId)}
+            />
+
+            <EditSectionModal
+                isOpen={isEditSectionOpen}
+                onClose={onEditSectionClose}
+                section={sectionToEdit}
+                onSectionUpdated={handleUpdateSection}
             />
         </Box>
     );

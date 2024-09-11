@@ -45,4 +45,6 @@ export const deleteSection = async (sectionId) => {
 };
 
 // Update an existing Section
-export const updateSection = (section) => axios.put(`${API_URL}/${section.id}`, section);
+export const updateSection = (section) => axios.put(`${API_URL}/${section.id}`, {
+    sectionName : section.sectionName
+});

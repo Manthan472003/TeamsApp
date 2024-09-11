@@ -1,4 +1,5 @@
 const Section = require('../../Database/Models/section');
+const  {Op} = require('sequelize');
 
 // Create a new section
 const createSection = async (req, res) => {
@@ -86,29 +87,31 @@ const updateSectionById = async (req, res) => {
             return res.status(400).json({ message: 'Section name is required for update.' });
         }
 
-        // Check if the tag exists
-        const section = await Section.findOne({
-            where: { id }
-        });
-
+        // Find the section to update
+        const section = await Section.findOne({ where: { id } });
         if (!section) {
             return res.status(404).json({ message: 'Section not found.' });
         }
 
-        // Check if the new tag name already exists
+        // Check if the new section name already exists and is not the same as the current one
         const existingSection = await Section.findOne({
-            where: { sectionName }
+            where: {
+                sectionName,
+                id: { [Op.ne]: id } // Exclude current section ID
+            }
         });
-        if (existingSection && existingSection.id !== id) {
+
+        if (existingSection) {
             return res.status(409).json({ message: 'Section already exists.' });
         }
 
-        // Update the tag
+        // Update the section
         section.sectionName = sectionName;
         await section.save();
 
         return res.status(200).json({ message: 'Section updated successfully.', section });
     } catch (error) {
+        console.error('Error updating section:', error);
         return res.status(500).json({ message: 'Error updating section.', error });
     }
 };
