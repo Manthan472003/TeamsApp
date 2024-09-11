@@ -37,7 +37,7 @@ const Header = () => {
   return (
     <Flex
       direction="column"
-      bg="teal.500"
+      bg="linear-gradient(90deg,  rgba(2,2,70,1) 3%, rgba(0,212,255,1) 100%)"
       color="white"
       px={4}
       h="auto"
