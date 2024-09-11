@@ -6,6 +6,7 @@ import {
     useToast
 } from '@chakra-ui/react';
 import UserDropdown from './UserDropdown';
+import TagDropdown from './TagDropdown';  // Import TagDropdown
 
 const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
     const initialRef = useRef(null);
@@ -13,6 +14,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
     const [dueDate, setDueDate] = useState('');
     const [assignedTo, setAssignedTo] = useState('');
     const [status, setStatus] = useState('Not Started');
+    const [selectedTags, setSelectedTags] = useState([]); // State for selected tags
     const toast = useToast();
 
     // Reset form fields
@@ -21,11 +23,17 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
         setDueDate('');
         setAssignedTo('');
         setStatus('Not Started');
+        setSelectedTags([]); // Reset tags
     };
 
     // Handle user selection
     const handleUserSelect = (userId) => {
         setAssignedTo(userId);
+    };
+
+    // Handle tag selection
+    const handleTagSelect = (tags) => {
+        setSelectedTags(tags);
     };
 
     // Handle form submission
@@ -55,7 +63,8 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
             taskAssignedToID: assignedTo,
             taskCreatedByID: parseInt(userId, 10),
             status,
-            sectionID // Include sectionID here
+            sectionID, // Include sectionID here
+            tagIDs: selectedTags // Include selected tags here
         };
 
         try {
@@ -124,6 +133,13 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
                             <UserDropdown
                                 selectedUser={assignedTo}
                                 onUserSelect={handleUserSelect}
+                            />
+                        </FormControl>
+                        <FormControl mb={4}>
+                            <FormLabel>Tags</FormLabel>
+                            <TagDropdown
+                                selectedTags={selectedTags}
+                                onTagSelect={handleTagSelect}
                             />
                         </FormControl>
                         <FormControl mb={4}>

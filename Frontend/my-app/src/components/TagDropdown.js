@@ -27,7 +27,7 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
             try {
                 const response = await getTags();
                 console.log('Fetched tags:', response.data); // Debugging line
-                setTags(response.data.map(tag => ({ id: tag.id, name: tag.TagName }))); // Adjust according to your backend response
+                setTags(response.data.map(tag => ({ id: tag.id, name: tag.tagName }))); // Adjust according to your backend response
             } catch (error) {
                 console.error('Error fetching tags:', error);
                 toast({
@@ -60,7 +60,7 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
 
     const handleAddCustomTag = async () => {
         if (customTag && !tags.find(tag => tag.name === customTag)) {
-            const newTag = { TagName: customTag }; // Adjust according to your backend requirement
+            const newTag = { tagName: customTag }; // Adjust according to your backend requirement
 
             try {
                 const response = await saveTag(newTag);

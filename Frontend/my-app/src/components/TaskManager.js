@@ -307,7 +307,7 @@ const TaskManager = () => {
                 onSectionAdded={addSection}
             />
 
-            <Accordion defaultIndex={[0]} allowMultiple>
+            <Accordion allowMultiple>
                 {sections.map(section => (
                     <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
                         <AccordionButton onClick={() => handleSectionClick(section.id)}>
