@@ -49,10 +49,10 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
 
     const handleTagSelect = (tag) => {
         const newSelectedTagIds = new Set(selectedTagIds);
-        if (newSelectedTagIds.has(tag)) {
-            newSelectedTagIds.delete(tag);
+        if (newSelectedTagIds.has(tag.id)) {
+            newSelectedTagIds.delete(tag.id);
         } else {
-            newSelectedTagIds.add(tag);
+            newSelectedTagIds.add(tag.id);
         }
         setSelectedTagIds(newSelectedTagIds);
         onTagSelect(Array.from(newSelectedTagIds));
@@ -67,7 +67,7 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
                 if (response.status === 201) {
                     const newTagId = response.data.task.id; // Adjust according to your backend response
                     setTags([...tags, { id: newTagId, name: customTag }]);
-                    const updatedSelectedTags = Array.from(selectedTagIds).concat(customTag);
+                    const updatedSelectedTags = Array.from(selectedTagIds).concat(newTagId);
                     setSelectedTagIds(new Set(updatedSelectedTags));
                     onTagSelect(updatedSelectedTags);
                     setCustomTag('');
@@ -105,15 +105,15 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
             <Stack spacing={3}>
                 <Box>
                     <Flex wrap="wrap" gap={2}>
-                        {Array.from(selectedTagIds).map(tag => (
+                        {Array.from(selectedTagIds).map(tagId => (
                             <Text
-                                key={tag}
+                                key={tagId} // Ensure each selected tag has a unique key
                                 bg="teal.100"
                                 p={2}
                                 borderRadius="md"
                                 textAlign="center"
                             >
-                                {tag}
+                                {tags.find(tag => tag.id === tagId)?.name || tagId}
                             </Text>
                         ))}
                     </Flex>
@@ -125,10 +125,10 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
                     <MenuList>
                         {tags.length > 0 ? (
                             tags.map(tag => (
-                                <MenuItem key={tag.id}>
+                                <MenuItem key={tag.id}> {/* Ensure each MenuItem has a unique key */}
                                     <Checkbox
-                                        isChecked={selectedTagIds.has(tag.name)}
-                                        onChange={() => handleTagSelect(tag.name)}
+                                        isChecked={selectedTagIds.has(tag.id)}
+                                        onChange={() => handleTagSelect(tag)}
                                     >
                                         {tag.name}
                                     </Checkbox>

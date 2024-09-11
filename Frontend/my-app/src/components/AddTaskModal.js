@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
     Select, Button, Modal,
     ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, FormControl, FormLabel, Input,
@@ -8,14 +8,29 @@ import {
 import UserDropdown from './UserDropdown';
 import TagDropdown from './TagDropdown';  // Import TagDropdown
 
-const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
+const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID }) => {
     const initialRef = useRef(null);
     const [taskName, setTaskName] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [assignedTo, setAssignedTo] = useState('');
     const [status, setStatus] = useState('Not Started');
     const [selectedTags, setSelectedTags] = useState([]); // State for selected tags
+    const [userId, setUserId] = useState(propUserId || ''); // State for userId
     const toast = useToast();
+
+    useEffect(() => {
+        // Check if userId is available from props or local storage
+        if (!propUserId) {
+            const storedUserId = localStorage.getItem('userId');
+            if (storedUserId) {
+                setUserId(storedUserId);
+            } else {
+                console.error('No user ID found in local storage');
+            }
+        } else {
+            setUserId(propUserId);
+        }
+    }, [propUserId]);
 
     // Reset form fields
     const resetForm = () => {
@@ -41,7 +56,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId, sectionID }) => {
         event.preventDefault();
 
         // Basic validation
-        if (!taskName || !dueDate || !assignedTo) {
+        if (!taskName || !dueDate || !assignedTo || !userId) {
             toast({
                 title: "Error",
                 description: "Please fill in all required fields.",

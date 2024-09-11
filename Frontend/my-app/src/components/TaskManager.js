@@ -11,7 +11,7 @@ import AddSectionModal from './AddSectionModal';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import TaskTable from './TaskTable';
-import EditSectionModal from './EditSectionModal'; 
+import EditSectionModal from './EditSectionModal';
 
 const TaskManager = () => {
     const { isOpen: isSectionOpen, onOpen: onSectionOpen, onClose: onSectionClose } = useDisclosure();
@@ -161,9 +161,7 @@ const TaskManager = () => {
             if (taskToUpdate) {
                 taskToUpdate.status = newStatus;
                 await updateTask(taskToUpdate); // Call API to update the task status in the backend
-
                 await fetchTasksBySection(selectedSectionId); // Refresh tasks for the specific section
-
                 toast({
                     title: "Task status updated.",
                     description: `Task status has been updated to ${newStatus}.`,
@@ -204,8 +202,6 @@ const TaskManager = () => {
     const handleDelete = async (task) => {
         try {
             await deleteTask(task.id); // Call API to delete task
-
-            // Update state to remove deleted task from tasksBySection
             setTasksBySection(prev => {
                 const updatedTasks = { ...prev };
                 if (updatedTasks[selectedSectionId]) {
@@ -238,7 +234,6 @@ const TaskManager = () => {
         onEditSectionOpen(); // Open the edit section modal
     };
 
-    // Function to handle section delete
     const handleDeleteSection = async (section) => {
         try {
             await deleteSection(section.id);
@@ -266,7 +261,6 @@ const TaskManager = () => {
         try {
             const response = await updateSection(section); // Call to API service
             if (response.status === 200) {
-                // Update the local state to reflect the changes
                 setSections(prevSections => 
                     prevSections.map(sec => 
                         sec.id === section.id ? response.data.section : sec
@@ -322,16 +316,16 @@ const TaskManager = () => {
                                 size='sm'
                                 ml={2}
                                 leftIcon={<EditIcon />}
-                                onClick={() => handleEditSection(section)} mr={2}>
-                            </Button>
+                                onClick={() => handleEditSection(section)}
+                            />
                             <Button
                                 variant='solid'
                                 colorScheme='red'
                                 size='sm'
                                 ml={2}
                                 leftIcon={<DeleteIcon />}
-                                onClick={(e) => { e.stopPropagation(); handleDeleteSection(section); }}>
-                            </Button>
+                                onClick={(e) => { e.stopPropagation(); handleDeleteSection(section); }}
+                            />
                             <AccordionIcon />
                         </AccordionButton>
                         <AccordionPanel pb={4}>
@@ -365,19 +359,23 @@ const TaskManager = () => {
                 sectionID={selectedSectionId}
             />
 
-            <EditTaskModal
-                isOpen={isEditTaskOpen}
-                onClose={onEditTaskClose}
-                task={taskToEdit}
-                onUpdate={() => fetchTasksBySection(selectedSectionId)}
-            />
+            {taskToEdit && (
+                <EditTaskModal
+                    isOpen={isEditTaskOpen}
+                    onClose={onEditTaskClose}
+                    task={taskToEdit}
+                    onUpdate={() => fetchTasksBySection(selectedSectionId)}
+                />
+            )}
 
-            <EditSectionModal
-                isOpen={isEditSectionOpen}
-                onClose={onEditSectionClose}
-                section={sectionToEdit}
-                onSectionUpdated={handleUpdateSection}
-            />
+            {sectionToEdit && (
+                <EditSectionModal
+                    isOpen={isEditSectionOpen}
+                    onClose={onEditSectionClose}
+                    section={sectionToEdit}
+                    onSectionUpdated={handleUpdateSection}
+                />
+            )}
         </Box>
     );
 };
