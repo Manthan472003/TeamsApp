@@ -11,7 +11,6 @@ const Header = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch userName from localStorage or from your auth provider
     const loggedInUser = localStorage.getItem('userName'); // Assuming it's stored in localStorage
     if (loggedInUser) {
       setUserName(loggedInUser); // Set the fetched userName
