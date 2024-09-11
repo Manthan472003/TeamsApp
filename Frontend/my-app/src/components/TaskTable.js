@@ -101,11 +101,11 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
 
     return (
         <>
-            <Table variant='striped' mt={4}>
+            <Table variant='striped' mt={4} style={{ tableLayout: 'fixed' }}>
                 <Thead>
                     <Tr>
                         <Th width='27%'>Task Name</Th>
-                        <Th width='17%'>Tags</Th>
+                        <Th width='17%' style={{ whiteSpace: 'normal' }}>Tags</Th>
                         <Th width='10%'>Due Date</Th>
                         <Th width='11%'>Assigned To</Th>
                         <Th width='12%'>Status</Th>
@@ -122,11 +122,11 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                 }}
                             >
                                 <Td>{task.taskName}</Td>
-                                <Td>
-                                    <HStack spacing={2}>
+                                <Td style={{ whiteSpace: 'normal', overflow: 'hidden' }}>
+                                    <HStack spacing={2} style={{ flexWrap: 'wrap' }}>
                                         {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (
                                             <Tag
-                                                size='lg'
+                                                size='md'
                                                 key={idx}
                                                 borderRadius='6px'
                                                 variant='solid'
