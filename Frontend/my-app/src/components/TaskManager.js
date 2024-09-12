@@ -14,7 +14,6 @@ import TaskTable from './TaskTable';
 import EditSectionModal from './EditSectionModal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 
-
 const TaskManager = () => {
     const { isOpen: isSectionOpen, onOpen: onSectionOpen, onClose: onSectionClose } = useDisclosure();
     const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
@@ -31,7 +30,6 @@ const TaskManager = () => {
     const [sectionToEdit, setSectionToEdit] = useState(null);
     const [sectionToDelete, setSectionToDelete] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
-
 
     const toast = useToast();
 
@@ -164,7 +162,7 @@ const TaskManager = () => {
 
     const handleStatusChange = async (taskId, newStatus) => {
         try {
-            const taskToUpdate = tasksBySection[selectedSectionId]?.find(task => task.id === taskId);
+            const taskToUpdate = Object.values(tasksBySection).flat().find(task => task.id === taskId);
             if (taskToUpdate) {
                 taskToUpdate.status = newStatus;
                 await updateTask(taskToUpdate); // Call API to update the task status in the backend
@@ -246,14 +244,6 @@ const TaskManager = () => {
             setSectionToDelete(section);
             setConfirmDelete('section');
             onConfirmDeleteOpen();
-            await fetchSections(); // Refresh sections list
-            // toast({
-            //     title: "Section deleted.",
-            //     description: "The section was successfully deleted.",
-            //     status: "success",
-            //     duration: 5000,
-            //     isClosable: true,
-            // });
         } catch (error) {
             console.error('Error deleting section:', error.response || error);
             toast({
@@ -293,7 +283,6 @@ const TaskManager = () => {
         }
     };
 
-
     const handleUpdateSection = async (section) => {
         try {
             const response = await updateSection(section); // Call to API service
@@ -324,6 +313,11 @@ const TaskManager = () => {
                 isClosable: true,
             });
         }
+    };
+
+    // Get tasks without a section
+    const getTasksWithoutSection = () => {
+        return Object.values(tasksBySection).flat().filter(task => task.sectionID === null);
     };
 
     return (
@@ -363,7 +357,6 @@ const TaskManager = () => {
                                 leftIcon={<DeleteIcon />}
                                 onClick={(e) => { e.stopPropagation(); handleDeleteSection(section); }}
                             />
-
                             <AccordionIcon />
                         </AccordionButton>
                         <AccordionPanel pb={4}>
@@ -388,6 +381,27 @@ const TaskManager = () => {
                         </AccordionPanel>
                     </AccordionItem>
                 ))}
+
+                {/* "Others" Section */}
+                <AccordionItem borderWidth={1} borderRadius="md" mb={4}>
+                    <AccordionButton>
+                        <Box flex='1' textAlign='left'>
+                            <Text fontSize='xl' fontWeight='bold' color='#149edf'>Others</Text>
+                            <Text fontSize='md' color='gray.500'>Tasks without a specific section</Text>
+                        </Box>
+                        <Spacer />
+                        <AccordionIcon />
+                    </AccordionButton>
+                    <AccordionPanel pb={4}>
+                        <TaskTable
+                            tasks={getTasksWithoutSection()}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                            onStatusChange={handleStatusChange}
+                            users={users}
+                        />
+                    </AccordionPanel>
+                </AccordionItem>
             </Accordion>
 
             <AddTaskModal
