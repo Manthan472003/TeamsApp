@@ -340,7 +340,7 @@ const TaskManager = () => {
     };
 
     return (
-        <Box mt={20}>
+        <Box  padding="7px 0 0 0">
             <Button onClick={onSectionOpen} colorScheme='teal' variant='outline' mt={3} mb={4}>
                 Add Section
             </Button>

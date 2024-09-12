@@ -15,7 +15,7 @@ const TechnologyUsed = () => {
 
     return (
 
-        <Box mt={20} p={5}>
+        <Box p={5}>
             <Button onClick={onOpen} colorScheme='teal' variant='outline' mt={3} mb={4}>
                 Technology Configuration            </Button>
 

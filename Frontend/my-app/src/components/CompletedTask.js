@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-    Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useDisclosure, useToast, Spacer
+    Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Spacer
 } from '@chakra-ui/react';
 
 import { getSections } from '../Services/SectionService';
