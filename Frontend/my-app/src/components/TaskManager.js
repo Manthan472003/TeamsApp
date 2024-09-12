@@ -12,12 +12,15 @@ import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import TaskTable from './TaskTable';
 import EditSectionModal from './EditSectionModal';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
+
 
 const TaskManager = () => {
     const { isOpen: isSectionOpen, onOpen: onSectionOpen, onClose: onSectionClose } = useDisclosure();
     const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
     const { isOpen: isEditTaskOpen, onOpen: onEditTaskOpen, onClose: onEditTaskClose } = useDisclosure();
     const { isOpen: isEditSectionOpen, onOpen: onEditSectionOpen, onClose: onEditSectionClose } = useDisclosure();
+    const { isOpen: isConfirmDeleteOpen, onOpen: onConfirmDeleteOpen, onClose: onConfirmDeleteClose } = useDisclosure();
 
     const [sections, setSections] = useState([]);
     const [tasksBySection, setTasksBySection] = useState({});
@@ -26,6 +29,10 @@ const TaskManager = () => {
     const [taskToEdit, setTaskToEdit] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [sectionToEdit, setSectionToEdit] = useState(null);
+    const [sectionToDelete, setSectionToDelete] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(null);
+
+
     const toast = useToast();
 
     const fetchSections = useCallback(async () => {
@@ -236,15 +243,17 @@ const TaskManager = () => {
 
     const handleDeleteSection = async (section) => {
         try {
-            await deleteSection(section.id);
+            setSectionToDelete(section);
+            setConfirmDelete('section');
+            onConfirmDeleteOpen();
             await fetchSections(); // Refresh sections list
-            toast({
-                title: "Section deleted.",
-                description: "The section was successfully deleted.",
-                status: "success",
-                duration: 5000,
-                isClosable: true,
-            });
+            // toast({
+            //     title: "Section deleted.",
+            //     description: "The section was successfully deleted.",
+            //     status: "success",
+            //     duration: 5000,
+            //     isClosable: true,
+            // });
         } catch (error) {
             console.error('Error deleting section:', error.response || error);
             toast({
@@ -257,12 +266,40 @@ const TaskManager = () => {
         }
     };
 
+    const handleConfirmDelete = async () => {
+        try {
+            if (confirmDelete === 'section' && sectionToDelete) {
+                await deleteSection(sectionToDelete.id);
+                await fetchSections(); // Refresh sections list
+                toast({
+                    title: "Section deleted.",
+                    description: "The section was successfully deleted.",
+                    status: "success",
+                    duration: 5000,
+                    isClosable: true,
+                });
+            }
+            onConfirmDeleteClose();
+        } catch (error) {
+            console.error('Error deleting section:', error.response || error);
+            toast({
+                title: "Error deleting section.",
+                description: error.message,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+            onConfirmDeleteClose();
+        }
+    };
+
+
     const handleUpdateSection = async (section) => {
         try {
             const response = await updateSection(section); // Call to API service
             if (response.status === 200) {
-                setSections(prevSections => 
-                    prevSections.map(sec => 
+                setSections(prevSections =>
+                    prevSections.map(sec =>
                         sec.id === section.id ? response.data.section : sec
                     )
                 );
@@ -326,6 +363,7 @@ const TaskManager = () => {
                                 leftIcon={<DeleteIcon />}
                                 onClick={(e) => { e.stopPropagation(); handleDeleteSection(section); }}
                             />
+
                             <AccordionIcon />
                         </AccordionButton>
                         <AccordionPanel pb={4}>
@@ -376,6 +414,13 @@ const TaskManager = () => {
                     onSectionUpdated={handleUpdateSection}
                 />
             )}
+
+            <ConfirmDeleteModal
+                isOpen={isConfirmDeleteOpen}
+                onClose={onConfirmDeleteClose}
+                onConfirm={handleConfirmDelete}
+                itemName={sectionToDelete ? sectionToDelete.sectionName : ''}
+            />
         </Box>
     );
 };

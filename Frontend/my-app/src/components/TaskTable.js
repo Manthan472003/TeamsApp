@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, Select, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, HStack, Tag, TagLabel, useDisclosure } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Select, Button, HStack, Tag, TagLabel, useDisclosure } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon, CheckIcon } from '@chakra-ui/icons';
 import { getTags } from '../Services/TagService'; // Adjust import according to your file structure
+import ConfirmDeleteModal from './ConfirmDeleteModal';
+import ConfirmCompleteModal from './ConfirmCompleteModal';
 
 const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
@@ -73,7 +75,6 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
             console.error('onDelete function is not defined');
         }
     };
-
     const handleCompleteClick = (task) => {
         setTaskToComplete(task);
         onCompleteOpen();
@@ -200,44 +201,20 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
             </Table>
 
             {/* Delete Confirmation Modal */}
-            <Modal isOpen={isDeleteOpen} onClose={onDeleteClose}>
-                <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader>Confirm Deletion</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        Are you sure you want to delete this task? This action cannot be undone.
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button colorScheme='blue' mr={3} onClick={confirmDelete}>
-                            Delete
-                        </Button>
-                        <Button variant='ghost' onClick={onDeleteClose}>
-                            Cancel
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+            <ConfirmDeleteModal
+                isOpen={isDeleteOpen}
+                onClose={onDeleteClose}
+                onConfirm={confirmDelete}
+                itemName={taskToDelete ? taskToDelete.taskName : ''}
+            />
 
             {/* Complete Confirmation Modal */}
-            <Modal isOpen={isCompleteOpen} onClose={onCompleteClose}>
-                <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader>Confirm Completion</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        Are you sure you want to mark this task as completed? This action cannot be undone.
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button colorScheme='blue' mr={3} onClick={confirmComplete}>
-                            Complete
-                        </Button>
-                        <Button variant='ghost' onClick={onCompleteClose}>
-                            Cancel
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+            <ConfirmCompleteModal
+                isOpen={isCompleteOpen}
+                onClose={onCompleteClose}
+                onConfirm={confirmComplete}
+                itemName={taskToComplete ? taskToComplete.taskName : ''}
+            />
         </>
     );
 };
