@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, InputRightElement, chakra, Box, Avatar, FormControl, Text } from '@chakra-ui/react';
+import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, InputRightElement, chakra, Box, Image, FormControl, Text } from '@chakra-ui/react';
 import { FaUserAlt, FaLock } from 'react-icons/fa';
 import axios from 'axios';
+import logo from '../assets/logo.png';
+
 
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
@@ -27,40 +29,40 @@ const Login = () => {
     setError('');
 
     if (!validateForm()) {
-        setError('Please enter a valid email and a password with at least 6 characters.');
-        return;
+      setError('Please enter a valid email and a password with at least 6 characters.');
+      return;
     }
 
     try {
-        const response = await axios.post('http://localhost:8080/users/login', { email, password });
+      const response = await axios.post('http://localhost:8080/users/login', { email, password });
 
-        if (response.status === 200) {
-            console.log(response.data); // Check the response data
-            const { userName, userId } = response.data.user; // Extract userName and userId correctly
-            localStorage.setItem('userName', userName || email); // Store userName or email if userName is not available
-            localStorage.setItem('userId', userId); // Store userId
+      if (response.status === 200) {
+        console.log(response.data); // Check the response data
+        const { userName, userId } = response.data.user; // Extract userName and userId correctly
+        localStorage.setItem('userName', userName || email); // Store userName or email if userName is not available
+        localStorage.setItem('userId', userId); // Store userId
 
-            navigate('/home'); // Navigate to home after successful login
-        }
+        navigate('/main'); // Navigate to home after successful login
+      }
     } catch (error) {
-        if (error.response) {
-            switch (error.response.status) {
-                case 400:
-                    setError('Incorrect email or password');
-                    break;
-                case 401:
-                    setError('Unauthorized');
-                    break;
-                default:
-                    setError('An error occurred. Please try again later.');
-            }
-        } else {
-            setError('Network error. Please check your connection.');
+      if (error.response) {
+        switch (error.response.status) {
+          case 400:
+            setError('Incorrect email or password');
+            break;
+          case 401:
+            setError('Unauthorized');
+            break;
+          default:
+            setError('An error occurred. Please try again later.');
         }
+      } else {
+        setError('Network error. Please check your connection.');
+      }
     }
-};
+  };
 
-  
+
 
   return (
     <Flex
@@ -73,8 +75,12 @@ const Login = () => {
       p={{ base: 4, md: 8 }}
     >
       <Stack flexDir="column" mb="2" justifyContent="center" alignItems="center">
-        <Avatar bg="teal.500" />
-        <Heading color="teal.400">TEAMS APP</Heading>
+        <Image
+          src={logo}
+          alt="OrganizeIt Logo"
+          boxSize="65px"
+        />
+        <Heading color="teal.400">Organize-It !!</Heading>
         <Box minW={{ base: '90%', md: '468px' }}>
           <form onSubmit={handleLogin}>
             <Stack spacing={4} p="1rem" backgroundColor="whiteAlpha.900" boxShadow="md">
