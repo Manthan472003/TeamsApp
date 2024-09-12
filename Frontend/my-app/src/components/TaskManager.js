@@ -33,7 +33,6 @@ const TaskManager = () => {
 
     const toast = useToast();
 
-    // Fetch sections and users
     const fetchSections = useCallback(async () => {
         try {
             const response = await getSections();
@@ -75,7 +74,6 @@ const TaskManager = () => {
         }
     }, [toast]);
 
-    // Fetch tasks by section ID
     const fetchTasksBySection = useCallback(async (sectionId) => {
         try {
             const response = await getTasksBySection(sectionId);
@@ -96,7 +94,6 @@ const TaskManager = () => {
         }
     }, [toast]);
 
-    // Fetch tasks without a section
     const fetchTasksWithoutSection = useCallback(async () => {
         try {
             const response = await getTasksWithoutSection();
@@ -132,7 +129,6 @@ const TaskManager = () => {
         fetchTasksWithoutSection(); // Fetch tasks without a section initially
     }, [fetchTasksWithoutSection]);
 
-    // Add section
     const addSection = async (newSection) => {
         try {
             await fetchSections(); // Refresh sections list
@@ -154,7 +150,6 @@ const TaskManager = () => {
         }
     };
 
-    // Add task to section
     const addTaskToSection = async (task) => {
         if (!task.sectionID || !currentUserId) {
             toast({
@@ -193,7 +188,6 @@ const TaskManager = () => {
         }
     };
 
-    // Handle status change
     const handleStatusChange = async (taskId, newStatus) => {
         try {
             const taskToUpdate = Object.values(tasksBySection).flat().find(task => task.id === taskId);
@@ -225,24 +219,20 @@ const TaskManager = () => {
         }
     };
 
-    // Handle edit task
     const handleEdit = (task) => {
         setTaskToEdit(task);
         onEditTaskOpen();
     };
 
-    // Handle section click
     const handleSectionClick = (sectionId) => {
         setSelectedSectionId(sectionId);
     };
 
-    // Handle edit section
     const handleEditSection = (section) => {
         setSectionToEdit(section);
         onEditSectionOpen();
     };
 
-    // Handle delete task
     const handleDelete = async (task) => {
         try {
             await deleteTask(task.id); // Delete task
@@ -270,13 +260,11 @@ const TaskManager = () => {
         }
     };
 
-    // Handle delete section
     const handleDeleteSection = (section) => {
         setSectionToDelete(section);
         onConfirmDeleteOpen();
     };
 
-    // Confirm delete section
     const handleConfirmDelete = async () => {
         if (!sectionToDelete) return;
         try {
@@ -315,7 +303,6 @@ const TaskManager = () => {
         }
     };
 
-    // Handle update section
     const handleUpdateSection = async (section) => {
         try {
             const response = await updateSection(section); // Update section via API
@@ -345,6 +332,11 @@ const TaskManager = () => {
                 isClosable: true,
             });
         }
+    };
+
+    // Helper function to filter out completed tasks
+    const filterTasks = (tasks) => {
+        return tasks.filter(task => task.status !== 'Completed');
     };
 
     return (
@@ -399,7 +391,7 @@ const TaskManager = () => {
                                 Add Task to {section.sectionName || 'Unnamed Section'}
                             </Button>
                             <TaskTable
-                                tasks={tasksBySection[section.id] || []}
+                                tasks={filterTasks(tasksBySection[section.id] || [])}
                                 onEdit={handleEdit}
                                 onDelete={handleDelete}
                                 onStatusChange={handleStatusChange}
@@ -421,7 +413,7 @@ const TaskManager = () => {
                     </AccordionButton>
                     <AccordionPanel pb={4}>
                         <TaskTable
-                            tasks={tasksWithoutSection}
+                            tasks={filterTasks(tasksWithoutSection)}
                             onEdit={handleEdit}
                             onDelete={handleDelete}
                             onStatusChange={handleStatusChange}

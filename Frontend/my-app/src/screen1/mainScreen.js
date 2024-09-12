@@ -18,7 +18,9 @@ const MainScreen = () => {
           overflowY="auto" 
         >
           <Outlet /> 
+          
         </Box>
+
       </Flex>
     </Flex>
   );

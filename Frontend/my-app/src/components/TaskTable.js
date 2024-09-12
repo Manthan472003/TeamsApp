@@ -75,6 +75,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
             console.error('onDelete function is not defined');
         }
     };
+
     const handleCompleteClick = (task) => {
         setTaskToComplete(task);
         onCompleteOpen();
@@ -95,10 +96,8 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
         return user ? user.userName : 'Unknown';
     };
 
-    const filteredTasks = tasks.filter(task => task.status !== 'Completed');
-
-    // Sort tasks by due date in ascending order
-    const sortedTasks = filteredTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    // Remove the filtering of completed tasks
+    const sortedTasks = tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
     return (
         <>
@@ -149,7 +148,6 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                         size='sm'
                                         bg='#ffffff'
                                         rounded={7}
-                                        isDisabled={task.status === 'Completed'}
                                     >
                                         <option value="Not Started">Not Started</option>
                                         <option value="In Progress">In Progress</option>
@@ -183,7 +181,6 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                         ml={2}
                                         leftIcon={<CheckIcon />}
                                         onClick={() => handleCompleteClick(task)}
-                                        isDisabled={task.status === 'Completed'}
                                     >
                                         Completed
                                     </Button>
@@ -218,6 +215,5 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
         </>
     );
 };
-
 
 export default TaskTable;
