@@ -1,5 +1,3 @@
-// TaskService.js
-
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/tasks';
@@ -26,3 +24,6 @@ export const updateTask = async (task) => {
 
 // Delete a task
 export const deleteTask = (taskId) => axios.delete(`${API_URL}/${taskId}`);
+
+// Fetch tasks without a section
+export const getTasksWithoutSection = () => axios.get(`${API_URL}/section/null`);

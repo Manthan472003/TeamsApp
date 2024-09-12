@@ -1,8 +1,9 @@
 // screen/mainScreen.js
 import React from 'react';
-import { Flex, Box } from '@chakra-ui/react';
-import Header from '../components/Header';  // Import the Header component
-import Sidebar from '../components/Sidebar';  // Import the Sidebar component
+import { Box, Flex } from '@chakra-ui/react';
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
+import { Outlet } from 'react-router-dom'; // Used for nested routes
 
 const MainScreen = () => {
   return (
@@ -11,11 +12,12 @@ const MainScreen = () => {
       <Flex flex="1">
         <Sidebar />
         <Box
-          ml="250px"
+          ml="250px" 
           p={4}
           flex="1"
           overflowY="auto" 
         >
+          <Outlet /> 
         </Box>
       </Flex>
     </Flex>

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, chakra, Box, Link, Avatar, FormControl, FormHelperText, InputRightElement } from '@chakra-ui/react';
+import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, chakra, Box, Link, Image, FormControl, FormHelperText, InputRightElement } from '@chakra-ui/react';
 import { FaUserAlt, FaLock } from 'react-icons/fa';
 import { saveUser } from '../Services/UserService'; // Import the saveUser function
+import logo from '../assets/logo.png';
+
 
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
@@ -40,8 +42,12 @@ const Signup = () => {
       alignItems="center"
     >
       <Stack flexDir="column" mb="2" justifyContent="center" alignItems="center">
-        <Avatar bg="teal.500" />
-        <Heading color="teal.400">TEAMS APP</Heading>
+      <Image
+          src={logo}
+          alt="OrganizeIt Logo"
+          boxSize="65px"
+        />
+        <Heading color="teal.400">Organize-It !!</Heading>
         <Box minW={{ base: '90%', md: '468px' }}>
           <form onSubmit={handleSubmit}>
             <Stack spacing={4} p="1rem" backgroundColor="whiteAlpha.900" boxShadow="md">

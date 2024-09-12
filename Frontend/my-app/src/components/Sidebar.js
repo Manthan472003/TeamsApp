@@ -13,9 +13,9 @@ const Sidebar = () => {
       p={4}
       bg="teal.800"
       color="white"
-      height="calc(100vh - 60px)" 
+      height="calc(100vh - 60px)" // Adjust based on the height of the header
       position="fixed"
-      top="60px" 
+      top="60px" // Position below the header
       left={0}
     >
       <VStack spacing={4} align="stretch">

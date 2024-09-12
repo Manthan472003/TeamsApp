@@ -32,7 +32,7 @@ const Home = () => {
   };
 
   return (
-    <Box>
+    <Box defaultValue={[0]}>
       <Header />
       <br />
      

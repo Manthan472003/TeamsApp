@@ -227,21 +227,33 @@ const getTasksBySectionID = async (req, res) => {
     const { sectionID } = req.params;
 
     try {
-        const section = await Section.findOne({
-            where : { id : sectionID}
-        });
-        if (!section) {
-            return res.status(404).json({ message: 'Section does not exist.' });
+        if (sectionID === 'null') {
+            // Fetch tasks without a section
+            const tasks = await Task.findAll({ where: { sectionID: null } });
+            return res.status(200).json(tasks);
+        } else {
+            const section = await Section.findOne({ where: { id: sectionID } });
+            if (!section) {
+                return res.status(404).json({ message: 'Section does not exist.' });
+            }
+
+            const tasks = await Task.findAll({ where: { sectionID } });
+            return res.status(200).json(tasks);
         }
-
-        const tasks = await Task.findAll({
-            where: { sectionID }
-        });
-
-        return res.status(200).json(tasks);
     } catch (error) {
         console.error('Error retrieving tasks by sectionID:', error);
         return res.status(500).json({ message: 'Error retrieving tasks by sectionID.' });
+    }
+};
+
+// New controller to get tasks with null sectionID
+const getTasksWithNullSection = async (req, res) => {
+    try {
+        const tasks = await Task.findAll({ where: { sectionID: null } });
+        return res.status(200).json(tasks);
+    } catch (error) {
+        console.error('Error retrieving tasks with null sectionID:', error);
+        return res.status(500).json({ message: 'Error retrieving tasks with null sectionID.' });
     }
 };
 
@@ -251,5 +263,6 @@ module.exports = {
     getTaskById,
     updateTaskById,
     deleteTaskById,
-    getTasksBySectionID
+    getTasksBySectionID,
+    getTasksWithNullSection // Export the new function
 };

@@ -42,7 +42,7 @@ const Login = () => {
         localStorage.setItem('userName', userName || email); // Store userName or email if userName is not available
         localStorage.setItem('userId', userId); // Store userId
 
-        navigate('/main'); // Navigate to home after successful login
+        navigate('/home'); // Navigate to home after successful login
       }
     } catch (error) {
       if (error.response) {

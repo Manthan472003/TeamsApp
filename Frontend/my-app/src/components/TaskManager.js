@@ -5,7 +5,7 @@ import {
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 
 import { getSections, deleteSection, updateSection } from '../Services/SectionService';
-import { saveTask, getTasksBySection, deleteTask, updateTask } from '../Services/TaskService';
+import { saveTask, getTasksBySection, deleteTask, updateTask, getTasksWithoutSection } from '../Services/TaskService';
 import { getUsers } from '../Services/UserService';
 import AddSectionModal from './AddSectionModal';
 import AddTaskModal from './AddTaskModal';
@@ -23,16 +23,17 @@ const TaskManager = () => {
 
     const [sections, setSections] = useState([]);
     const [tasksBySection, setTasksBySection] = useState({});
+    const [tasksWithoutSection, setTasksWithoutSection] = useState([]);
     const [users, setUsers] = useState([]);
     const [selectedSectionId, setSelectedSectionId] = useState(null);
     const [taskToEdit, setTaskToEdit] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [sectionToEdit, setSectionToEdit] = useState(null);
     const [sectionToDelete, setSectionToDelete] = useState(null);
-    const [confirmDelete, setConfirmDelete] = useState(null);
 
     const toast = useToast();
 
+    // Fetch sections and users
     const fetchSections = useCallback(async () => {
         try {
             const response = await getSections();
@@ -74,6 +75,7 @@ const TaskManager = () => {
         }
     }, [toast]);
 
+    // Fetch tasks by section ID
     const fetchTasksBySection = useCallback(async (sectionId) => {
         try {
             const response = await getTasksBySection(sectionId);
@@ -94,6 +96,27 @@ const TaskManager = () => {
         }
     }, [toast]);
 
+    // Fetch tasks without a section
+    const fetchTasksWithoutSection = useCallback(async () => {
+        try {
+            const response = await getTasksWithoutSection();
+            if (response && response.data) {
+                setTasksWithoutSection(response.data);
+            } else {
+                throw new Error('Unexpected response format');
+            }
+        } catch (error) {
+            console.error('Fetch Tasks Without Section Error:', error);
+            toast({
+                title: "Error fetching tasks without section.",
+                description: "Unable to fetch tasks without section. Please try again.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+    }, [toast]);
+
     useEffect(() => {
         fetchSections();
         fetchUsers();
@@ -105,6 +128,11 @@ const TaskManager = () => {
         }
     }, [selectedSectionId, fetchTasksBySection]);
 
+    useEffect(() => {
+        fetchTasksWithoutSection(); // Fetch tasks without a section initially
+    }, [fetchTasksWithoutSection]);
+
+    // Add section
     const addSection = async (newSection) => {
         try {
             await fetchSections(); // Refresh sections list
@@ -126,6 +154,7 @@ const TaskManager = () => {
         }
     };
 
+    // Add task to section
     const addTaskToSection = async (task) => {
         if (!task.sectionID || !currentUserId) {
             toast({
@@ -140,7 +169,11 @@ const TaskManager = () => {
 
         try {
             await saveTask(task); // Call API to save task
-            await fetchTasksBySection(task.sectionID); // Refresh tasks for the specific section
+            if (task.sectionID !== null) {
+                await fetchTasksBySection(task.sectionID); // Refresh tasks for the specific section
+            } else {
+                await fetchTasksWithoutSection(); // Refresh tasks without section
+            }
             toast({
                 title: "Task added.",
                 description: "The new task was successfully added.",
@@ -160,13 +193,18 @@ const TaskManager = () => {
         }
     };
 
+    // Handle status change
     const handleStatusChange = async (taskId, newStatus) => {
         try {
             const taskToUpdate = Object.values(tasksBySection).flat().find(task => task.id === taskId);
             if (taskToUpdate) {
                 taskToUpdate.status = newStatus;
-                await updateTask(taskToUpdate); // Call API to update the task status in the backend
-                await fetchTasksBySection(selectedSectionId); // Refresh tasks for the specific section
+                await updateTask(taskToUpdate); // Update task status in the backend
+                if (taskToUpdate.sectionID !== null) {
+                    await fetchTasksBySection(taskToUpdate.sectionID); // Refresh tasks for the specific section
+                } else {
+                    await fetchTasksWithoutSection(); // Refresh tasks without section
+                }
                 toast({
                     title: "Task status updated.",
                     description: `Task status has been updated to ${newStatus}.`,
@@ -187,34 +225,32 @@ const TaskManager = () => {
         }
     };
 
+    // Handle edit task
     const handleEdit = (task) => {
         setTaskToEdit(task);
         onEditTaskOpen();
-
-        toast({
-            title: "Editing Task",
-            description: `You are now editing the task: ${task.taskName}`, // Assumes the task has a title property
-            status: "info",
-            duration: 3000,
-            isClosable: true,
-        });
     };
 
+    // Handle section click
     const handleSectionClick = (sectionId) => {
         setSelectedSectionId(sectionId);
     };
 
+    // Handle edit section
+    const handleEditSection = (section) => {
+        setSectionToEdit(section);
+        onEditSectionOpen();
+    };
+
+    // Handle delete task
     const handleDelete = async (task) => {
         try {
-            await deleteTask(task.id); // Call API to delete task
-            setTasksBySection(prev => {
-                const updatedTasks = { ...prev };
-                if (updatedTasks[selectedSectionId]) {
-                    updatedTasks[selectedSectionId] = updatedTasks[selectedSectionId].filter(t => t.id !== task.id);
-                }
-                return updatedTasks;
-            });
-
+            await deleteTask(task.id); // Delete task
+            if (task.sectionID !== null) {
+                await fetchTasksBySection(task.sectionID); // Refresh tasks for the specific section
+            } else {
+                await fetchTasksWithoutSection(); // Refresh tasks without section
+            }
             toast({
                 title: "Task deleted.",
                 description: "The task was successfully deleted.",
@@ -223,7 +259,7 @@ const TaskManager = () => {
                 isClosable: true,
             });
         } catch (error) {
-            console.error('Error deleting task:', error.response || error);
+            console.error('Error deleting task:', error);
             toast({
                 title: "Error deleting task.",
                 description: error.message,
@@ -234,33 +270,27 @@ const TaskManager = () => {
         }
     };
 
-    const handleEditSection = (section) => {
-        setSectionToEdit(section);
-        onEditSectionOpen(); // Open the edit section modal
+    // Handle delete section
+    const handleDeleteSection = (section) => {
+        setSectionToDelete(section);
+        onConfirmDeleteOpen();
     };
 
-    const handleDeleteSection = async (section) => {
-        try {
-            setSectionToDelete(section);
-            setConfirmDelete('section');
-            onConfirmDeleteOpen();
-        } catch (error) {
-            console.error('Error deleting section:', error.response || error);
-            toast({
-                title: "Error deleting section.",
-                description: error.message,
-                status: "error",
-                duration: 5000,
-                isClosable: true,
-            });
-        }
-    };
-
+    // Confirm delete section
     const handleConfirmDelete = async () => {
+        if (!sectionToDelete) return;
         try {
-            if (confirmDelete === 'section' && sectionToDelete) {
-                await deleteSection(sectionToDelete.id);
-                await fetchSections(); // Refresh sections list
+            const response = await deleteSection(sectionToDelete.id); // Delete section
+            if (response.status === 200) {
+                setSections(prevSections =>
+                    prevSections.filter(sec => sec.id !== sectionToDelete.id)
+                );
+                setTasksBySection(prevTasks => {
+                    const newTasks = { ...prevTasks };
+                    delete newTasks[sectionToDelete.id];
+                    return newTasks;
+                });
+                await fetchTasksWithoutSection(); // Refresh tasks without section
                 toast({
                     title: "Section deleted.",
                     description: "The section was successfully deleted.",
@@ -268,8 +298,9 @@ const TaskManager = () => {
                     duration: 5000,
                     isClosable: true,
                 });
+            } else {
+                throw new Error(response.data.message);
             }
-            onConfirmDeleteClose();
         } catch (error) {
             console.error('Error deleting section:', error.response || error);
             toast({
@@ -279,20 +310,21 @@ const TaskManager = () => {
                 duration: 5000,
                 isClosable: true,
             });
+        } finally {
             onConfirmDeleteClose();
         }
     };
 
+    // Handle update section
     const handleUpdateSection = async (section) => {
         try {
-            const response = await updateSection(section); // Call to API service
+            const response = await updateSection(section); // Update section via API
             if (response.status === 200) {
                 setSections(prevSections =>
                     prevSections.map(sec =>
                         sec.id === section.id ? response.data.section : sec
                     )
                 );
-
                 toast({
                     title: "Section updated.",
                     description: "The section was successfully updated.",
@@ -315,13 +347,8 @@ const TaskManager = () => {
         }
     };
 
-    // Get tasks without a section
-    const getTasksWithoutSection = () => {
-        return Object.values(tasksBySection).flat().filter(task => task.sectionID === null);
-    };
-
     return (
-        <Box>
+        <Box mt={20}>
             <Button onClick={onSectionOpen} colorScheme='teal' variant='outline' mt={3} mb={4}>
                 Add Section
             </Button>
@@ -332,7 +359,7 @@ const TaskManager = () => {
                 onSectionAdded={addSection}
             />
 
-            <Accordion >
+            <Accordion>
                 {sections.map(section => (
                     <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
                         <AccordionButton onClick={() => handleSectionClick(section.id)}>
@@ -361,7 +388,7 @@ const TaskManager = () => {
                         </AccordionButton>
                         <AccordionPanel pb={4}>
                             <Button
-                                onClick={() => onTaskOpen()}
+                                onClick={onTaskOpen}
                                 colorScheme='teal'
                                 textColor='Orange.500'
                                 border={2}
@@ -394,7 +421,7 @@ const TaskManager = () => {
                     </AccordionButton>
                     <AccordionPanel pb={4}>
                         <TaskTable
-                            tasks={getTasksWithoutSection()}
+                            tasks={tasksWithoutSection}
                             onEdit={handleEdit}
                             onDelete={handleDelete}
                             onStatusChange={handleStatusChange}
