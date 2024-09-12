@@ -257,6 +257,17 @@ const getTasksWithNullSection = async (req, res) => {
     }
 };
 
+// Get tasks with 'completed' status
+const getCompletedTasks = async (req, res) => {
+    try {
+        const tasks = await Task.findAll({ where: { status: 'Completed' } });
+        return res.status(200).json(tasks);
+    } catch (error) {
+        console.error('Error retrieving completed tasks:', error);
+        return res.status(500).json({ message: 'Error retrieving completed tasks.' });
+    }
+};
+
 module.exports = {
     createTask,
     getAllTasks,
@@ -264,5 +275,6 @@ module.exports = {
     updateTaskById,
     deleteTaskById,
     getTasksBySectionID,
-    getTasksWithNullSection // Export the new function
+    getTasksWithNullSection,
+    getCompletedTasks // Export the new function
 };

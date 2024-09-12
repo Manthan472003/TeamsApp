@@ -6,7 +6,7 @@ import Login from './screen/login';
 import Signup from './screen/signup';
 import MainScreen from './screen1/mainScreen';
 import TaskManager from './components/TaskManager';
-import CompletedTasks from './components/CompletedTask'; 
+import CompletedTask from './components/CompletedTask'; 
 import Bin from './components/Bin'; 
 import TechnologyUsed from './components/TechnologyUsed'; 
 
@@ -22,7 +22,7 @@ function App() {
             <Route index element={<TaskManager />} /> {/* Default nested route */}
           </Route>
           <Route path="/completed-tasks" element={<MainScreen />}>
-            <Route index element={<CompletedTasks />} />
+            <Route index element={<CompletedTask />} />
           </Route>
           <Route path="/bin" element={<MainScreen />}>
             <Route index element={<Bin />} />

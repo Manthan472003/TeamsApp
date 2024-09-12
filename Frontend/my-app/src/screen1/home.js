@@ -33,9 +33,7 @@ const Home = () => {
 
   return (
     <Box defaultValue={[0]}>
-      <Header />
-      <br />
-     
+      <Header />     
       <Box mt={6} p={4}>
         <TaskManager
           tasks={tasks}

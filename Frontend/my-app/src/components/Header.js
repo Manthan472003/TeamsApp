@@ -2,11 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Flex, Heading, Menu, MenuButton, MenuItem, MenuList, Img, Button } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import userImage from '../screen1/user.png';
-import SettingsModal from './SettingModal';
 
 const Header = () => {
-  const [isSettingsOpen, setSettingsOpen] = useState(false);
-  const [submittedData, setSubmittedData] = useState([]);
   const [userName, setUserName] = useState(''); // State to hold user name
   const navigate = useNavigate();
 
@@ -23,15 +20,6 @@ const Header = () => {
     navigate('/login');
   };
 
-  const openSettings = () => setSettingsOpen(true);
-  const closeSettings = () => setSettingsOpen(false);
-
-  // Handle settings submission
-  const handleSettingsSubmit = (data) => {
-    console.log('Settings submitted:', data);
-    setSubmittedData(prevData => [...prevData, data]); // Add the new settings data to the existing data
-    closeSettings(); // Close the modal after submission
-  };
 
   return (
     <Flex
@@ -61,18 +49,12 @@ const Header = () => {
             </MenuButton>
             <MenuList bgColor={'#ffffff'} color={'teal'}>
               <MenuItem>Your Profile</MenuItem>
-              <MenuItem onClick={openSettings}>Settings</MenuItem>
+              <MenuItem>Settings</MenuItem>
               <MenuItem>
                 <Button onClick={handleLogout} colorScheme='red'>Logout</Button>
               </MenuItem>
             </MenuList>
           </Menu>
-          <SettingsModal
-            isOpen={isSettingsOpen}
-            onClose={closeSettings}
-            onSubmit={handleSettingsSubmit} // Ensure this function is provided
-            submittedData={submittedData} // Pass the actual data to display in the table
-          />
         </Flex>
       </Flex>
     </Flex>

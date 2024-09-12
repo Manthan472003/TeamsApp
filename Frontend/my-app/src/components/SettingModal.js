@@ -1,3 +1,4 @@
+// components/SettingsModal.js
 import React, { useState } from 'react';
 import {
     Modal,
@@ -47,7 +48,7 @@ const SettingsModal = ({ isOpen, onClose, onSubmit, submittedData = [] }) => {
         // Optionally show a toast notification
         toast({
             title: "Configurations Saved.",
-            description: "Your configuration have been saved.",
+            description: "Your configuration has been saved.",
             status: "success",
             duration: 5000,
             isClosable: true,
@@ -81,11 +82,18 @@ const SettingsModal = ({ isOpen, onClose, onSubmit, submittedData = [] }) => {
                             onChange={(e) => setCurrTechVersion(e.target.value)}
                         />
                     </FormControl>
-                    <FormControl id="system" mb={4}>
+                    <FormControl id="latestVersion" mb={4}>
                         <FormLabel>Latest Version</FormLabel>
                         <Input
                             value={latesttechVersion}
                             onChange={(e) => setLatesttechVersion(e.target.value)}
+                        />
+                    </FormControl>
+                    <FormControl id="createdAt" mb={4}>
+                        <FormLabel>Created At</FormLabel>
+                        <Input
+                            value={createdat}
+                            onChange={(e) => setCreatedat(e.target.value)}
                         />
                     </FormControl>
 
@@ -98,14 +106,13 @@ const SettingsModal = ({ isOpen, onClose, onSubmit, submittedData = [] }) => {
                         </Button>
                     </ModalFooter>
 
-                    {/* Table to show submitted data */}
                     <Table variant="simple" colorScheme="teal" mt={6}>
                         <Thead>
                             <Tr>
                                 <Th>Name</Th>
                                 <Th>Current Version</Th>
                                 <Th>Latest Version</Th>
-                                <Th>Created at</Th>
+                                <Th>Created At</Th>
                             </Tr>
                         </Thead>
                         <Tbody>

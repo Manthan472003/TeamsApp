@@ -1,28 +1,46 @@
 // components/Sidebar.js
-import React from 'react';
-import { Box, VStack, Link } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Box, VStack, Button } from '@chakra-ui/react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import '../Styles/Sidebar.css'; 
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [activeButton, setActiveButton] = useState(location.pathname); 
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    setActiveButton(path); 
+  };
 
   return (
-    <Box
-      as="nav"
-      width="250px"
-      p={4}
-      bg="teal.800"
-      color="white"
-      height="calc(100vh - 60px)" // Adjust based on the height of the header
-      position="fixed"
-      top="60px" // Position below the header
-      left={0}
-    >
+    <Box className="sidebar">
       <VStack spacing={4} align="stretch">
-        <Link onClick={() => navigate('/home')} fontSize="lg" fontWeight="bold">Home</Link>
-        <Link onClick={() => navigate('/completed-tasks')} fontSize="lg">Completed Tasks</Link>
-        <Link onClick={() => navigate('/bin')} fontSize="lg">Bin</Link>
-        <Link onClick={() => navigate('/tech-used')} fontSize="lg">Technology Used</Link>
+        <Button
+          className={`sidebar-button ${activeButton === '/home' ? 'active' : ''}`}
+          onClick={() => handleNavigation('/home')}
+        >
+          Home
+        </Button>
+        <Button
+          className={`sidebar-button ${activeButton === '/completed-tasks' ? 'active' : ''}`}
+          onClick={() => handleNavigation('/completed-tasks')}
+        >
+          Completed Tasks
+        </Button>
+        <Button
+          className={`sidebar-button ${activeButton === '/bin' ? 'active' : ''}`}
+          onClick={() => handleNavigation('/bin')}
+        >
+          Bin
+        </Button>
+        <Button
+          className={`sidebar-button ${activeButton === '/tech-used' ? 'active' : ''}`}
+          onClick={() => handleNavigation('/tech-used')}
+        >
+          Technology Used
+        </Button>
       </VStack>
     </Box>
   );
