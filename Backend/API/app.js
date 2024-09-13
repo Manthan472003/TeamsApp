@@ -22,7 +22,7 @@ app.use('/sections', sectionRoutes);
 app.use('/tags', tagRoutes);
 app.use('/images', imageRoutes);
 app.use('/taskTags', taskTagRoutes);
-app.use('/dailysReport', dailyReportsRoutes)
+app.use('/dailyReports', dailyReportsRoutes)
 app.use('/versionManagement', versionManagementRoutes)
 
 sequelize.sync().then(() => {

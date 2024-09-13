@@ -3,18 +3,18 @@ const router = express.Router();
 const dailyReportsController = require('../Controllers/dailyReportsController');
 
 // Create a new DailyReports entry
-router.post('/', dailyReportsController.createEntry);
+router.post('/', dailyReportsController.createReport);
 
 // Get all DailyReports entries
-router.get('/', dailyReportsController.getAllEntries);
+router.get('/', dailyReportsController.getAllReports);
 
 // Get a DailyReports entry by ID
-router.get('/:id', dailyReportsController.getEntryByID);
-
-// Update a DailyReports entry by ID
-router.put('/:id', dailyReportsController.updateEntryByID);
+router.get('/:id', dailyReportsController.getReportByID);
 
 // Delete a DailyReports entry by ID
-router.delete('/:id', dailyReportsController.deleteEntryByID);
+router.delete('/:id', dailyReportsController.deleteReportByID);
+
+//Create DailyReports Entry by ID
+router.get('/user/:userId', dailyReportsController.getReportsByUserID);
 
 module.exports = router;

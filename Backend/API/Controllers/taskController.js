@@ -16,7 +16,7 @@ const createTask = async (req, res) => {
         // Check if the assigned user exists (if provided)
         if (taskAssignedToID) {
             const assignedUser = await User.findOne({
-                where: {id : taskAssignedToID}
+                where: { id: taskAssignedToID }
             });
             if (!assignedUser) {
                 return res.status(404).json({ message: 'Assigned user does not exist.' });
@@ -26,7 +26,7 @@ const createTask = async (req, res) => {
         // Check if the task creator exists (if provided)
         if (taskCreatedByID) {
             const createdByUser = await User.findOne({
-                where: {id : taskCreatedByID}
+                where: { id: taskCreatedByID }
             });
             if (!createdByUser) {
                 return res.status(404).json({ message: 'Task creator does not exist.' });
@@ -35,7 +35,7 @@ const createTask = async (req, res) => {
 
         // Check if the section exists
         const section = await Section.findOne({
-            where: {id : sectionID}
+            where: { id: sectionID }
         });
         if (!section) {
             return res.status(404).json({ message: 'Section does not exist.' });
@@ -99,7 +99,7 @@ const getTaskById = async (req, res) => {
 
     try {
         const task = await Task.findOne({
-            where : {id}
+            where: { id }
         });
         if (!task) {
             return res.status(404).json({ message: 'Task not found.' });
@@ -120,14 +120,14 @@ const updateTaskById = async (req, res) => {
     if (!id) {
         return res.status(400).json({ message: 'ID parameter is required for update.' });
     }
-    if (!taskName || !sectionID) {
-        return res.status(400).json({ message: 'Task name and section ID are required for update.' });
-    }
+    // if (!taskName || !sectionID) {
+    //     return res.status(400).json({ message: 'Task name and section ID are required for update.' });
+    // }
 
     try {
         // Find the task to update
         const task = await Task.findOne({
-            where : { id }
+            where: { id }
         });
         if (!task) {
             return res.status(404).json({ message: 'Task not found.' });
@@ -136,7 +136,7 @@ const updateTaskById = async (req, res) => {
         // Check if the assigned user exists (if provided)
         if (taskAssignedToID) {
             const assignedUser = await User.findOne({
-                where : {id : taskAssignedToID}
+                where: { id: taskAssignedToID }
             });
             if (!assignedUser) {
                 return res.status(404).json({ message: 'Assigned user does not exist.' });
@@ -146,7 +146,7 @@ const updateTaskById = async (req, res) => {
         // Check if the task creator exists (if provided)
         if (taskCreatedByID) {
             const createdByUser = await User.findOne({
-                where : {id :taskCreatedByID}
+                where: { id: taskCreatedByID }
             });
             if (!createdByUser) {
                 return res.status(404).json({ message: 'Task creator does not exist.' });
@@ -155,7 +155,7 @@ const updateTaskById = async (req, res) => {
 
         // Check if the section exists
         const section = await Section.findOne({
-            where : {id : sectionID}
+            where: { id: sectionID }
         });
         if (!section) {
             return res.status(404).json({ message: 'Section does not exist.' });
@@ -208,7 +208,7 @@ const deleteTaskById = async (req, res) => {
 
     try {
         const task = await Task.findOne({
-            where : {id}
+            where: { id }
         });
         if (!task) {
             return res.status(404).json({ message: 'Task not found.' });
@@ -268,6 +268,37 @@ const getCompletedTasks = async (req, res) => {
     }
 };
 
+// Get Tasks Assigned to a user by UserID
+const getAssignedTasksToUserByUserId = async (req, res) => {
+    const { userId } = req.params;
+    if (!userId) {
+        return res.status(400).json({ message: 'UserId is required.' });
+    }
+    try {
+        if (userId) {
+            const user = await User.findOne({
+                where: { id: userId }
+            });
+            if (!user) {
+                return res.status(404).json({ message: 'User does not exist.' });
+            }
+        }
+
+        const tasks = await Task.findAll({
+            where: { taskAssignedToID: userId }
+        });
+        return res.status(200).json(tasks);
+
+
+    } catch (error) {
+        console.error('Error retrieving Tasks by UserID:', error);
+        return res.status(500).json({ message: 'Error retrieving Tasks by UserId.' });
+
+    }
+
+
+}
+
 module.exports = {
     createTask,
     getAllTasks,
@@ -276,5 +307,6 @@ module.exports = {
     deleteTaskById,
     getTasksBySectionID,
     getTasksWithNullSection,
-    getCompletedTasks // Export the new function
+    getCompletedTasks,
+    getAssignedTasksToUserByUserId
 };

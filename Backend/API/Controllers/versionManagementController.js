@@ -27,8 +27,8 @@ const createEntry = async (req, res) => {
 
         return res.status(201).json({ message: 'Version Entry Created Successfully.', newEntry })
     } catch (error) {
-        console.error('Error creating task:', error);
-        return res.status(500).json({ message: 'Error creating task.' });
+        console.error('Error creating entry:', error);
+        return res.status(500).json({ message: 'Error creating entry.' });
     }
 };
 
@@ -87,6 +87,7 @@ const deleteEntryByID = async (req, res) => {
     }
 }
 
+//Get All Entries By UserID
 const getAllEntriesByUserID = async (req, res) => {
     const { userId } = req.params;
     if (!userId) {
@@ -113,10 +114,57 @@ const getAllEntriesByUserID = async (req, res) => {
 
 }
 
+//Update Entry By ID
+const updateEntryByID = async (req, res) => {
+    const { id } = req.params;
+    const { userId, technologyUsed, currentVersion, latestVersion } = req.body;
+
+    if (!id) {
+        return res.status(400).json({ message: 'ID parameter is required for update.' });
+    }
+
+    try {
+        // Find the entry to update
+        const entry = await VersionManagement.findOne({
+            where: { id }
+        });
+        if (!entry) {
+            return res.status(404).json({ message: 'Entry not found.' });
+        }
+
+        // Check if the assigned user exists (if provided)
+        if (userId) {
+            const user = await User.findOne({
+                where: { id: userId }
+            });
+            if (!user) {
+                return res.status(404).json({ message: 'User does not exist.' });
+            }
+        }
+
+        // Update the entry
+        await entry.update({
+            userId,
+            technologyUsed,
+            currentVersion,
+            latestVersion
+        });
+
+        return res.status(200).json({ message: 'Entry updated successfully.', entry });
+
+
+    } catch (error) {
+        console.error('Error updating entry:', error);
+        return res.status(500).json({ message: 'Error updating entry.' });
+    }
+}
+
+
 module.exports = {
     createEntry,
     getAllEntries,
     getEntryByID,
     deleteEntryByID,
-    getAllEntriesByUserID
+    updateEntryByID,
+    getAllEntriesByUserID    
 }

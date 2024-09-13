@@ -26,4 +26,7 @@ router.delete('/:id', taskController.deleteTaskById);
 // Route for getting completed tasks
 router.get('/status/completed', taskController.getCompletedTasks); // New route
 
+// Get Tasks Assigned to a user by UserID
+router.get('/assignedTasks/:userId', taskController.getAssignedTasksToUserByUserId);
+
 module.exports = router;

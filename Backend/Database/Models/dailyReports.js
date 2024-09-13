@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../Config/config');
-const User = require('./user'); 
 
 const DailyReports = sequelize.define('DailyReports', {
   id: {
@@ -11,12 +10,6 @@ const DailyReports = sequelize.define('DailyReports', {
   userId: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    references: {
-      model: User,
-      key: 'id'
-    },
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE'
   },
   taskName: {
     type: DataTypes.STRING(255),

@@ -17,4 +17,7 @@ router.delete('/:id', versionManagementController.deleteEntryByID);
 //Create VersionManagement Entry by ID
 router.get('/user/:userId', versionManagementController.getAllEntriesByUserID);
 
+//Update VM Entry by ID
+router.put('/:id', versionManagementController.updateEntryByID);
+
 module.exports = router;
