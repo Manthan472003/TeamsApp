@@ -27,7 +27,7 @@ const TaskTag = sequelize.define('TaskTag', {
         allowNull: true
     }
 }, {
-    tableName: 'tasktagtable',
+    tableName: 'task_tag_table',
     timestamps: false
 });
 

@@ -23,7 +23,7 @@ const Tag = sequelize.define('Tag', {
     allowNull: true
   }
 }, {
-  tableName: 'tagstable',
+  tableName: 'tags_table',
   timestamps: false
 });
 

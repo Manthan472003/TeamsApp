@@ -50,7 +50,7 @@ const Task = sequelize.define('Task', {
         onUpdate: DataTypes.NOW,
     }
 }, {
-    tableName: 'taskstable',
+    tableName: 'tasks_table',
     timestamps: false
 });
 

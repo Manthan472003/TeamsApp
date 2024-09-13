@@ -22,7 +22,7 @@ const TaskImage = sequelize.define('TaskImage', {
         allowNull: true
     }
 }, {
-    tableName: 'taskimagetable',
+    tableName: 'task_image_table',
     timestamps: false
 });
 

@@ -137,7 +137,7 @@ const CompletedTask = () => {
   };
 
     return (
-        <Box mt={20}>
+        <Box mt={5}>
             <Accordion>
                 {sections.map(section => (
                     <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>

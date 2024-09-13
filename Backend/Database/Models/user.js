@@ -32,7 +32,7 @@ const User = sequelize.define('User', {
     onUpdate: DataTypes.NOW,
   }
 }, {
-  tableName: 'usertable',
+  tableName: 'user_table',
   timestamps: false // Explicitly set to false to manage timestamps manually
 });
 

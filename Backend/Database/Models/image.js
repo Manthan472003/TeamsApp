@@ -23,7 +23,7 @@ const Image = sequelize.define('Image', {
         allowNull: true
     }
 }, {
-    tableName: 'imagetable',
+    tableName: 'image_table',
     timestamps: false
 });
 
