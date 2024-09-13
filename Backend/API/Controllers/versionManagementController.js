@@ -70,7 +70,7 @@ const deleteEntryByID = async (req, res) => {
     if (!id) {
         return res.status(400).json({ message: 'ID parameter is required.' });
     }
-    
+
     try {
         const entry = await VersionManagement.findOne({
             where: { id }
@@ -87,9 +87,36 @@ const deleteEntryByID = async (req, res) => {
     }
 }
 
+const getAllEntriesByUserID = async (req, res) => {
+    const { userId } = req.params;
+    if (!userId) {
+        return res.status(400).json({ message: 'UserId is required.' });
+    }
+    try {
+        if (userId) {
+            const user = await User.findOne({
+                where: { id: userId }
+            });
+            if (!user) {
+                return res.status(404).json({ message: 'User does not exist.' });
+            }
+        }
+
+        const entries = await VersionManagement.findAll({ where: { userId } });
+        return res.status(200).json(entries);
+    } catch (error) {
+        console.error('Error retrieving Entries by UserID:', error);
+        return res.status(500).json({ message: 'Error retrieving Entries by UserId.' });
+
+    }
+
+
+}
+
 module.exports = {
     createEntry,
     getAllEntries,
     getEntryByID,
-    deleteEntryByID
+    deleteEntryByID,
+    getAllEntriesByUserID
 }

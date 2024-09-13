@@ -10,3 +10,11 @@ router.get('/', versionManagementController.getAllEntries);
 
 //Create VersionManagement Entry by ID
 router.get('/:id', versionManagementController.getEntryByID);
+
+//Create VersionManagement Entry by ID
+router.delete('/:id', versionManagementController.deleteEntryByID);
+
+//Create VersionManagement Entry by ID
+router.get('/user/:userId', versionManagementController.getAllEntriesByUserID);
+
+module.exports = router;

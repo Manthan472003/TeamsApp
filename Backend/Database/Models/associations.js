@@ -1,5 +1,5 @@
 // associations.js
-const { User, Task, Tag, TaskTag, Section, Image, TaskImage, VersionManagement } = require('./index');
+const { User, Task, Tag, TaskTag, Section, Image, TaskImage, VersionManagement,DailyReports } = require('./index');
 
 // User to Task (Assigned and Created By)
 User.hasMany(Task, { foreignKey: 'taskCreatedByID', onDelete: 'SET NULL', onUpdate: 'CASCADE' });
@@ -22,3 +22,7 @@ Task.belongsToMany(Image, { through: TaskImage, foreignKey: 'taskID', onDelete: 
 //Version Management to User
 User.hasMany(VersionManagement, {foreignKey: 'userID', onDelete: 'CASCADE', onUpdate: 'CASCADE'});
 VersionManagement.belongsTo(User, {foreignKey : 'userID'});
+
+// User to DailyReports
+User.hasMany(DailyReports, { foreignKey: 'userId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+DailyReports.belongsTo(User, { foreignKey: 'userId' });
