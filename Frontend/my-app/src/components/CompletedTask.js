@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-    Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Spacer
+    Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Spacer, Heading
 } from '@chakra-ui/react';
 
 import { getSections } from '../Services/SectionService';
@@ -106,38 +106,43 @@ const CompletedTask = () => {
     };
 
     const handleStatusChange = async (taskId, newStatus) => {
-      try {
-          const taskToUpdate = Object.values(tasksBySection).flat().find(task => task.id === taskId);
-          if (taskToUpdate) {
-              taskToUpdate.status = newStatus;
-              await updateTask(taskToUpdate); // Update task status in the backend
-              if (taskToUpdate.sectionID !== null) {
-                  await fetchTasksBySection(taskToUpdate.sectionID); // Refresh tasks for the specific section
-              } else {
-                  await getCompletedTasksForNoSection(); // Refresh tasks without section
-              }
-              toast({
-                  title: "Task status updated.",
-                  description: `Task status has been updated to ${newStatus}.`,
-                  status: "success",
-                  duration: 5000,
-                  isClosable: true,
-              });
-          }
-      } catch (error) {
-          console.error('Error updating task status:', error);
-          toast({
-              title: "Error updating task status.",
-              description: error.message,
-              status: "error",
-              duration: 5000,
-              isClosable: true,
-          });
-      }
-  };
+        try {
+            const taskToUpdate = Object.values(tasksBySection).flat().find(task => task.id === taskId);
+            if (taskToUpdate) {
+                taskToUpdate.status = newStatus;
+                await updateTask(taskToUpdate); // Update task status in the backend
+                if (taskToUpdate.sectionID !== null) {
+                    await fetchTasksBySection(taskToUpdate.sectionID); // Refresh tasks for the specific section
+                } else {
+                    await getCompletedTasksForNoSection(); // Refresh tasks without section
+                }
+                toast({
+                    title: "Task status updated.",
+                    description: `Task status has been updated to ${newStatus}.`,
+                    status: "success",
+                    duration: 5000,
+                    isClosable: true,
+                });
+            }
+        } catch (error) {
+            console.error('Error updating task status:', error);
+            toast({
+                title: "Error updating task status.",
+                description: error.message,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+    };
 
     return (
+
         <Box mt={5}>
+            <Heading as='h2' size='xl'paddingLeft={3} color={'#086F83'}>
+                Completed Tasks
+            </Heading>
+            <br/>
             <Accordion>
                 {sections.map(section => (
                     <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>

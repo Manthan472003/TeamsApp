@@ -39,7 +39,7 @@ const AddSectionModal = ({ isOpen, onClose, onSectionAdded }) => {
                 });
                 setSectionName('');
                 if (typeof onSectionAdded === 'function') {
-                    onSectionAdded(); // Notify parent to refresh sections
+                    onSectionAdded(); // Notify parent to refresh task manager
                 }
                 onClose();
             } else {

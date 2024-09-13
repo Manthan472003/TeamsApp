@@ -6,15 +6,15 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircleIcon, DeleteIcon, ArrowRightIcon, HamburgerIcon, ChevronDownIcon, PlusSquareIcon } from '@chakra-ui/icons';
 import logo from '../assets/logo.png'; 
 import AddSectionModal from './AddSectionModal';
-import AddTaskModal from './AddTaskModal';  // Import AddTaskModal
+import AddTaskModal from './AddTaskModal';
 import { getSections } from '../Services/SectionService'; 
 
-const Sidebar = () => {
+const Sidebar = ({ onSectionAdded }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeButton, setActiveButton] = useState(location.pathname);
   const [userName, setUserName] = useState('');
-  const [isOpen, setIsOpen] = useState(false); // Manage Collapse state
+  const [isOpen, setIsOpen] = useState(location.pathname === '/Home'); // Manage Collapse state
   const { isOpen: isSectionOpen, onOpen: onSectionOpen, onClose: onSectionClose } = useDisclosure();
   const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
   const toast = useToast();
@@ -62,6 +62,9 @@ const Sidebar = () => {
 
   const handleSectionAdded = async () => {
     await fetchSections(); 
+    if (onSectionAdded) {
+      onSectionAdded(); // Notify TaskManager to refresh
+    }
     toast({
       title: "Section added.",
       description: "The new section was successfully added.",
@@ -155,6 +158,7 @@ const Sidebar = () => {
           {...(activeButton === '/Home' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
           onClick={() => handleNavigation('/Home')}
+          fontSize={15}
         >
           Dashboard
         </Button>
@@ -196,6 +200,7 @@ const Sidebar = () => {
           {...(activeButton === '/completed-tasks' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
           onClick={() => handleNavigation('/completed-tasks')}
+          fontSize={15}
         >
           Completed Tasks
         </Button>
@@ -205,6 +210,7 @@ const Sidebar = () => {
           {...(activeButton === '/bin' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
           onClick={() => handleNavigation('/bin')}
+          fontSize={15}
         >
           Bin
         </Button>
@@ -214,8 +220,9 @@ const Sidebar = () => {
           {...(activeButton === '/tech-used' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
           onClick={() => handleNavigation('/tech-used')}
+          fontSize={15}
         >
-          Technology Used
+          Version Management
         </Button>
       </VStack>
 
