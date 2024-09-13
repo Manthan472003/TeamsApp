@@ -106,7 +106,7 @@ const Sidebar = () => {
           _hover={{ ...buttonStyles.hover }}
           onClick={() => handleNavigation('/home')}
         >
-          Home
+          Dashboard
         </Button>
         <Button
           leftIcon={<CheckCircleIcon />}
