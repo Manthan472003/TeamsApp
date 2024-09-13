@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-    Button, useDisclosure, Spacer, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast
+    Button, useDisclosure, Spacer, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading
 } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 
@@ -49,8 +49,7 @@ const TaskManager = () => {
                 isClosable: true,
             });
         }
-    }, [toast]);
-
+    }, [toast]); 
     const fetchUsers = useCallback(async () => {
         try {
             const response = await getUsers();
@@ -70,7 +69,8 @@ const TaskManager = () => {
                 isClosable: true,
             });
         }
-    }, [toast]);
+    }, [toast]); 
+    
 
     const fetchTasksBySection = useCallback(async (sectionId) => {
         try {
@@ -319,7 +319,11 @@ const TaskManager = () => {
     };
 
     return (
-        <Box  padding="7px 0 0 0">
+        <Box mt={5}>
+            <Heading as='h2' size='xl' paddingLeft={3} color={'#086F83'}>
+                Dashboard
+            </Heading>
+            <br />
 
             <Accordion>
                 {sections.map(section => (
@@ -358,7 +362,7 @@ const TaskManager = () => {
                                 sx={{ borderStyle: 'dotted' }}
                                 mb={3}
                             >
-                            Add Task to {section.sectionName || 'Unnamed Section'}
+                                Add Task to {section.sectionName || 'Unnamed Section'}
                             </Button>
                             <TaskTable
                                 tasks={filterTasks(tasksBySection[section.id] || [])}

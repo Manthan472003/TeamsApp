@@ -153,7 +153,6 @@ const Sidebar = ({ onSectionAdded }) => {
       >
         <Button
           leftIcon={<PlusSquareIcon />}
-          rightIcon={<ChevronDownIcon />}
           {...buttonStyles.base}
           {...(activeButton === '/Home' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
