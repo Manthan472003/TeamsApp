@@ -7,7 +7,6 @@ import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import { getSections, deleteSection, updateSection } from '../Services/SectionService';
 import { saveTask, getTasksBySection, deleteTask, updateTask, getTasksWithoutSection } from '../Services/TaskService';
 import { getUsers } from '../Services/UserService';
-import AddSectionModal from './AddSectionModal';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import TaskTable from './TaskTable';
@@ -15,7 +14,6 @@ import EditSectionModal from './EditSectionModal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 
 const TaskManager = () => {
-    const { isOpen: isSectionOpen, onOpen: onSectionOpen, onClose: onSectionClose } = useDisclosure();
     const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
     const { isOpen: isEditTaskOpen, onOpen: onEditTaskOpen, onClose: onEditTaskClose } = useDisclosure();
     const { isOpen: isEditSectionOpen, onOpen: onEditSectionOpen, onClose: onEditSectionClose } = useDisclosure();
@@ -129,26 +127,7 @@ const TaskManager = () => {
         fetchTasksWithoutSection(); // Fetch tasks without a section initially
     }, [fetchTasksWithoutSection]);
 
-    const addSection = async (newSection) => {
-        try {
-            await fetchSections(); // Refresh sections list
-            toast({
-                title: "Section added.",
-                description: "The new section was successfully added.",
-                status: "success",
-                duration: 5000,
-                isClosable: true,
-            });
-        } catch (error) {
-            toast({
-                title: "Error adding section.",
-                description: error.message,
-                status: "error",
-                duration: 5000,
-                isClosable: true,
-            });
-        }
-    };
+
 
     const addTaskToSection = async (task) => {
         if (!task.sectionID || !currentUserId) {
@@ -341,15 +320,6 @@ const TaskManager = () => {
 
     return (
         <Box  padding="7px 0 0 0">
-            <Button onClick={onSectionOpen} colorScheme='teal' variant='outline' mt={3} mb={4}>
-                Add Section
-            </Button>
-
-            <AddSectionModal
-                isOpen={isSectionOpen}
-                onClose={onSectionClose}
-                onSectionAdded={addSection}
-            />
 
             <Accordion>
                 {sections.map(section => (
@@ -388,7 +358,7 @@ const TaskManager = () => {
                                 sx={{ borderStyle: 'dotted' }}
                                 mb={3}
                             >
-                                Add Task to {section.sectionName || 'Unnamed Section'}
+                            Add Task to {section.sectionName || 'Unnamed Section'}
                             </Button>
                             <TaskTable
                                 tasks={filterTasks(tasksBySection[section.id] || [])}

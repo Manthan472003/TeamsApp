@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircleIcon, DeleteIcon, ArrowRightIcon, HamburgerIcon, ChevronDownIcon, PlusSquareIcon } from '@chakra-ui/icons';
 import logo from '../assets/logo.png'; 
 import AddSectionModal from './AddSectionModal';
+import AddTaskModal from './AddTaskModal';  // Import AddTaskModal
 import { getSections } from '../Services/SectionService'; 
 
 const Sidebar = () => {
@@ -13,15 +14,17 @@ const Sidebar = () => {
   const location = useLocation();
   const [activeButton, setActiveButton] = useState(location.pathname);
   const [userName, setUserName] = useState('');
-  const { isOpen, onToggle } = useDisclosure(); 
+  const [isOpen, setIsOpen] = useState(false); // Manage Collapse state
   const { isOpen: isSectionOpen, onOpen: onSectionOpen, onClose: onSectionClose } = useDisclosure();
+  const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
   const toast = useToast();
-  
+
   // Fetch sections list
   const fetchSections = useCallback(async () => {
     try {
       const response = await getSections();
       if (response && response.data) {
+        // Handle sections data if needed
       } else {
         throw new Error('Unexpected response format');
       }
@@ -39,11 +42,13 @@ const Sidebar = () => {
   }, [fetchSections]);
 
   const handleNavigation = (path) => {
-    navigate(path);
     setActiveButton(path);
-    if (path !== '/Home') {
-      onToggle(); 
+    if (path === '/Home') {
+      setIsOpen(true); // Open Collapse when navigating to Home
+    } else {
+      setIsOpen(false); // Close Collapse when navigating elsewhere
     }
+    navigate(path);
   };
 
   const handleLogout = () => {
@@ -60,6 +65,16 @@ const Sidebar = () => {
     toast({
       title: "Section added.",
       description: "The new section was successfully added.",
+      status: "success",
+      duration: 5000,
+      isClosable: true,
+    });
+  };
+
+  const handleTaskAdded = async () => {
+    toast({
+      title: "Task added.",
+      description: "The new task was successfully added.",
       status: "success",
       duration: 5000,
       isClosable: true,
@@ -139,10 +154,7 @@ const Sidebar = () => {
           {...buttonStyles.base}
           {...(activeButton === '/Home' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
-          onClick={() => {
-            handleNavigation('/Home');
-            onToggle();
-          }}
+          onClick={() => handleNavigation('/Home')}
         >
           Dashboard
         </Button>
@@ -151,13 +163,10 @@ const Sidebar = () => {
             <Button
               {...buttonStyles.base}
               onClick={onSectionOpen}
-              width="150px"  
-
-
+              width="150px"
             >
               Add Section
             </Button>
-
             <AddSectionModal
               isOpen={isSectionOpen}
               onClose={onSectionClose}
@@ -166,11 +175,18 @@ const Sidebar = () => {
 
             <Button
               {...buttonStyles.base}
-              onClick={() => handleNavigation('/add-task')}
-              width="150px"  
+              onClick={onTaskOpen}
+              width="150px"
             >
               Add Task
             </Button>
+            <AddTaskModal
+              isOpen={isTaskOpen}
+              onClose={onTaskClose}
+              onSubmit={handleTaskAdded}
+              userId={userName}
+              sectionID={null} 
+            />
           </VStack>
         </Collapse>
 

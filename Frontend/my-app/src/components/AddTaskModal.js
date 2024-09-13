@@ -6,7 +6,10 @@ import {
     useToast
 } from '@chakra-ui/react';
 import UserDropdown from './UserDropdown';
-import TagDropdown from './TagDropdown';  // Import TagDropdown
+import TagDropdown from './TagDropdown';  
+import { getSections } from '../Services/SectionService'; 
+import { saveTask } from '../Services/TaskService'; // Adjust import path as necessary
+
 
 const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID }) => {
     const initialRef = useRef(null);
@@ -14,11 +17,29 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     const [dueDate, setDueDate] = useState('');
     const [assignedTo, setAssignedTo] = useState('');
     const [status, setStatus] = useState('Not Started');
-    const [selectedTags, setSelectedTags] = useState([]); // State for selected tags
-    const [userId, setUserId] = useState(propUserId || ''); // State for userId
+    const [selectedTags, setSelectedTags] = useState([]);
+    const [sections, setSections] = useState([]); // State for sections
+    const [selectedSection, setSelectedSection] = useState(sectionID || ''); // State for selected section
+    const [userId, setUserId] = useState(propUserId || '');
     const toast = useToast();
 
     useEffect(() => {
+        // Fetch sections when the modal opens
+        const fetchSections = async () => {
+            try {
+                const response = await getSections();
+                if (response && response.data) {
+                    setSections(response.data);
+                } else {
+                    throw new Error('Unexpected response format');
+                }
+            } catch (error) {
+                console.error('Error fetching sections:', error);
+            }
+        };
+
+        fetchSections();
+        
         // Check if userId is available from props or local storage
         if (!propUserId) {
             const storedUserId = localStorage.getItem('userId');
@@ -32,38 +53,27 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
         }
     }, [propUserId]);
 
-    // Reset form fields
     const resetForm = () => {
         setTaskName('');
         setDueDate('');
         setAssignedTo('');
         setStatus('Not Started');
-        setSelectedTags([]); // Reset tags
+        setSelectedTags([]);
+        setSelectedSection(''); // Reset section
     };
 
-    // Handle user selection
     const handleUserSelect = (userId) => {
         setAssignedTo(userId);
     };
 
-    useEffect(() => {
-        console.log('Updated selectedTags:', selectedTags);
-    }, [selectedTags]);
-    
-
-    // Handle tag selection
     const handleTagSelect = (tags) => {
-        console.log('Received tags in AddTaskModal:', tags); // Check this output
         setSelectedTags(tags);
     };
 
-
-    // Handle form submission
     const handleSubmit = async (event) => {
         event.preventDefault();
     
-        // Ensure selectedTags contains valid IDs
-        const validTagIDs = selectedTags.filter(id => id != null); // Remove any null or undefined IDs
+        const validTagIDs = selectedTags.filter(id => id != null);
     
         const task = {
             taskName,
@@ -71,14 +81,12 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             taskAssignedToID: assignedTo,
             taskCreatedByID: parseInt(userId, 10),
             status,
-            sectionID,
-            tagIDs: validTagIDs // Ensure this array contains IDs
+            sectionID: selectedSection, // Ensure this is included
+            tagIDs: validTagIDs
         };
     
-        console.log('Submitting task:', task); // Verify that tagIDs are included correctly
-    
         try {
-            await onSubmit(task);
+            await saveTask(task);
             toast({
                 title: "Task added.",
                 description: "The new task was successfully added.",
@@ -99,12 +107,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             });
         }
     };
-    
-
-
-
-
-
     return (
         <Modal initialFocusRef={initialRef} isOpen={isOpen} onClose={onClose} size="md">
             <ModalOverlay />
@@ -124,6 +126,20 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                     maxH="calc(100vh - 150px)"
                 >
                     <form onSubmit={handleSubmit}>
+                    <FormControl mb={4}>
+                            <FormLabel>Section</FormLabel>
+                            <Select
+                                value={selectedSection}
+                                onChange={(e) => setSelectedSection(e.target.value)}
+                            >
+                                <option value="">Select Section</option>
+                                {sections.map(section => (
+                                    <option key={section.id} value={section.id}>
+                                        {section.sectionName}
+                                    </option>
+                                ))}
+                            </Select>
+                        </FormControl>
                         <FormControl mb={4}>
                             <FormLabel>Task Name</FormLabel>
                             <Input
@@ -156,7 +172,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                 selectedTags={selectedTags}
                                 onTagSelect={handleTagSelect}
                             />
-
                         </FormControl>
                         <FormControl mb={4}>
                             <FormLabel>Status</FormLabel>
@@ -169,6 +184,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                 <option value="On Hold">On Hold</option>
                             </Select>
                         </FormControl>
+                      
                         <ModalFooter
                             position="sticky"
                             bottom={0}
