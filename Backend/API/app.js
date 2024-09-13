@@ -7,6 +7,7 @@ const sectionRoutes = require('./Routes/sectionRoutes');
 const tagRoutes = require('./Routes/tagRoutes');
 const imageRoutes = require('./Routes/imageRoutes');
 const taskTagRoutes = require('./Routes/taskTagRoutes');
+const versionManagementRoutes = require('./Routes/versionManagementRoutes');
 
 
 
@@ -22,6 +23,7 @@ app.use('/sections', sectionRoutes);
 app.use('/tags', tagRoutes);
 app.use('/images', imageRoutes);
 app.use('/taskTags', taskTagRoutes);
+app.use('/versionManagement', versionManagementRoutes)
 
 
 sequelize.sync().then(() => {
