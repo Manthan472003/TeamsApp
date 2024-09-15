@@ -12,6 +12,7 @@ import EditTaskModal from './EditTaskModal';
 import TaskTable from './TaskTable';
 import EditSectionModal from './EditSectionModal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import Sidebar from './Sidebar';
 
 const TaskManager = () => {
     const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
@@ -50,6 +51,7 @@ const TaskManager = () => {
             });
         }
     }, [toast]); 
+
     const fetchUsers = useCallback(async () => {
         try {
             const response = await getUsers();
@@ -115,7 +117,7 @@ const TaskManager = () => {
     useEffect(() => {
         fetchSections();
         fetchUsers();
-    }, [fetchSections, fetchUsers]);
+    }, [ fetchSections, fetchUsers]);
 
     useEffect(() => {
         if (selectedSectionId) {
@@ -320,6 +322,7 @@ const TaskManager = () => {
 
     return (
         <Box mt={5}>
+            <Sidebar onSectionAdded={fetchSections} />
             <Heading as='h2' size='xl' paddingLeft={3} color={'#086F83'}>
                 Dashboard
             </Heading>

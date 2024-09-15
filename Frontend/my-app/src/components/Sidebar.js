@@ -1,13 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Box, VStack, Button, Flex, Image, Text, Menu, MenuButton, MenuList, MenuItem, Collapse, useDisclosure, useToast
+  Box, VStack, Button, Flex, Image, Text, Collapse, useDisclosure, useToast, Menu, MenuButton, MenuList, MenuItem
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircleIcon, DeleteIcon, ArrowRightIcon, HamburgerIcon, ChevronDownIcon, PlusSquareIcon } from '@chakra-ui/icons';
-import logo from '../assets/logo.png'; 
+import { CheckCircleIcon,  HamburgerIcon } from '@chakra-ui/icons';
+import { MdAddTask, MdDashboard   } from "react-icons/md";
+import { FaTasks } from "react-icons/fa";
+import { HiOutlineFolderAdd } from "react-icons/hi";
+import { RiInformationFill } from "react-icons/ri";
+import { TbReport } from "react-icons/tb";
+
+
+
+import logo from '../assets/logo.png';
 import AddSectionModal from './AddSectionModal';
 import AddTaskModal from './AddTaskModal';
-import { getSections } from '../Services/SectionService'; 
+import { getSections } from '../Services/SectionService';
 
 const Sidebar = ({ onSectionAdded }) => {
   const navigate = useNavigate();
@@ -41,13 +49,17 @@ const Sidebar = ({ onSectionAdded }) => {
     }
   }, [fetchSections]);
 
-  const handleNavigation = (path) => {
-    setActiveButton(path);
-    if (path === '/Home') {
+  useEffect(() => {
+    setActiveButton(location.pathname);
+    if (location.pathname === '/Home') {
       setIsOpen(true); // Open Collapse when navigating to Home
     } else {
       setIsOpen(false); // Close Collapse when navigating elsewhere
     }
+  }, [location.pathname]);
+
+  const handleNavigation = (path) => {
+    setActiveButton(path);
     navigate(path);
   };
 
@@ -61,7 +73,7 @@ const Sidebar = ({ onSectionAdded }) => {
   };
 
   const handleSectionAdded = async () => {
-    await fetchSections(); 
+    await fetchSections();
     if (onSectionAdded) {
       onSectionAdded(); // Notify TaskManager to refresh
     }
@@ -86,7 +98,7 @@ const Sidebar = ({ onSectionAdded }) => {
 
   const buttonStyles = {
     base: {
-      fontSize: '18px',
+      fontSize: '15px',
       fontWeight: 'bold',
       borderWidth: '1px',
       borderColor: 'white',
@@ -101,7 +113,7 @@ const Sidebar = ({ onSectionAdded }) => {
     },
     hover: {
       color: '#ffffff',
-      background: "#007bff",
+      backgroundImage: "linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)"
     },
     active: {
       borderWidth: '2px',
@@ -152,18 +164,18 @@ const Sidebar = ({ onSectionAdded }) => {
         position="relative"
       >
         <Button
-          leftIcon={<PlusSquareIcon />}
+          leftIcon={<MdDashboard  />}
           {...buttonStyles.base}
           {...(activeButton === '/Home' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
           onClick={() => handleNavigation('/Home')}
-          fontSize={15}
         >
           Dashboard
         </Button>
         <Collapse in={isOpen}>
-          <VStack align="start" spacing={2} paddingLeft={4} paddingBottom={2}>
+          <VStack align="start" spacing={0} paddingLeft={4} paddingBottom={2}>
             <Button
+              leftIcon={<HiOutlineFolderAdd />}
               {...buttonStyles.base}
               onClick={onSectionOpen}
               width="150px"
@@ -177,6 +189,8 @@ const Sidebar = ({ onSectionAdded }) => {
             />
 
             <Button
+              leftIcon={<MdAddTask  />}
+
               {...buttonStyles.base}
               onClick={onTaskOpen}
               width="150px"
@@ -188,7 +202,7 @@ const Sidebar = ({ onSectionAdded }) => {
               onClose={onTaskClose}
               onSubmit={handleTaskAdded}
               userId={userName}
-              sectionID={null} 
+              sectionID={null}
             />
           </VStack>
         </Collapse>
@@ -199,29 +213,44 @@ const Sidebar = ({ onSectionAdded }) => {
           {...(activeButton === '/completed-tasks' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
           onClick={() => handleNavigation('/completed-tasks')}
-          fontSize={15}
         >
           Completed Tasks
         </Button>
-        <Button
+        {/* <Button
           leftIcon={<DeleteIcon />}
           {...buttonStyles.base}
           {...(activeButton === '/bin' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
           onClick={() => handleNavigation('/bin')}
-          fontSize={15}
         >
           Bin
-        </Button>
+        </Button> */}
         <Button
-          leftIcon={<ArrowRightIcon />}
+          leftIcon={<RiInformationFill />}
           {...buttonStyles.base}
           {...(activeButton === '/tech-used' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
           onClick={() => handleNavigation('/tech-used')}
-          fontSize={15}
         >
           Version Management
+        </Button>
+        <Button
+          leftIcon={<FaTasks />}
+          {...buttonStyles.base}
+          {...(activeButton === '/my-tasks' && buttonStyles.active)}
+          _hover={{ ...buttonStyles.hover }}
+          onClick={() => handleNavigation('/my-tasks')}
+        >
+          My Tasks
+        </Button>
+        <Button
+          leftIcon={<TbReport  />}
+          {...buttonStyles.base}
+          {...(activeButton === '/daily-reports' && buttonStyles.active)}
+          _hover={{ ...buttonStyles.hover }}
+          onClick={() => handleNavigation('/daily-reports')}
+        >
+          Daily Reports
         </Button>
       </VStack>
 

@@ -179,6 +179,8 @@ const CompletedTask = () => {
                         <CompletedTaskTable
                             tasks={getCompletedTasksForNoSection()}
                             users={users} // Pass users to CompletedTaskTable
+                            onStatusChange={handleStatusChange} // Ensure this is defined
+
                         />
                     </AccordionPanel>
                 </AccordionItem>

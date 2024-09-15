@@ -31,3 +31,6 @@ export const updateTask = async (task) => {
 
 // Delete a task
 export const deleteTask = (taskId) => axios.delete(`${API_URL}/${taskId}`);
+
+//Fetch Assigned tasks to users
+export const getAssignedTasks = (userId) => axios.get(`${API_URL}/assignedTasks/${userId}`);

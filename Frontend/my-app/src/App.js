@@ -9,6 +9,7 @@ import TaskManager from './components/TaskManager';
 import CompletedTask from './components/CompletedTask'; 
 import Bin from './components/Bin'; 
 import TechnologyUsed from './components/TechnologyUsed'; 
+import MyTasks from './components/MyTasks';
 
 function App() {
   return (
@@ -29,6 +30,9 @@ function App() {
           </Route>
           <Route path="/tech-used" element={<MainScreen />}>
             <Route index element={<TechnologyUsed />} />
+          </Route>
+          <Route path="/my-tasks" element={<MainScreen />}>
+            <Route index element={<MyTasks />} />
           </Route>
         </Routes>
       </Router>
