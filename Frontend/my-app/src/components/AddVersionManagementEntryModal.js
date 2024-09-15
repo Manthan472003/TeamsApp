@@ -1,4 +1,3 @@
-// components/SettingsModal.js
 import React, { useState } from 'react';
 import {
     Modal,
@@ -13,19 +12,12 @@ import {
     Input,
     Button,
     useToast,
-    Table,
-    Thead,
-    Tbody,
-    Tr,
-    Th,
-    Td
 } from '@chakra-ui/react';
 
-const SettingsModal = ({ isOpen, onClose, onSubmit, submittedData = [] }) => {
+const AddVersionManagementEntryModal = ({ isOpen, onClose, onSubmit }) => {
     const [technologyName, setTechnologyName] = useState('');
     const [currtechVersion, setCurrTechVersion] = useState('');
     const [latesttechVersion, setLatesttechVersion] = useState('');
-    const [createdat, setCreatedat] = useState('');
 
     const toast = useToast();
 
@@ -35,7 +27,6 @@ const SettingsModal = ({ isOpen, onClose, onSubmit, submittedData = [] }) => {
             technologyName,
             currtechVersion,
             latesttechVersion,
-            createdat
         };
 
         // Pass the form data to the onSubmit handler
@@ -58,7 +49,6 @@ const SettingsModal = ({ isOpen, onClose, onSubmit, submittedData = [] }) => {
         setTechnologyName('');
         setCurrTechVersion('');
         setLatesttechVersion('');
-        setCreatedat('');
     };
 
     return (
@@ -89,13 +79,6 @@ const SettingsModal = ({ isOpen, onClose, onSubmit, submittedData = [] }) => {
                             onChange={(e) => setLatesttechVersion(e.target.value)}
                         />
                     </FormControl>
-                    <FormControl id="createdAt" mb={4}>
-                        <FormLabel>Created At</FormLabel>
-                        <Input
-                            value={createdat}
-                            onChange={(e) => setCreatedat(e.target.value)}
-                        />
-                    </FormControl>
 
                     <ModalFooter>
                         <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
@@ -105,37 +88,10 @@ const SettingsModal = ({ isOpen, onClose, onSubmit, submittedData = [] }) => {
                             Cancel
                         </Button>
                     </ModalFooter>
-
-                    <Table variant="simple" colorScheme="teal" mt={6}>
-                        <Thead>
-                            <Tr>
-                                <Th>Name</Th>
-                                <Th>Current Version</Th>
-                                <Th>Latest Version</Th>
-                                <Th>Created At</Th>
-                            </Tr>
-                        </Thead>
-                        <Tbody>
-                            {Array.isArray(submittedData) && submittedData.length > 0 ? (
-                                submittedData.map((item, index) => (
-                                    <Tr key={index}>
-                                        <Td>{item.technologyName}</Td>
-                                        <Td>{item.currtechVersion}</Td>
-                                        <Td>{item.latesttechVersion}</Td>
-                                        <Td>{item.createdat}</Td>
-                                    </Tr>
-                                ))
-                            ) : (
-                                <Tr>
-                                    <Td colSpan="4">No data available</Td>
-                                </Tr>
-                            )}
-                        </Tbody>
-                    </Table>
                 </ModalBody>
             </ModalContent>
         </Modal>
     );
 };
 
-export default SettingsModal;
+export default AddVersionManagementEntryModal;

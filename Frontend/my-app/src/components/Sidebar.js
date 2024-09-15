@@ -9,9 +9,6 @@ import { FaTasks } from "react-icons/fa";
 import { HiOutlineFolderAdd } from "react-icons/hi";
 import { RiInformationFill } from "react-icons/ri";
 import { TbReport } from "react-icons/tb";
-
-
-
 import logo from '../assets/logo.png';
 import AddSectionModal from './AddSectionModal';
 import AddTaskModal from './AddTaskModal';

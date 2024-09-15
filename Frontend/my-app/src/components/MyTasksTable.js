@@ -61,10 +61,10 @@ const MyTasksTable = ({ tasks, users }) => {
             <Table variant='striped' mt={4} style={{ tableLayout: 'fixed' }}>
                 <Thead>
                     <Tr>
-                        <Th width='40%'>Task Name</Th>
+                        <Th width='48%'>Task Name</Th>
                         <Th width='17%' style={{ whiteSpace: 'normal' }}>Tags</Th>
                         <Th width='15%'>Due Date</Th>
-                        <Th width='28%'>Section</Th>
+                        <Th width='20%'>Section</Th>
                     </Tr>
                 </Thead>
                 <Tbody>

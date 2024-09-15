@@ -1,9 +1,10 @@
 // screen/TechnologyUsed.js
 import React, { useState } from 'react';
-import { Box, Button, useDisclosure } from '@chakra-ui/react';
-import SettingsModal from '../components/SettingModal';
+import { Box, Button, useDisclosure, Heading} from '@chakra-ui/react';
+import SettingsModal from './AddVersionManagementEntryModal';
+import VersionManagementTable from './VersionManagementTable';
 
-const TechnologyUsed = () => {
+const VersionManagement = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [submittedData, setSubmittedData] = useState([]);
 
@@ -16,8 +17,13 @@ const TechnologyUsed = () => {
     return (
 
         <Box p={5}>
+            <Heading as='h2' size='xl' paddingLeft={3} color={'#086F83'}>
+                Completed Tasks
+            </Heading>
+            <br />
             <Button onClick={onOpen} colorScheme='teal' variant='outline' mt={3} mb={4}>
-                Technology Configuration            </Button>
+                Version Management
+            </Button>
 
             <SettingsModal
                 isOpen={isOpen}
@@ -25,8 +31,9 @@ const TechnologyUsed = () => {
                 onSubmit={handleSave}
                 submittedData={submittedData}
             />
+            <VersionManagementTable/>
         </Box>
     );
 };
 
-export default TechnologyUsed;
+export default VersionManagement;

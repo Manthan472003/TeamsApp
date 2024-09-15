@@ -8,13 +8,13 @@ router.post('/', versionManagementController.createEntry);
 //Create all VersionManagement Entries
 router.get('/', versionManagementController.getAllEntries);
 
-//Create VersionManagement Entry by ID
+//Get VersionManagement Entry by ID
 router.get('/:id', versionManagementController.getEntryByID);
 
-//Create VersionManagement Entry by ID
+//Delete VersionManagement Entry by ID
 router.delete('/:id', versionManagementController.deleteEntryByID);
 
-//Create VersionManagement Entry by ID
+//Get VersionManagement Entries by UserID
 router.get('/user/:userId', versionManagementController.getAllEntriesByUserID);
 
 //Update VM Entry by ID

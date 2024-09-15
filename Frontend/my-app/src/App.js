@@ -8,7 +8,7 @@ import MainScreen from './screen1/mainScreen';
 import TaskManager from './components/TaskManager';
 import CompletedTask from './components/CompletedTask'; 
 import Bin from './components/Bin'; 
-import TechnologyUsed from './components/TechnologyUsed'; 
+import VersionManagement from './components/VersionManagement'; 
 import MyTasks from './components/MyTasks';
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
             <Route index element={<Bin />} />
           </Route>
           <Route path="/tech-used" element={<MainScreen />}>
-            <Route index element={<TechnologyUsed />} />
+            <Route index element={<VersionManagement />} />
           </Route>
           <Route path="/my-tasks" element={<MainScreen />}>
             <Route index element={<MyTasks />} />
