@@ -13,7 +13,6 @@ import {
     Button,
     useToast,
 } from '@chakra-ui/react';
-import { createNewVersionManagementEntry } from '../Services/VersionManagementService';
 
 const AddVersionManagementEntryModal = ({ isOpen, onClose, onSubmit, userId : propUserId }) => {
     const [technologyUsed, setTechnologyUsed] = useState('');
@@ -56,35 +55,31 @@ const handleSubmit = async(event) => {
         latestVersion,
     };
 
-    // Pass the form data to the onSubmit handler
     if (typeof onSubmit === 'function') {
-        onSubmit(entry);
-    } else {
-        console.error('onSubmit is not a function');
-    }
-
-    try {
-        await createNewVersionManagementEntry(entry);
-        toast({
+        try {
+          await onSubmit(entry); // Call onSubmit instead of createDailyReport directly
+          toast({
             title: "New Entry Saved.",
             description: "Your Entry has been saved.",
             status: "success",
             duration: 5000,
             isClosable: true,
-        });
-        resetForm();
-        onClose();
-    } catch (error) {
-        console.error("Error adding VM Entry : ",error);
-        toast({
-            title: "Error adding task.",
+          });
+          resetForm();
+          onClose();
+        } catch (error) {
+          console.error("Error adding Entry : ", error);
+          toast({
+            title: "Error adding Entry.",
             description: error.response?.data?.message || "An error occurred while adding the entry.",
             status: "error",
             duration: 5000,
             isClosable: true,
-        });
-        
-    }
+          });
+        }
+      } else {
+        console.error('onSubmit is not a function');
+      }
 
 
     // Clear form fields

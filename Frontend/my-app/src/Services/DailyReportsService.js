@@ -3,68 +3,29 @@ import axios from 'axios';
 // Base URL for API
 const API_URL = 'http://localhost:8080/dailyReports';
 
-// Create a new Daily Report
-export const createDailyReport = async ({ taskName, status }) => {
-    try {
-      const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
-  
-      if (!userId) {
-        throw new Error('User ID is missing from localStorage.');
-      }
-  
-      const response = await axios.post('http://localhost:8080/dailyReports', {
-        userId, 
-        taskName,
-        status,
-      });
-  
-      return response.data;
-    } catch (error) {
-      console.error('Error creating daily report:', error); // Detailed error logging
-      throw error;
-    }
-  };
-  
-  // Get all Daily Reports
-  export const getAllReports = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching daily reports:', error);
-      throw error;
-    }
-  };
+//Fetch all Daily Reports
+export const getAllReports = () => axios.get(API_URL);
 
-// Get daily report by ID
-export const getDailyReportById = async (id) => {
-  try {
-    const response = await axios.get(`${API_URL}/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching daily report by ID:', error);
-    throw error;
-  }
-};
+
+// Create a new Daily Report
+export const createDailyReport = (report) => axios.post(API_URL, report);
+ 
+//Fetch Report by ID
+export const getReportByID = (reportId) => axios.get(`${API_URL}/${reportId}`);
 
 // Delete daily report by ID
-export const deleteDailyReportById = async (id) => {
+export const deleteDailyReportById = (reportId) => axios.delete(`${API_URL}/${reportId}`);
+
+// Update a report
+export const updateReportByID = async (report) => {
   try {
-    const response = await axios.delete(`${API_URL}/${id}`);
-    return response.data;
+      const response = await axios.put(`${API_URL}/${report.id}`, report);
+      return response.data;
   } catch (error) {
-    console.error('Error deleting daily report:', error);
-    throw error;
+      console.error('Failed to update Report Entry:', error.response ? error.response.data : error.message);
+      throw error;
   }
 };
 
 // Get daily reports by user ID
-export const getDailyReportsByUserId = async (userId) => {
-  try {
-    const response = await axios.get(`${API_URL}/user/${userId}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching daily reports by user ID:', error);
-    throw error;
-  }
-};
+export const getAllReportsByUserID = (userId) => axios.get(`${API_URL}/user/${userId}`);

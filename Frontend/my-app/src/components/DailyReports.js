@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Heading, Table, Th, Tbody, Thead, Tr, Td } from '@chakra-ui/react';
+import { Box, Button, Heading} from '@chakra-ui/react';
 import { useDisclosure } from '@chakra-ui/react';
 import AddDailyReportModal from './AddDailyReportModal';
-import { getAllReports } from '../Services/DailyReportsService';
+import {createDailyReport, getAllReports } from '../Services/DailyReportsService';
+import { getUsers } from '../Services/UserService';
+import DailyReportsTable from './DailyReportsTable';
 
 const DailyReports = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [reports, setReports] = useState([]);
+    const [users, setUsers] = useState([]);
+
 
     const fetchReports = async () => {
         try {
-            const data = await getAllReports();
-            setReports(data);
+            const [reportsResponse, usersResponse] = await Promise.all([
+                getAllReports(),
+                getUsers(),
+            ]);
+            setReports(reportsResponse.data);
+            setUsers(usersResponse.data);
         } catch (error) {
             console.error('Error fetching daily reports:', error);
         }
@@ -20,6 +28,19 @@ const DailyReports = () => {
     useEffect(() => {
         fetchReports();
     }, []);
+
+    const handleSave = async (data) => {
+        try {
+            await createDailyReport(data);
+            const response = await getAllReports();
+            console.log('Fetched reports:', response.data); // Add this line
+            setReports(response.data);
+            onClose();
+        } catch (error) {
+            console.error('Error adding entry : ', error);
+        }
+    };
+    
 
     return (
 
@@ -34,31 +55,12 @@ const DailyReports = () => {
             <AddDailyReportModal
                 isOpen={isOpen}
                 onClose={onClose}
+                onSubmit={handleSave}
             />
-
-            <Box mt={6} width="100%">
-                <Table variant="simple">
-                    <Thead>
-                        <Tr>
-                            <Th  width='50%' >Task</Th>
-                            <Th width='25%'>Status</Th>
-                            <Th width='25%'>Ceated at</Th>
-                        </Tr>
-                    </Thead>
-                    <Tbody>
-                        {reports.map((report,index) => (
-                            <Tr key={report.id} 
-                            style={{
-                                backgroundColor: index %2 === 0 ? '#EDF2F7' : '#d7f2ff'
-                            }}>
-                                <Td>{report.taskName}</Td>
-                                <Td>{report.status}</Td>
-                                <Td>{report.CeatedAt}</Td>
-                            </Tr>
-                        ))}
-                    </Tbody>
-                </Table>
-            </Box>
+            <DailyReportsTable
+            reports={reports}
+            users={users}
+            />
         </Box>
     );
 };
