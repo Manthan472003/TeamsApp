@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getAssignedTasks } from '../Services/TaskService'; // Adjust the import based on your file structure
-import { Heading } from '@chakra-ui/react';
+import { Heading, Box } from '@chakra-ui/react';
 import MyTasksTable from './MyTasksTable'; // Adjust the import based on your file structure
 
 const MyTasks = () => {
@@ -45,12 +45,12 @@ const MyTasks = () => {
 };
 
   return (
-    <div>
+    <Box mt={5}>
             <Heading as='h2' size='xl' paddingLeft={3} color={'#086F83'}>
                 My Tasks
             </Heading>      
             <MyTasksTable tasks={filterTasks(tasks)} users={[]} /> {/* Pass tasks to the table */}
-    </div>
+    </Box>
   );
 };
 

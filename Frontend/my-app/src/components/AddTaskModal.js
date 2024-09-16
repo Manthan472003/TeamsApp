@@ -10,7 +10,6 @@ import TagDropdown from './TagDropdown';
 import { getSections } from '../Services/SectionService'; 
 import { saveTask } from '../Services/TaskService'; // Adjust import path as necessary
 
-
 const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID }) => {
     const initialRef = useRef(null);
     const [taskName, setTaskName] = useState('');
@@ -18,13 +17,12 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     const [assignedTo, setAssignedTo] = useState('');
     const [status, setStatus] = useState('Not Started');
     const [selectedTags, setSelectedTags] = useState([]);
-    const [sections, setSections] = useState([]); // State for sections
-    const [selectedSection, setSelectedSection] = useState(sectionID || ''); // State for selected section
+    const [sections, setSections] = useState([]);
+    const [selectedSection, setSelectedSection] = useState(sectionID || ''); // Initialize with sectionID prop
     const [userId, setUserId] = useState(propUserId || '');
     const toast = useToast();
 
     useEffect(() => {
-        // Fetch sections when the modal opens
         const fetchSections = async () => {
             try {
                 const response = await getSections();
@@ -39,8 +37,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
         };
 
         fetchSections();
-        
-        // Check if userId is available from props or local storage
+
         if (!propUserId) {
             const storedUserId = localStorage.getItem('userId');
             if (storedUserId) {
@@ -53,13 +50,17 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
         }
     }, [propUserId]);
 
+    useEffect(() => {
+        setSelectedSection(sectionID || ''); // Update selectedSection when sectionID changes
+    }, [sectionID]);
+
     const resetForm = () => {
         setTaskName('');
         setDueDate('');
         setAssignedTo('');
         setStatus('Not Started');
         setSelectedTags([]);
-        setSelectedSection(''); // Reset section
+        setSelectedSection(sectionID || ''); // Reset section
     };
 
     const handleUserSelect = (userId) => {
@@ -72,9 +73,9 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-    
+
         const validTagIDs = selectedTags.filter(id => id != null);
-    
+
         const task = {
             taskName,
             dueDate,
@@ -84,7 +85,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             sectionID: selectedSection, // Ensure this is included
             tagIDs: validTagIDs
         };
-    
+
         try {
             await saveTask(task);
             toast({
@@ -107,26 +108,18 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             });
         }
     };
+
     return (
         <Modal initialFocusRef={initialRef} isOpen={isOpen} onClose={onClose} size="md">
             <ModalOverlay />
             <ModalContent maxH="90vh">
-                <ModalHeader
-                    position="sticky"
-                    top={0}
-                    bg="white"
-                    zIndex={1}
-                >
+                <ModalHeader position="sticky" top={0} bg="white" zIndex={1}>
                     Add Task
                 </ModalHeader>
                 <ModalCloseButton />
-                <ModalBody
-                    pb={0}
-                    overflowY="auto"
-                    maxH="calc(100vh - 150px)"
-                >
+                <ModalBody pb={0} overflowY="auto" maxH="calc(100vh - 150px)">
                     <form onSubmit={handleSubmit}>
-                    <FormControl mb={4}>
+                        <FormControl mb={4}>
                             <FormLabel>Section</FormLabel>
                             <Select
                                 value={selectedSection}
@@ -184,13 +177,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                 <option value="On Hold">On Hold</option>
                             </Select>
                         </FormControl>
-                      
-                        <ModalFooter
-                            position="sticky"
-                            bottom={0}
-                            bg="white"
-                            borderTopWidth="1px"
-                        >
+                        <ModalFooter position="sticky" bottom={0} bg="white" borderTopWidth="1px">
                             <Button type='submit' colorScheme='blue' mr={3}>Save</Button>
                             <Button onClick={() => {
                                 resetForm();

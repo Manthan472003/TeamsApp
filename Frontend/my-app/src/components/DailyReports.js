@@ -44,7 +44,7 @@ const DailyReports = () => {
 
     return (
 
-        <Box p={5}>
+        <Box mt={5}>
             <Heading as='h2' size='xl' paddingLeft={3} color={'#086F83'}>
                 Daily Reports
             </Heading>

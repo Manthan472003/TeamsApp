@@ -47,23 +47,18 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
         setSelectedTagIds(new Set(selectedTags));
     }, [selectedTags]);
 
-// Inside TagDropdown component
-const handleTagSelect = (tag) => {
-    const newSelectedTagIds = new Set(selectedTagIds);
-    if (newSelectedTagIds.has(tag.id)) {
-        newSelectedTagIds.delete(tag.id);
-    } else {
-        newSelectedTagIds.add(tag.id);
-    }
-    const filteredTags = Array.from(newSelectedTagIds).filter(id => id != null); // Remove undefined values
-    console.log('Updated selected tags in TagDropdown:', filteredTags); // Debugging line
-    setSelectedTagIds(new Set(filteredTags));
-    onTagSelect(filteredTags); // This should pass the correct tag IDs
-};
-
-
-    
-    
+    const handleTagSelect = (tag) => {
+        const newSelectedTagIds = new Set(selectedTagIds);
+        if (newSelectedTagIds.has(tag.id)) {
+            newSelectedTagIds.delete(tag.id);
+        } else {
+            newSelectedTagIds.add(tag.id);
+        }
+        const filteredTags = Array.from(newSelectedTagIds).filter(id => id != null); // Remove undefined values
+        console.log('Updated selected tags in TagDropdown:', filteredTags); // Debugging line
+        setSelectedTagIds(new Set(filteredTags));
+        onTagSelect(filteredTags); // This should pass the correct tag IDs
+    };
 
     const handleAddCustomTag = async () => {
         if (customTag.trim() === '') {
@@ -93,11 +88,8 @@ const handleTagSelect = (tag) => {
         try {
             const response = await saveTag(newTag);
             if (response.status === 201) {
-                const newTagId = response.data.id; // Adjust according to your backend response
-                setTags([...tags, { id: newTagId, name: customTag }]);
-                const updatedSelectedTags = Array.from(selectedTagIds).concat(newTagId);
-                setSelectedTagIds(new Set(updatedSelectedTags));
-                onTagSelect(updatedSelectedTags);
+                // Fetch the updated list of tags from the backend
+                await fetchTags();
                 setCustomTag('');
                 toast({
                     title: "Tag Added",
@@ -120,6 +112,23 @@ const handleTagSelect = (tag) => {
             toast({
                 title: "Error",
                 description: "There was an error connecting to the server. Please try again.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+    };
+
+    const fetchTags = async () => {
+        try {
+            const response = await getTags();
+            console.log('Fetched tags:', response.data); // Debugging line
+            setTags(response.data.map(tag => ({ id: tag.id, name: tag.tagName }))); // Adjust according to your backend response
+        } catch (error) {
+            console.error('Error fetching tags:', error);
+            toast({
+                title: "Error Fetching Tags",
+                description: "There was an error fetching the tags. Please try again.",
                 status: "error",
                 duration: 5000,
                 isClosable: true,
@@ -189,4 +198,3 @@ const handleTagSelect = (tag) => {
 };
 
 export default TagDropdown;
-
