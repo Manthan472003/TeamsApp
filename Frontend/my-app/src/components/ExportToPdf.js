@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { Button } from '@chakra-ui/react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import {  FaRegFilePdf } from "react-icons/fa";
+
 
 const ExportToPdf = ({ reports, users = [] }) => {
     const getUserNameById = (userId) => {
@@ -26,7 +28,10 @@ const ExportToPdf = ({ reports, users = [] }) => {
     };
 
     return (
-        <Button onClick={handleExport} colorScheme="blue" variant="outline">
+        <Button onClick={handleExport} 
+        colorScheme="blue" 
+        variant="outline"
+        leftIcon={<FaRegFilePdf />}>
             Export to PDF
         </Button>
     );

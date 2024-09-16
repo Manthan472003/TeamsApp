@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Heading } from '@chakra-ui/react';
+import { Box, Button, Heading, Stack } from '@chakra-ui/react';
 import { useDisclosure } from '@chakra-ui/react';
 import AddDailyReportModal from './AddDailyReportModal';
 import { createDailyReport, getAllReports } from '../Services/DailyReportsService';
@@ -96,9 +96,12 @@ const DailyReports = () => {
             />
             <FilterComponent filter={filter} onFilterChange={handleFilterChange} />
             <Box mb={4}>
-                <ExportToExcel reports={filteredReports} />
-                <ExportToPDF reports={filteredReports} users={users} />
-                </Box>
+                <Stack direction="row" spacing={2}>
+                    <ExportToExcel reports={filteredReports} />
+                    <ExportToPDF reports={filteredReports} users={users} />
+                </Stack>
+            </Box>
+
             <DailyReportsTable reports={filteredReports} users={users} />
         </Box>
     );

@@ -2,6 +2,8 @@ import React from 'react';
 import { Button } from '@chakra-ui/react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { FaRegFileExcel } from "react-icons/fa";
+
 
 const ExportToExcel = ({ reports }) => {
     const handleExport = () => {
@@ -14,7 +16,10 @@ const ExportToExcel = ({ reports }) => {
     };
 
     return (
-        <Button onClick={handleExport} colorScheme="blue" variant="outline">
+        <Button onClick={handleExport} 
+        colorScheme="blue" 
+        variant="outline"
+        leftIcon={<FaRegFileExcel />}>
             Export to Excel
         </Button>
     );
