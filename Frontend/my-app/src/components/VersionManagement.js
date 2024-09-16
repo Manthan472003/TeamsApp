@@ -1,37 +1,65 @@
 // screen/TechnologyUsed.js
-import React, { useState } from 'react';
-import { Box, Button, useDisclosure, Heading} from '@chakra-ui/react';
-import SettingsModal from './AddVersionManagementEntryModal';
+import React, { useState, useEffect } from 'react';
+import { Box, Button, useDisclosure, Heading } from '@chakra-ui/react';
 import VersionManagementTable from './VersionManagementTable';
+import AddVersionManagementEntryModal from './AddVersionManagementEntryModal';
+import { createNewVersionManagementEntry, getAllVersionManagementEntries } from '../Services/VersionManagementService';
+import { getUsers } from '../Services/UserService';
 
 const VersionManagement = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const [submittedData, setSubmittedData] = useState([]);
+    const [entries, setEntries] = useState([]);
+    const [users, setUsers] = useState([]);
 
-    const handleSave = (data) => {
-        // Update submitted data with new configuration
-        setSubmittedData((prevData) => [...prevData, data]);
-        onClose(); // Close the modal after saving
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [entriesResponse, usersResponse] = await Promise.all([
+                    getAllVersionManagementEntries(),
+                    getUsers(),
+                ]);
+                setEntries(entriesResponse.data);
+                setUsers(usersResponse.data);
+            } catch (error) {
+                console.error('Failed to fetch data:', error);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const handleSave = async (data) => {
+        try {
+            await createNewVersionManagementEntry(data);
+            const response = await getAllVersionManagementEntries();
+            setEntries(response.data);
+            onClose();
+        } catch (error) {
+            console.error('Error adding entry : ', error);
+        }
     };
+
 
     return (
 
         <Box p={5}>
             <Heading as='h2' size='xl' paddingLeft={3} color={'#086F83'}>
-                Completed Tasks
+                Version Management
             </Heading>
             <br />
             <Button onClick={onOpen} colorScheme='teal' variant='outline' mt={3} mb={4}>
-                Version Management
+                Add Entry
             </Button>
 
-            <SettingsModal
+            <AddVersionManagementEntryModal
                 isOpen={isOpen}
                 onClose={onClose}
                 onSubmit={handleSave}
-                submittedData={submittedData}
             />
-            <VersionManagementTable/>
+            <VersionManagementTable
+                entries={entries}
+                users={users}
+            />
         </Box>
     );
 };

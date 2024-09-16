@@ -1,7 +1,7 @@
 {
     "development": {
       "username": "root",
-      "password": "manthan",
+      "password": "root",
       "database": "TeamsApp",
       "host": "127.0.0.1",
       "dialect": "mysql"
