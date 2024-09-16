@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Heading} from '@chakra-ui/react';
+import { Box, Button, Heading } from '@chakra-ui/react';
 import { useDisclosure } from '@chakra-ui/react';
 import AddDailyReportModal from './AddDailyReportModal';
-import {createDailyReport, getAllReports } from '../Services/DailyReportsService';
+import { createDailyReport, getAllReports } from '../Services/DailyReportsService';
 import { getUsers } from '../Services/UserService';
 import DailyReportsTable from './DailyReportsTable';
+import ExportToExcel from './ExportToExcel';
+import ExportToPDF from './ExportToPdf';
+import FilterComponent from './FilterComponent';
 
 const DailyReports = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [reports, setReports] = useState([]);
     const [users, setUsers] = useState([]);
-
+    const [filter, setFilter] = useState({ type: '', startDate: null, endDate: null });
 
     const fetchReports = async () => {
         try {
@@ -33,18 +36,52 @@ const DailyReports = () => {
         try {
             await createDailyReport(data);
             const response = await getAllReports();
-            console.log('Fetched reports:', response.data); // Add this line
             setReports(response.data);
             onClose();
         } catch (error) {
-            console.error('Error adding entry : ', error);
+            console.error('Error adding entry:', error);
         }
     };
-    
+
+    const handleFilterChange = (newFilter) => {
+        setFilter(newFilter);
+    };
+
+    const applyFilters = (reports) => {
+        let filteredReports = [...reports];
+
+        if (filter.type === 'dateRange') {
+            if (filter.startDate && filter.endDate) {
+                filteredReports = filteredReports.filter(report => {
+                    const reportDate = new Date(report.createdAt);
+                    return reportDate >= new Date(filter.startDate) && reportDate <= new Date(filter.endDate);
+                });
+            }
+        } else if (filter.type === 'day') {
+            if (filter.startDate) {
+                filteredReports = filteredReports.filter(report => {
+                    const reportDate = new Date(report.createdAt);
+                    return reportDate.toDateString() === new Date(filter.startDate).toDateString();
+                });
+            }
+        } else if (filter.type === 'month') {
+            if (filter.startDate) {
+                const filterMonth = new Date(filter.startDate).getMonth();
+                const filterYear = new Date(filter.startDate).getFullYear();
+                filteredReports = filteredReports.filter(report => {
+                    const reportDate = new Date(report.createdAt);
+                    return reportDate.getMonth() === filterMonth && reportDate.getFullYear() === filterYear;
+                });
+            }
+        }
+
+        return filteredReports;
+    };
+
+    const filteredReports = applyFilters(reports);
 
     return (
-
-        <Box mt={5}>
+        <Box p={5}>
             <Heading as='h2' size='xl' paddingLeft={3} color={'#086F83'}>
                 Daily Reports
             </Heading>
@@ -57,10 +94,12 @@ const DailyReports = () => {
                 onClose={onClose}
                 onSubmit={handleSave}
             />
-            <DailyReportsTable
-            reports={reports}
-            users={users}
-            />
+            <FilterComponent filter={filter} onFilterChange={handleFilterChange} />
+            <Box mb={4}>
+                <ExportToExcel reports={filteredReports} />
+                <ExportToPDF reports={filteredReports} users={users} />
+                </Box>
+            <DailyReportsTable reports={filteredReports} users={users} />
         </Box>
     );
 };
