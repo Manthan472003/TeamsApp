@@ -1,4 +1,3 @@
-// App.js
 import React from 'react';
 import { ChakraProvider, theme } from '@chakra-ui/react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
@@ -10,6 +9,7 @@ import CompletedTask from './components/CompletedTask';
 import Bin from './components/Bin'; 
 import VersionManagement from './components/VersionManagement'; 
 import MyTasks from './components/MyTasks';
+import DailyReports from './components/DailyReports';
 
 function App() {
   return (
@@ -20,7 +20,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/" element={<Login />} />
           <Route path="/home" element={<MainScreen />}>
-            <Route index element={<TaskManager />} /> {/* Default nested route */}
+            <Route index element={<TaskManager />} />
           </Route>
           <Route path="/completed-tasks" element={<MainScreen />}>
             <Route index element={<CompletedTask />} />
@@ -33,6 +33,9 @@ function App() {
           </Route>
           <Route path="/my-tasks" element={<MainScreen />}>
             <Route index element={<MyTasks />} />
+          </Route>
+          <Route path="/daily-reports" element={<MainScreen />}>
+            <Route index element={<DailyReports />} />
           </Route>
         </Routes>
       </Router>
