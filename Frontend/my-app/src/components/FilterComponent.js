@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Box, Select, FormControl, FormLabel, Button } from '@chakra-ui/react';
+import { Box, Select, FormControl, FormLabel, Button, HStack, Input } from '@chakra-ui/react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { FaFilter } from "react-icons/fa";
+import { useColorModeValue } from '@chakra-ui/react';
 
 const FilterComponent = ({ filter, onFilterChange }) => {
     const [selectedFilter, setSelectedFilter] = useState(filter.type || '');
@@ -17,42 +18,74 @@ const FilterComponent = ({ filter, onFilterChange }) => {
         });
     };
 
+    // Define styling for the DatePicker input using Chakra UI's theme
+    const datePickerStyle = {
+        as: Input,
+        border: '1px solid',
+        borderColor: useColorModeValue('gray.300', 'gray.600'),
+        padding: '0.4rem',
+        borderRadius: 'md',
+        _hover: {
+            borderColor: useColorModeValue('blue.400', 'blue.600'),
+        },
+        _focus: {
+            outline: 'none',
+            borderColor: useColorModeValue('blue.500', 'blue.700'),
+            boxShadow: useColorModeValue('0 0 0 1px blue.500', '0 0 0 1px blue.700'),
+        }
+    };
+
     return (
         <Box mb={4}>
-            <FormControl mb={3}>
-                <FormLabel>Filter By</FormLabel>
-                <Select
-                    placeholder="Select filter type"
-                    value={selectedFilter}
-                    onChange={(e) => setSelectedFilter(e.target.value)}
-                >
-                    <option value="day">Day Wise</option>
-                    <option value="month">Month Wise</option>
-                    <option value="dateRange">Date Range</option>
-                </Select>
-            </FormControl>
+            <HStack mb={3} spacing={4}>
+                <FormControl>
+                    <FormLabel>Filter By</FormLabel>
+                    <Select
+                        placeholder="Select filter type"
+                        value={selectedFilter}
+                        onChange={(e) => setSelectedFilter(e.target.value)}
+                    >
+                        <option value="day">Day Wise</option>
+                        <option value="month">Month Wise</option>
+                        <option value="dateRange">Date Range</option>
+                    </Select>
+                </FormControl>
+
+<Button
+    px={10}
+    mt={7}  
+    colorScheme="blue"
+    onClick={handleFilterChange}
+    leftIcon={<FaFilter />}
+>
+    Apply Filter
+</Button>
+
+            </HStack>
 
             {selectedFilter === 'dateRange' && (
-                <Box mb={3}>
-                    <FormControl mb={3}>
+                <HStack mb={3} > {/* Reduced spacing */}
+                    <FormControl >
                         <FormLabel>Start Date</FormLabel>
                         <DatePicker
                             selected={startDate}
                             onChange={(date) => setStartDate(date)}
                             dateFormat="yyyy-MM-dd"
                             placeholderText="Select start date"
+                            customInput={<Input {...datePickerStyle} />}
                         />
                     </FormControl>
-                    <FormControl>
+                    <FormControl mr={1200}>
                         <FormLabel>End Date</FormLabel>
                         <DatePicker
                             selected={endDate}
                             onChange={(date) => setEndDate(date)}
                             dateFormat="yyyy-MM-dd"
                             placeholderText="Select end date"
+                            customInput={<Input {...datePickerStyle} />}
                         />
                     </FormControl>
-                </Box>
+                </HStack>
             )}
 
             {selectedFilter === 'day' && (
@@ -63,6 +96,7 @@ const FilterComponent = ({ filter, onFilterChange }) => {
                         onChange={(date) => setStartDate(date)}
                         dateFormat="yyyy-MM-dd"
                         placeholderText="Select date"
+                        customInput={<Input {...datePickerStyle} />}
                     />
                 </FormControl>
             )}
@@ -76,16 +110,10 @@ const FilterComponent = ({ filter, onFilterChange }) => {
                         dateFormat="yyyy-MM"
                         showMonthYearPicker
                         placeholderText="Select month"
+                        customInput={<Input {...datePickerStyle} />}
                     />
                 </FormControl>
             )}
-
-            <Button
-                colorScheme="blue"
-                onClick={handleFilterChange}
-                leftIcon={<FaFilter/>}>
-                Apply Filter
-            </Button>
         </Box>
     );
 };
