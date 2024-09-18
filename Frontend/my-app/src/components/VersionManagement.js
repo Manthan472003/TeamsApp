@@ -87,6 +87,8 @@ const VersionManagement = () => {
                     data={enrichedEntries}
                     columns={columns}
                     fileName="version_management_reports.pdf"
+                    header="Version Status - Backend" 
+
                 />                
                 </Stack>
 

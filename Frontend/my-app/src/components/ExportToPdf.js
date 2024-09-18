@@ -5,14 +5,23 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { FaRegFilePdf } from "react-icons/fa";
 
-const ExportToPDF = ({ data = [], columns, fileName }) => {
+const ExportToPDF = ({ data = [], columns, fileName, header }) => {
     const handleExport = () => {
         const doc = new jsPDF();
+
+        // Add header if provided
+        if (header) {
+            doc.setFontSize(18);
+            doc.text(header, 14, 15); 
+            doc.setFontSize(10);
+            doc.text(`Exported on: ${new Date().toLocaleString()}`, 14, 25);
+        }
+
         const tableRows = data.map(item => 
             columns.map(column => item[column.key] || 'Unknown')
         );
 
-        doc.autoTable(columns.map(col => col.label), tableRows, { startY: 20 });
+        doc.autoTable(columns.map(col => col.label), tableRows, { startY: header ? 40 : 20 });
         doc.save(fileName || 'document.pdf');
     };
 
@@ -35,7 +44,7 @@ ExportToPDF.propTypes = {
         label: PropTypes.string.isRequired
     })).isRequired,
     fileName: PropTypes.string,
-    getUserNameById: PropTypes.func
+    header: PropTypes.string,
 };
 
 export default ExportToPDF;
