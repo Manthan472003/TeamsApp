@@ -18,9 +18,17 @@ const User = sequelize.define('User', {
     // Collation is generally set in the database schema
   },
   password: {
-    type: DataTypes.STRING(45),
+    type: DataTypes.TEXT,
     allowNull: false,
     // Collation is generally set in the database schema
+  },
+  userType: {
+    type: DataTypes.ENUM('Admin', 'Developer', 'FieldWorker', 'Doctor'),
+    defaultValue: 'FieldWorker'
+  },
+  token: {
+    type: DataTypes.TEXT,
+    defaultValue: null
   },
   createdAt: {
     type: DataTypes.DATE,
