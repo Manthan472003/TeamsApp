@@ -1,13 +1,13 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../Config/config');
 
-const Image = sequelize.define('Image', {
+const Media = sequelize.define('Media', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true
     },
-    imageLink: {
+    mediaLink: {
         type: DataTypes.TEXT,
         allowNull: false
     },
@@ -23,8 +23,8 @@ const Image = sequelize.define('Image', {
         allowNull: true
     }
 }, {
-    tableName: 'image_table',
+    tableName: 'media_table',
     timestamps: false
 });
 
-module.exports = Image;
+module.exports = Media;

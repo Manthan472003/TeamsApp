@@ -40,6 +40,10 @@ const Task = sequelize.define('Task', {
         type: DataTypes.JSON,
         allowNull: true
     },
+    mediaIDs: {
+        type: DataTypes.JSON,
+        allowNull: true
+    },
     createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
