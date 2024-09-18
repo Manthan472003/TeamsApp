@@ -8,6 +8,7 @@ import DailyReportsTable from './DailyReportsTable';
 import ExportToExcel from './ExportToExcel';
 import ExportToPDF from './ExportToPdf';
 import FilterComponent from './FilterComponent';
+import { IoMdAddCircleOutline } from "react-icons/io";
 
 const DailyReports = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -86,7 +87,10 @@ const DailyReports = () => {
                 Daily Reports
             </Heading>
             <br />
-            <Button onClick={onOpen} colorScheme='teal' variant='outline' mt={3} mb={4}>
+            <Button 
+             leftIcon={ <IoMdAddCircleOutline size={23}/>}
+            onClick={onOpen} 
+            colorScheme='teal' variant='outline' mt={3} mb={4}>
                 Add Daily Report
             </Button>
             <AddDailyReportModal

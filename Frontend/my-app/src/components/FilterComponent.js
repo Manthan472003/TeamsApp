@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Box, Select, FormControl, FormLabel, Button, HStack, Input } from '@chakra-ui/react';
+import { Box, Select, FormControl, FormLabel, Button, Flex, HStack, Input } from '@chakra-ui/react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { FaFilter } from "react-icons/fa";
+import { FaFilter, } from "react-icons/fa";
 import { useColorModeValue } from '@chakra-ui/react';
 
 const FilterComponent = ({ filter, onFilterChange }) => {
@@ -51,27 +51,27 @@ const FilterComponent = ({ filter, onFilterChange }) => {
                     </Select>
                 </FormControl>
 
-<Button
-    px={10}
-    mt={7}  
-    colorScheme="blue"
-    onClick={handleFilterChange}
-    leftIcon={<FaFilter />}
->
-    Apply Filter
-</Button>
+                <Button
+                    px={10}
+                    mt={7}
+                    colorScheme="blue"
+                    onClick={handleFilterChange}
+                    leftIcon={<FaFilter />}
+                >
+                    Apply Filter
+                </Button>
 
             </HStack>
 
             {selectedFilter === 'dateRange' && (
-                <HStack mb={3} > {/* Reduced spacing */}
+                <HStack mb={3} >
                     <FormControl >
                         <FormLabel>Start Date</FormLabel>
                         <DatePicker
                             selected={startDate}
                             onChange={(date) => setStartDate(date)}
                             dateFormat="yyyy-MM-dd"
-                            placeholderText="Select start date"
+                            placeholderText="YYYY-MM-DD"
                             customInput={<Input {...datePickerStyle} />}
                         />
                     </FormControl>
@@ -81,7 +81,7 @@ const FilterComponent = ({ filter, onFilterChange }) => {
                             selected={endDate}
                             onChange={(date) => setEndDate(date)}
                             dateFormat="yyyy-MM-dd"
-                            placeholderText="Select end date"
+                            placeholderText="YYYY-MM-DD"
                             customInput={<Input {...datePickerStyle} />}
                         />
                     </FormControl>
@@ -95,7 +95,7 @@ const FilterComponent = ({ filter, onFilterChange }) => {
                         selected={startDate}
                         onChange={(date) => setStartDate(date)}
                         dateFormat="yyyy-MM-dd"
-                        placeholderText="Select date"
+                        placeholderText="YYYY-MM-DD"
                         customInput={<Input {...datePickerStyle} />}
                     />
                 </FormControl>
@@ -103,17 +103,45 @@ const FilterComponent = ({ filter, onFilterChange }) => {
 
             {selectedFilter === 'month' && (
                 <FormControl mb={3}>
-                    <FormLabel>Select Month</FormLabel>
-                    <DatePicker
-                        selected={startDate}
-                        onChange={(date) => setStartDate(date)}
-                        dateFormat="yyyy-MM"
-                        showMonthYearPicker
-                        placeholderText="Select month"
-                        customInput={<Input {...datePickerStyle} />}
-                    />
+                    <FormLabel>Select Month and Year</FormLabel>
+                    <Flex>
+                        <Select
+                            value={startDate ? startDate.getMonth() + 1 : ''}
+                            onChange={(e) => {
+                                const month = parseInt(e.target.value, 10);
+                                setStartDate(new Date(startDate ? startDate.getFullYear() : new Date().getFullYear(), month - 1));
+                            }}
+                            placeholder="Select month"
+                            mr={3}
+                        >
+                            {Array.from({ length: 12 }, (_, index) => (
+                                <option key={index} value={index + 1}>
+                                    {new Date(0, index).toLocaleString('default', { month: 'long' })}
+                                </option>
+                            ))}
+                        </Select>
+                        <Select
+                        mr={1165}
+                            value={startDate ? startDate.getFullYear() : ''}
+                            onChange={(e) => {
+                                const year = parseInt(e.target.value, 10);
+                                setStartDate(new Date(year, startDate ? startDate.getMonth() : 0));
+                            }}
+                            placeholder="Select year"
+                        >
+                            {Array.from({ length: 10 }, (_, index) => {
+                                const year = new Date().getFullYear() - index;
+                                return (
+                                    <option key={year} value={year}>
+                                        {year}
+                                    </option>
+                                );
+                            }).reverse()} 
+                        </Select>
+                    </Flex>
                 </FormControl>
             )}
+
         </Box>
     );
 };

@@ -44,7 +44,7 @@ const Signup = () => {
       <Stack flexDir="column" mb="2" justifyContent="center" alignItems="center">
       <Image
           src={logo}
-          alt="OrganizeIt Logo"
+          alt="Copious Logo"
           boxSize="65px"
         />
         <Heading color="teal.400">Organize-It !!</Heading>

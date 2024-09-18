@@ -13,6 +13,7 @@ import logo from '../assets/logo.png';
 import AddSectionModal from './AddSectionModal';
 import AddTaskModal from './AddTaskModal';
 import { getSections } from '../Services/SectionService';
+import ConfirmLogoutModal from './ConfirmLogoutModal';
 
 const Sidebar = ({ onSectionAdded }) => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const Sidebar = ({ onSectionAdded }) => {
   const [isOpen, setIsOpen] = useState(location.pathname === '/Home'); // Manage Collapse state
   const { isOpen: isSectionOpen, onOpen: onSectionOpen, onClose: onSectionClose } = useDisclosure();
   const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
+  const { isOpen: isLogoutOpen, onOpen: onLogoutOpen, onClose: onLogoutClose } = useDisclosure();
   const toast = useToast();
 
   // Fetch sections list
@@ -61,9 +63,14 @@ const Sidebar = ({ onSectionAdded }) => {
   };
 
   const handleLogout = () => {
+    onLogoutOpen();
+  };
+
+  const confirmLogout = () => {
     localStorage.removeItem('userName');
     navigate('/login');
   };
+
 
   const handleReload = () => {
     window.location.reload();
@@ -139,7 +146,7 @@ const Sidebar = ({ onSectionAdded }) => {
       <Flex direction="row" align="center" mb={4}>
         <Image src={logo} alt="App Logo" boxSize="40px" />
         <Text
-          color="#ff6e7f"
+          color="#2D5BA8"
           fontSize="3xl"
           fontWeight="bold"
           ml={4}
@@ -147,7 +154,7 @@ const Sidebar = ({ onSectionAdded }) => {
           cursor="pointer"
           _hover={{ textDecoration: 'underline' }}
         >
-          OrganizeIt
+          Copious
         </Text>
       </Flex>
 
@@ -161,7 +168,7 @@ const Sidebar = ({ onSectionAdded }) => {
         position="relative"
       >
         <Button
-          leftIcon={<MdDashboard  />}
+          leftIcon={<MdDashboard size={20} />}
           {...buttonStyles.base}
           {...(activeButton === '/Home' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
@@ -172,7 +179,7 @@ const Sidebar = ({ onSectionAdded }) => {
         <Collapse in={isOpen}>
           <VStack align="start" spacing={0} paddingLeft={4} paddingBottom={2}>
             <Button
-              leftIcon={<HiOutlineFolderAdd />}
+              leftIcon={<HiOutlineFolderAdd size={20}/>}
               {...buttonStyles.base}
               onClick={onSectionOpen}
               width="150px"
@@ -186,7 +193,7 @@ const Sidebar = ({ onSectionAdded }) => {
             />
 
             <Button
-              leftIcon={<MdAddTask  />}
+              leftIcon={<MdAddTask size={20} />}
 
               {...buttonStyles.base}
               onClick={onTaskOpen}
@@ -205,7 +212,7 @@ const Sidebar = ({ onSectionAdded }) => {
         </Collapse>
 
         <Button
-          leftIcon={<CheckCircleIcon />}
+          leftIcon={<CheckCircleIcon size={25}/>}
           {...buttonStyles.base}
           {...(activeButton === '/completed-tasks' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
@@ -223,7 +230,7 @@ const Sidebar = ({ onSectionAdded }) => {
           Bin
         </Button> */}
         <Button
-          leftIcon={<RiInformationFill />}
+          leftIcon={<RiInformationFill size={18} />}
           {...buttonStyles.base}
           {...(activeButton === '/tech-used' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
@@ -241,7 +248,7 @@ const Sidebar = ({ onSectionAdded }) => {
           My Tasks
         </Button>
         <Button
-          leftIcon={<TbReport  />}
+          leftIcon={<TbReport size={20} />}
           {...buttonStyles.base}
           {...(activeButton === '/daily-reports' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
@@ -275,6 +282,13 @@ const Sidebar = ({ onSectionAdded }) => {
           </MenuList>
         </Menu>
       </Flex>
+
+      <ConfirmLogoutModal
+        isOpen={isLogoutOpen}
+        onClose={onLogoutClose}
+        onConfirm={confirmLogout}
+      />
+
     </Box>
   );
 };
