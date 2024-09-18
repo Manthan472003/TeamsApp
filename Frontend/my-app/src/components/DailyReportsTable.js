@@ -1,8 +1,7 @@
-import React from 'react'
+import React from 'react';
 import { Table, Thead, Tbody, Tr, Th, Td } from '@chakra-ui/react';
 
-
-const DailyReportsTable = ({reports, users}) => {
+const DailyReportsTable = ({ reports, users }) => {
     const getUserNameById = (userId) => {
         const user = users.find(user => user.id === userId);
         return user ? user.userName : 'Unknown';
@@ -43,8 +42,8 @@ const DailyReportsTable = ({reports, users}) => {
                     ))
                 ) : (
                     <Tr>
-                        <Td colSpan={5} textAlign="center" color="gray.500">
-                            No tasks available
+                        <Td colSpan={4} textAlign="center" color="gray.500">
+                            No reports available
                         </Td>
                     </Tr>
                 )}
@@ -53,5 +52,4 @@ const DailyReportsTable = ({reports, users}) => {
     );
 };
 
-
-export default DailyReportsTable
+export default DailyReportsTable;

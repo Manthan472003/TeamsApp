@@ -1,4 +1,3 @@
-// screen/VersionManagementTable.js
 import React from 'react';
 import { Table, Thead, Tbody, Tr, Th, Td } from '@chakra-ui/react';
 
@@ -11,18 +10,17 @@ const VersionManagementTable = ({ entries, users }) => {
 
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        const date = new Date(dateString);
-        return date.toLocaleDateString(undefined, options);
+        return new Date(dateString).toLocaleDateString(undefined, options);
     };
 
-    const sortedEntries = entries.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const sortedEntries = [...entries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     return (
         <Table variant='striped' mt={4} style={{ tableLayout: 'fixed' }}>
             <Thead>
                 <Tr>
                     <Th width='20%'>Technology Used</Th>
-                    <Th width='20%'>Used By</Th>
+                    <Th width='20%'>Created By</Th>
                     <Th width='20%'>Current Version</Th>
                     <Th width='20%'>Latest Version</Th>
                     <Th width='20%'>Created At</Th>

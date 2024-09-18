@@ -3,44 +3,39 @@ import PropTypes from 'prop-types';
 import { Button } from '@chakra-ui/react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import {  FaRegFilePdf } from "react-icons/fa";
+import { FaRegFilePdf } from "react-icons/fa";
 
-
-const ExportToPdf = ({ reports, users = [] }) => {
-    const getUserNameById = (userId) => {
-        if (!users) return 'Unknown'; // Add a safeguard in case users is undefined
-        const user = users.find(user => user.id === userId);
-        return user ? user.userName : 'Unknown';
-    };
-
+const ExportToPDF = ({ data = [], columns, fileName }) => {
     const handleExport = () => {
         const doc = new jsPDF();
-        const tableColumn = ["Task", "Created By", "Status", "Created At"];
-        const tableRows = reports.map(report => [
-            report.taskName,
-            getUserNameById(report.userId),
-            report.status,
-            new Date(report.createdAt).toLocaleDateString(),
-        ]);
+        const tableRows = data.map(item => 
+            columns.map(column => item[column.key] || 'Unknown')
+        );
 
-        doc.autoTable(tableColumn, tableRows, { startY: 20 });
-        doc.save('daily_reports.pdf');
+        doc.autoTable(columns.map(col => col.label), tableRows, { startY: 20 });
+        doc.save(fileName || 'document.pdf');
     };
 
     return (
-        <Button onClick={handleExport} 
-        colorScheme="blue" 
-        variant="outline"
-        leftIcon={<FaRegFilePdf />}>
+        <Button 
+            onClick={handleExport} 
+            colorScheme="blue" 
+            variant="outline"
+            leftIcon={<FaRegFilePdf />}
+        >
             Export to PDF
         </Button>
     );
 };
 
-// Adding PropTypes for validation
-ExportToPdf.propTypes = {
-    reports: PropTypes.array.isRequired,
-    users: PropTypes.array 
+ExportToPDF.propTypes = {
+    data: PropTypes.array.isRequired,
+    columns: PropTypes.arrayOf(PropTypes.shape({
+        key: PropTypes.string.isRequired,
+        label: PropTypes.string.isRequired
+    })).isRequired,
+    fileName: PropTypes.string,
+    getUserNameById: PropTypes.func
 };
 
-export default ExportToPdf;
+export default ExportToPDF;

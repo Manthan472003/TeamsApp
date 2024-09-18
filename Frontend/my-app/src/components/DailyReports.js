@@ -81,16 +81,35 @@ const DailyReports = () => {
 
     const filteredReports = applyFilters(reports);
 
+    const columns = [
+        { key: 'taskName', label: 'Task' },
+        { key: 'userId', label: 'Created By' },
+        { key: 'status', label: 'Status' },
+        { key: 'createdAt', label: 'Created At' }
+    ];
+
+    const getUserNameById = (userId) => {
+        const user = users.find(user => user.id === userId);
+        return user ? user.userName : 'Unknown';
+    };
+
+    // Transform filtered reports to include user names for export
+    const exportData = filteredReports.map(report => ({
+        ...report,
+        userId: getUserNameById(report.userId), // Replace userId with userName
+        createdAt: new Date(report.createdAt).toLocaleDateString() // Format date for export
+    }));
+
     return (
         <Box p={5}>
             <Heading as='h2' size='xl' paddingLeft={3} color={'#086F83'}>
                 Daily Reports
             </Heading>
             <br />
-            <Button 
-             leftIcon={ <IoMdAddCircleOutline size={23}/>}
-            onClick={onOpen} 
-            colorScheme='teal' variant='outline' mt={3} mb={4}>
+            <Button
+                leftIcon={<IoMdAddCircleOutline size={23} />}
+                onClick={onOpen}
+                colorScheme='teal' variant='outline' mt={3} mb={4}>
                 Add Daily Report
             </Button>
             <AddDailyReportModal
@@ -102,10 +121,9 @@ const DailyReports = () => {
             <Box mb={4}>
                 <Stack direction="row" spacing={2}>
                     <ExportToExcel reports={filteredReports} />
-                    <ExportToPDF reports={filteredReports} users={users} />
+                    <ExportToPDF data={exportData} columns={columns} />
                 </Stack>
             </Box>
-
             <DailyReportsTable reports={filteredReports} users={users} />
         </Box>
     );

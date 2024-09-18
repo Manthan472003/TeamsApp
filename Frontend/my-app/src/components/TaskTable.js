@@ -33,11 +33,14 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
             console.error('onEdit function is not defined');
         }
     };
+    
 
     const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        const date = new Date(dateString);
-        return date.toLocaleDateString(undefined, options);
+        const d = new Date(dateString);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0'); 
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     };
 
     const handleStatusChange = (taskId, newStatus) => {
