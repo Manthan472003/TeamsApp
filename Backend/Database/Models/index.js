@@ -6,7 +6,7 @@ const Task = require('./task');
 const Tag = require('./tag');
 const TaskTag = require('./taskTag');
 const Section = require('./section');
-const Image = require('./image');
+const Media = require('./media');
 const TaskImage = require('./taskImage');
 const VersionManagement = require('./versionManagement');
 
@@ -17,7 +17,7 @@ db.Task = Task;
 db.Tag = Tag;
 db.TaskTag = TaskTag;
 db.Section = Section;
-db.Image = Image;
+db.Media = Media;
 db.TaskImage = TaskImage;
 db.VersionManagement = VersionManagement;
 

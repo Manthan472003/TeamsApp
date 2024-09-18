@@ -1,5 +1,5 @@
 // associations.js
-const { User, Task, Tag, TaskTag, Section, Image, TaskImage, VersionManagement,DailyReports } = require('./index');
+const { User, Task, Tag, TaskTag, Section, Media, TaskMedia, VersionManagement,DailyReports } = require('./index');
 
 // User to Task (Assigned and Created By)
 User.hasMany(Task, { foreignKey: 'taskCreatedByID', onDelete: 'SET NULL', onUpdate: 'CASCADE' });
@@ -15,9 +15,9 @@ Task.belongsTo(Section, { foreignKey: 'sectionID' });
 Tag.belongsToMany(Task, { through: TaskTag, foreignKey: 'tagID', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Task.belongsToMany(Tag, { through: TaskTag, foreignKey: 'taskID', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 
-// Image to Task
-Image.belongsToMany(Task, { through: TaskImage, foreignKey: 'imageID', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
-Task.belongsToMany(Image, { through: TaskImage, foreignKey: 'taskID', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+// Media to Task
+Media.belongsToMany(Task, { through: TaskMedia, foreignKey: 'mediaID', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+Task.belongsToMany(Media, { through: TaskMedia, foreignKey: 'taskID', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 
 //Version Management to User
 User.hasMany(VersionManagement, {foreignKey: 'userID', onDelete: 'CASCADE', onUpdate: 'CASCADE'});

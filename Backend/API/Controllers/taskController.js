@@ -2,10 +2,12 @@ const Task = require('../../Database/Models/task');
 const Section = require('../../Database/Models/section');
 const User = require('../../Database/Models/user');
 const Tag = require('../../Database/Models/tag');
+const Media = require('../../Database/Models/media');
+
 
 // Create a new task (with user, section, and tag existence checks)
 const createTask = async (req, res) => {
-    const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, tagIDs } = req.body;
+    const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, tagIDs, mediaIDs } = req.body;
 
     // Validate required fields
     if (!taskName || !sectionID) {
@@ -57,6 +59,22 @@ const createTask = async (req, res) => {
             }
         }
 
+        // Validate mediaIDs if provided
+        if (mediaIDs && Array.isArray(mediaIDs)) {
+            const medias = await Media.findAll({
+                where: {
+                    id: mediaIDs
+                }
+            });
+
+            const mediaIdsInDb = medias.map(media => media.id);
+            const invalidMediaIds = mediaIDs.filter(mediaId => !mediaIdsInDb.includes(mediaId));
+
+            if (invalidMediaIds.length > 0) {
+                return res.status(404).json({ message: `Media with IDs ${invalidMediaIds.join(', ')} do not exist.` });
+            }
+        }
+
         // Create the task
         const newTask = await Task.create({
             taskName,
@@ -67,7 +85,8 @@ const createTask = async (req, res) => {
             taskCreatedByID,
             status,
             sectionID,
-            tagIDs // Handle this as JSON array
+            tagIDs, // Handle this as JSON array
+            mediaIDs // Handle this as JSON array
         });
 
         return res.status(201).json({ message: 'Task created successfully.', newTask });
@@ -115,7 +134,7 @@ const getTaskById = async (req, res) => {
 // Update task by ID (with user and section existence check)
 const updateTaskById = async (req, res) => {
     const { id } = req.params;
-    const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, tagIDs } = req.body;
+    const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, tagIDs, mediaIDs } = req.body;
 
     if (!id) {
         return res.status(400).json({ message: 'ID parameter is required for update.' });
@@ -177,6 +196,21 @@ const updateTaskById = async (req, res) => {
             }
         }
 
+        // Validate mediaIDs if provided
+        if (mediaIDs && Array.isArray(mediaIDs)) {
+            const medias = await Media.findAll({
+                where: {
+                    id: mediaIDs
+                }
+            });
+            const mediaIdsInDb = medias.map(media => media.id);
+            const invalidMediaIds = mediaIDs.filter(mediaId => !mediaIdsInDb.includes(mediaId));
+
+            if (invalidMediaIds.length > 0) {
+                return res.status(404).json({ message: `Media with IDs ${invalidMediaIds.join(', ')} do not exist.` });
+            }
+        }
+
         // Update the task
         await task.update({
             taskName,
@@ -187,7 +221,8 @@ const updateTaskById = async (req, res) => {
             taskCreatedByID,
             status,
             sectionID,
-            tagIDs // Handle this as JSON array
+            tagIDs, // Handle this as JSON array
+            mediaIDs // Handle this as JSON Array
         });
 
         return res.status(200).json({ message: 'Task updated successfully.', task });
