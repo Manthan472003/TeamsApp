@@ -17,4 +17,7 @@ router.put('/:id', sectionController.updateSectionById);
 // Route for deleting a section by ID
 router.delete('/:id', sectionController.deleteSectionById);
 
+// Get Sections by TagName (Search)
+router.get('/search/section', sectionController.getSectionsBySectionName);
+
 module.exports = router;

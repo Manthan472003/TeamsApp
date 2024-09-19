@@ -3,6 +3,8 @@ const Section = require('../../Database/Models/section');
 const User = require('../../Database/Models/user');
 const Tag = require('../../Database/Models/tag');
 const Media = require('../../Database/Models/media');
+const { Op } = require('sequelize');
+
 
 
 // Create a new task (with user, section, and tag existence checks)
@@ -334,6 +336,34 @@ const getAssignedTasksToUserByUserId = async (req, res) => {
 
 }
 
+const getTasksByTaskName = async (req, res) => {
+    const { taskName } = req.query;
+    console.log('Searching for tasks with name:', taskName); // Log the search term
+
+    if (!taskName) {
+        return res.status(400).json({ message: "Task name is required." });
+    }
+
+    try {
+        const tasks = await Task.findAll({
+            where: {
+                taskName: {
+                    [Op.like]: `%${taskName}%` // Use `Op.like` for MySQL
+                }
+            }
+        });
+
+        if (tasks.length === 0) {
+            return res.status(404).json({ message: "No tasks found." });
+        }
+
+        return res.status(200).json(tasks);
+    } catch (error) {
+        console.error('Error retrieving Tasks by TaskName:', error.message);
+        return res.status(500).json({ message: 'Error retrieving Tasks by TaskName.' });
+    }
+};
+
 module.exports = {
     createTask,
     getAllTasks,
@@ -343,5 +373,6 @@ module.exports = {
     getTasksBySectionID,
     getTasksWithNullSection,
     getCompletedTasks,
-    getAssignedTasksToUserByUserId
+    getAssignedTasksToUserByUserId,
+    getTasksByTaskName
 };

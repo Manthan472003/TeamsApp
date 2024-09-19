@@ -15,7 +15,7 @@ router.get('/:id', taskController.getTaskById);
 router.get('/section/:sectionID', taskController.getTasksBySectionID);
 
 // Route for getting tasks with section ID null
-router.get('/section/null', taskController.getTasksWithNullSection); // New route
+router.get('/section/null', taskController.getTasksWithNullSection);
 
 // Route for updating a task by ID
 router.put('/:id', taskController.updateTaskById);
@@ -24,9 +24,13 @@ router.put('/:id', taskController.updateTaskById);
 router.delete('/:id', taskController.deleteTaskById);
 
 // Route for getting completed tasks
-router.get('/status/completed', taskController.getCompletedTasks); // New route
+router.get('/status/completed', taskController.getCompletedTasks);
 
 // Get Tasks Assigned to a user by UserID
 router.get('/assignedTasks/:userId', taskController.getAssignedTasksToUserByUserId);
+
+// Get Tasks by Taskname (Search)
+router.get('/search/task', taskController.getTasksByTaskName);
+
 
 module.exports = router;
