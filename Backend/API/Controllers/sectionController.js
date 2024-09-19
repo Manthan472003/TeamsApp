@@ -116,10 +116,39 @@ const updateSectionById = async (req, res) => {
     }
 };
 
+const getSectionsBySectionName = async (req, res) => {
+    const { sectionName } = req.query;
+    console.log('Searching for Sections with name:', sectionName); // Log the search term
+
+    if (!sectionName) {
+        return res.status(400).json({ message: "Section name is required." });
+    }
+
+    try {
+        const sections = await Section.findAll({
+            where: {
+                sectionName: {
+                    [Op.like]: `%${sectionName}%` // Use `Op.like` for MySQL
+                }
+            }
+        });
+
+        if (sections.length === 0) {
+            return res.status(404).json({ message: "No sections found." });
+        }
+
+        return res.status(200).json(sections);
+    } catch (error) {
+        console.error('Error retrieving Tags by sectionName:', error.message);
+        return res.status(500).json({ message: 'Error retrieving Tags by sectionName.' });
+    }
+};
+
 module.exports = {
     createSection,
     getAllSections,
     getSectionById,
     deleteSectionById,
-    updateSectionById
+    updateSectionById,
+    getSectionsBySectionName
 };

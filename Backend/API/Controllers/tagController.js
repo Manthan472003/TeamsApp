@@ -1,4 +1,6 @@
 const Tag = require('../../Database/Models/tag');
+const { Op } = require('sequelize');
+
 
 // Create a new tag (with existence check)
 const createTag = async (req, res) => {
@@ -104,10 +106,39 @@ const deleteTagById = async (req, res) => {
     }
 };
 
+const getTagsByTagName = async (req, res) => {
+    const { tagName } = req.query;
+    console.log('Searching for Tags with name:', tagName); // Log the search term
+
+    if (!tagName) {
+        return res.status(400).json({ message: "Tag name is required." });
+    }
+
+    try {
+        const tags = await Tag.findAll({
+            where: {
+                tagName: {
+                    [Op.like]: `%${tagName}%` // Use `Op.like` for MySQL
+                }
+            }
+        });
+
+        if (tags.length === 0) {
+            return res.status(404).json({ message: "No tags found." });
+        }
+
+        return res.status(200).json(tags);
+    } catch (error) {
+        console.error('Error retrieving Tags by TagName:', error.message);
+        return res.status(500).json({ message: 'Error retrieving Tags by TagName.' });
+    }
+};
+
 module.exports = {
     createTag,
     getAllTags,
     getTagById,
     updateTagById,
-    deleteTagById
+    deleteTagById,
+    getTagsByTagName
 };
