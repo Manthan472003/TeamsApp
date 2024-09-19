@@ -13,6 +13,7 @@ import TaskTable from './TaskTable';
 import EditSectionModal from './EditSectionModal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import Sidebar from './Sidebar';
+import SearchBar from './SearchBar'; 
 
 const TaskManager = () => {
     const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
@@ -327,6 +328,8 @@ const TaskManager = () => {
                 Dashboard
             </Heading>
             <br />
+
+            <SearchBar />
 
             <Accordion>
                 {sections.map(section => (
