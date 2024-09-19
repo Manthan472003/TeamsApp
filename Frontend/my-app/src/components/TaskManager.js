@@ -13,7 +13,8 @@ import TaskTable from './TaskTable';
 import EditSectionModal from './EditSectionModal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import Sidebar from './Sidebar';
-import SearchBar from './SearchBar'; 
+import SearchBar from './SearchBar';
+
 
 const TaskManager = () => {
     const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
@@ -30,8 +31,44 @@ const TaskManager = () => {
     const [currentUserId, setCurrentUserId] = useState(null);
     const [sectionToEdit, setSectionToEdit] = useState(null);
     const [sectionToDelete, setSectionToDelete] = useState(null);
+    const [filteredItems, setFilteredItems] = useState([]);
+    const [openSections, setOpenSections] = useState([]); // State to manage open sections
+
 
     const toast = useToast();
+
+    const applyFilter = (filterItems) => {
+        setFilteredItems(filterItems);
+        
+        const newOpenSections = sections.filter(section =>
+            filterItems.some(item =>
+                (item.type === 'task' && tasksBySection[section.id]?.some(task => task.id === item.id)) ||
+                (item.type === 'section' && section.id === item.id)
+            )
+        ).map(section => section.id);
+    
+        console.log('Filtered Items:', filterItems); // Should show the tasks
+        console.log('Tasks by Section:', tasksBySection); // Check tasks by section mapping
+        console.log('New Open Sections:', newOpenSections); // Should show section IDs to open
+        setOpenSections(newOpenSections);
+    };
+    
+
+    const doesTaskMatchFilter = (task) => {
+        if (!filteredItems.length) return true; // If no filters are applied, show all tasks
+        return filteredItems.some(item =>
+            (item.type === 'task' && item.id === task.id) ||
+            (item.type === 'tag' && task.tagName.includes(item.tagName)) ||
+            (item.type === 'section' && task.sectionID === item.id)
+        );
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            // Fetch sections, users, and tasks here
+        };
+        fetchData();
+    }, []);
 
     const fetchSections = useCallback(async () => {
         try {
@@ -51,7 +88,7 @@ const TaskManager = () => {
                 isClosable: true,
             });
         }
-    }, [toast]); 
+    }, [toast]);
 
     const fetchUsers = useCallback(async () => {
         try {
@@ -72,8 +109,8 @@ const TaskManager = () => {
                 isClosable: true,
             });
         }
-    }, [toast]); 
-    
+    }, [toast]);
+
 
     const fetchTasksBySection = useCallback(async (sectionId) => {
         try {
@@ -118,7 +155,7 @@ const TaskManager = () => {
     useEffect(() => {
         fetchSections();
         fetchUsers();
-    }, [ fetchSections, fetchUsers]);
+    }, [fetchSections, fetchUsers]);
 
     useEffect(() => {
         if (selectedSectionId) {
@@ -329,57 +366,61 @@ const TaskManager = () => {
             </Heading>
             <br />
 
-            <SearchBar />
+            <SearchBar onApplyFilter={applyFilter} />
 
-            <Accordion>
-                {sections.map(section => (
-                    <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
-                        <AccordionButton onClick={() => handleSectionClick(section.id)}>
-                            <Box flex='1' textAlign='left'>
-                                <Text fontSize='xl' fontWeight='bold' color='#149edf'>{section.sectionName}</Text>
-                                <Text fontSize='md' color='gray.500'>{section.description}</Text>
-                            </Box>
-                            <Spacer />
-                            <Button
-                                variant='solid'
-                                colorScheme='green'
-                                size='sm'
-                                ml={2}
-                                leftIcon={<EditIcon />}
-                                onClick={() => handleEditSection(section)}
-                            />
-                            <Button
-                                variant='solid'
-                                colorScheme='red'
-                                size='sm'
-                                ml={2}
-                                leftIcon={<DeleteIcon />}
-                                onClick={(e) => { e.stopPropagation(); handleDeleteSection(section); }}
-                            />
-                            <AccordionIcon />
-                        </AccordionButton>
-                        <AccordionPanel pb={4}>
-                            <Button
-                                onClick={onTaskOpen}
-                                colorScheme='teal'
-                                textColor='Orange.500'
-                                border={2}
-                                variant='outline'
-                                sx={{ borderStyle: 'dotted' }}
-                                mb={3}
-                            >
-                                Add Task to {section.sectionName || 'Unnamed Section'}
-                            </Button>
-                            <TaskTable
-                                tasks={filterTasks(tasksBySection[section.id] || [])}
-                                onEdit={handleEdit}
-                                onDelete={handleDelete}
-                                onStatusChange={handleStatusChange}
-                                users={users}
-                            />
-                        </AccordionPanel>
-                    </AccordionItem>
-                ))}
+            <Accordion allowToggle>
+                {sections.map(section => {
+                    const tasksToShow = tasksBySection[section.id]?.filter(doesTaskMatchFilter) || [];
+
+                    return (
+                        <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4} isOpen={openSections.includes(section.id)}>
+                            <AccordionButton onClick={() => handleSectionClick(section.id)}>
+                                <Box flex='1' textAlign='left'>
+                                    <Text fontSize='xl' fontWeight='bold' color='#149edf'>{section.sectionName}</Text>
+                                    <Text fontSize='md' color='gray.500'>{section.description}</Text>
+                                </Box>
+                                <Spacer />
+                                <Button
+                                    variant='solid'
+                                    colorScheme='green'
+                                    size='sm'
+                                    ml={2}
+                                    leftIcon={<EditIcon />}
+                                    onClick={() => handleEditSection(section)}
+                                />
+                                <Button
+                                    variant='solid'
+                                    colorScheme='red'
+                                    size='sm'
+                                    ml={2}
+                                    leftIcon={<DeleteIcon />}
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteSection(section); }}
+                                />
+                                <AccordionIcon />
+                            </AccordionButton>
+                            <AccordionPanel pb={4}>
+                                <Button
+                                    onClick={onTaskOpen}
+                                    colorScheme='teal'
+                                    textColor='Orange.500'
+                                    border={2}
+                                    variant='outline'
+                                    sx={{ borderStyle: 'dotted' }}
+                                    mb={3}
+                                >
+                                    Add Task to {section.sectionName || 'Unnamed Section'}
+                                </Button>
+                                <TaskTable
+                                    tasks={filterTasks(tasksToShow)} // Use filtered tasks
+                                    onEdit={handleEdit}
+                                    onDelete={handleDelete}
+                                    onStatusChange={handleStatusChange}
+                                    users={users}
+                                />
+                            </AccordionPanel>
+                        </AccordionItem>
+                    );
+                })}
 
                 {/* "Others" Section */}
                 <AccordionItem borderWidth={1} borderRadius="md" mb={4}>
@@ -402,6 +443,8 @@ const TaskManager = () => {
                     </AccordionPanel>
                 </AccordionItem>
             </Accordion>
+
+
 
             <AddTaskModal
                 isOpen={isTaskOpen}
