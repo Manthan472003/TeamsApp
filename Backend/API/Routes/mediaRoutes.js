@@ -3,7 +3,7 @@ const router = express.Router();
 const mediaController = require('../Controllers/mediaController');
 
 // Route for creating a new media file
-router.post('/', mediaController.upload.single('mediaFile'), mediaController.createMedia);
+router.post('/', mediaController.upload.array('mediaFiles', 10), mediaController.createMedia);
 
 // Route for getting all media
 router.get('/', mediaController.getAllMedias);
