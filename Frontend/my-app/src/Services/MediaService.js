@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/media'; 
+const BASE_URL = 'http://localhost:8080/media'; 
 
 // Fetch all Media for a specific task
 export const getMedias = async (taskId) => {
@@ -10,11 +10,14 @@ export const getMedias = async (taskId) => {
   }
 
   try {
-    const response = await axios.get(`${API_URL}?taskId=${taskId}`);
+    const response = await axios.get(`${BASE_URL}?taskId=${taskId}`);
     return response.data; // Return the data directly
   } catch (error) {
-    console.error("Error fetching media:", error.response ? error.response.data : error.message);
-    throw error; // Re-throw the error to be handled later
+    const message = error.response 
+      ? error.response.data.message || error.message 
+      : "Network Error";
+    console.error("Error fetching media:", message);
+    throw new Error(message); // Re-throw the error to be handled later
   }
 };
 
@@ -26,14 +29,16 @@ export const saveMedia = async (taskId, media) => {
   }
 
   try {
-const response = await axios.post(`http://localhost:8080/media/tasks/${taskId}/media`, media);
+    const response = await axios.post(`${BASE_URL}/tasks/${taskId}/media`, media);
     return response.data; // Return the data of the saved media
   } catch (error) {
-    console.error("Error saving media:", error.response ? error.response.data : error.message);
-    throw error; // Re-throw the error to be handled later
+    const message = error.response 
+      ? error.response.data.message || error.message 
+      : "Network Error";
+    console.error("Error saving media:", message);
+    throw new Error(message); // Re-throw the error to be handled later
   }
 };
-
 
 // Delete a media
 export const deleteMedia = async (mediaId) => {
@@ -43,10 +48,13 @@ export const deleteMedia = async (mediaId) => {
   }
 
   try {
-    const response = await axios.delete(`${API_URL}/${mediaId}`);
+    const response = await axios.delete(`${BASE_URL}/${mediaId}`);
     return response.data; // Return the data of the deleted media
   } catch (error) {
-    console.error("Error deleting media:", error.response ? error.response.data : error.message);
-    throw error; // Re-throw the error to be handled later
+    const message = error.response 
+      ? error.response.data.message || error.message 
+      : "Network Error";
+    console.error("Error deleting media:", message);
+    throw new Error(message); // Re-throw the error to be handled later
   }
 };

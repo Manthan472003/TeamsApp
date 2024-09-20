@@ -15,7 +15,7 @@ router.get('/', mediaController.getAllMedias);
 router.get('/:id', mediaController.getMediaById);
 
 // Route for getting media by Task ID
-router.get('/tasks/:taskId/media', mediaController.getMediaByTaskId); 
+router.get('/tasks/:taskId/media', mediaController.getMediaByTaskId);
 
 // Route for deleting media by ID
 router.delete('/:id', mediaController.deleteMediaById);

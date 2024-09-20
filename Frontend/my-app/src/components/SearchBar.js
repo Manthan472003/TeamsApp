@@ -78,6 +78,7 @@ function SearchBar({ onApplyFilter }) {
                 <HStack>
                     <AutoComplete openOnFocus>
                         <AutoCompleteInput
+                        width={400}
                             placeholder="Search Tasks, Tags or Sections"
                             variant="filled"
                             value={query}

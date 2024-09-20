@@ -32,11 +32,11 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
   const toast = useToast();
 
   const fetchMedia = useCallback(async () => {
-    if (!task || !task.id) return;
+    if (!task || !task.id) return; // Ensure the task ID is available
 
     try {
-      const media = await getMedias(task.id);
-      setUploadedMedia(media);
+      const media = await getMedias(task.id); // Fetch media for the specific task ID
+      setUploadedMedia(media); // Set state with the fetched media
     } catch (error) {
       console.error('Error fetching media:', error);
       toast({
@@ -51,8 +51,9 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
 
   useEffect(() => {
     if (isOpen && task) {
-      fetchMedia();
-      setMediaFiles([]); // Clear media files on drawer open
+      fetchMedia(); // Call to fetch media for the current task
+      setMediaFiles([]); // Clear selected files
+      setUploadedMedia([]); // Clear previous uploaded media
     }
   }, [fetchMedia, isOpen, task]);
 
@@ -84,17 +85,17 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
     const files = Array.from(event.target.files);
     setMediaFiles(files); // Ensure this updates correctly
   };
-  
+
 
   const updateMedia = async () => {
     if (!task || !task.id) return;
-  
+
     const formData = new FormData();
     mediaFiles.forEach(file => {
       formData.append('mediaFiles', file); // Ensure the key matches what the backend expects
     });
     formData.append('taskId', task.id); // If your API expects the task ID as well
-  
+
     // Check if files were added
     if (mediaFiles.length === 0) {
       toast({
@@ -106,7 +107,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
       });
       return;
     }
-  
+
     try {
       await saveMedia(task.id, formData); // Pass the task ID here
       toast({
@@ -130,7 +131,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
       setMediaFiles([]); // Clear selected files
     }
   };
-  
+
 
   const getTagNamesByIds = (tagIds) => {
     const tagMap = new Map(tags.map(tag => [tag.id, tag.tagName]));
@@ -277,7 +278,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
             </Text>
             {uploadedMedia.length > 0 ? (
               uploadedMedia.map((media, index) => (
-                <Text key={index} fontSize="md">{media.mediaLink}</Text>
+                <Text key={index} fontSize="md">{media.mediaLink}</Text> // Ensure mediaLink refers to the specific media
               ))
             ) : (
               <Text fontSize="md">No media found.</Text>

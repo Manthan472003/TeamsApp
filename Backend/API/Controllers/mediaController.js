@@ -53,24 +53,17 @@ const compressVideo = (mediaFile) => {
     });
 };
 
-// Get media by Task ID
 const getMediaByTaskId = async (req, res) => {
+    const { taskId } = req.params;
     try {
-        const { taskId } = req.params; // Get taskId from request parameters
-
-        // Validate that taskId exists
-        const task = await Task.findOne({ where: { id: taskId } });
-        if (!task) {
-            return res.status(404).json({ message: 'Task not found.' });
-        }
-
-        // Fetch media associated with the taskId
-        const medias = await Media.findAll({ where: { taskId } });
-        return res.status(200).json(medias);
+        const media = await Media.find({ taskId }); // Ensure this query only fetches media for the given task ID
+        res.json(media);
     } catch (error) {
-        return res.status(500).json({ message: 'Error retrieving media for the task.', error });
+        console.error("Error fetching media:", error);
+        res.status(500).json({ message: "Error fetching media." });
     }
 };
+
 
 
 // Create a new Media
