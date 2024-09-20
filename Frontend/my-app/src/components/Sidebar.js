@@ -3,8 +3,8 @@ import {
   Box, VStack, Button, Flex, Image, Text, Collapse, useDisclosure, useToast, Menu, MenuButton, MenuList, MenuItem
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircleIcon,  HamburgerIcon } from '@chakra-ui/icons';
-import { MdAddTask, MdDashboard   } from "react-icons/md";
+import { CheckCircleIcon, HamburgerIcon } from '@chakra-ui/icons';
+import { MdAddTask, MdDashboard } from "react-icons/md";
 import { FaTasks } from "react-icons/fa";
 import { HiOutlineFolderAdd } from "react-icons/hi";
 import { RiInformationFill } from "react-icons/ri";
@@ -106,8 +106,8 @@ const Sidebar = ({ onSectionAdded }) => {
       fontWeight: 'bold',
       borderWidth: '1px',
       borderColor: 'white',
-      color: '#086F83',
-      padding: '8px 6px',
+      color:'#2D5BA8',  
+          padding: '8px 6px',
       borderRadius: '8px',
       transition: 'all 0.3s ease',
       marginBottom: '2px',
@@ -135,7 +135,7 @@ const Sidebar = ({ onSectionAdded }) => {
       width="250px"
       padding="16px"
       backgroundColor="#eeeffd"
-      color="#97a1bf"
+      color="#2D5BA8"
       height="100vh"
       position="fixed"
       top="0"
@@ -179,7 +179,7 @@ const Sidebar = ({ onSectionAdded }) => {
         <Collapse in={isOpen}>
           <VStack align="start" spacing={0} paddingLeft={4} paddingBottom={2}>
             <Button
-              leftIcon={<HiOutlineFolderAdd size={20}/>}
+              leftIcon={<HiOutlineFolderAdd size={20} />}
               {...buttonStyles.base}
               onClick={onSectionOpen}
               width="150px"
@@ -212,7 +212,7 @@ const Sidebar = ({ onSectionAdded }) => {
         </Collapse>
 
         <Button
-          leftIcon={<CheckCircleIcon size={25}/>}
+          leftIcon={<CheckCircleIcon size={25} />}
           {...buttonStyles.base}
           {...(activeButton === '/completed-tasks' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}

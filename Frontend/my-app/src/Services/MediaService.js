@@ -19,20 +19,21 @@ export const getMedias = async (taskId) => {
 };
 
 // Save a new media
-export const saveMedia = async (media) => {
+export const saveMedia = async (taskId, media) => {
   if (!media || !(media instanceof FormData)) {
     console.error("Invalid media format. FormData is required.");
     throw new Error("Invalid media. Please provide a valid FormData object.");
   }
 
   try {
-    const response = await axios.post(API_URL, media);
+const response = await axios.post(`http://localhost:8080/media/tasks/${taskId}/media`, media);
     return response.data; // Return the data of the saved media
   } catch (error) {
     console.error("Error saving media:", error.response ? error.response.data : error.message);
     throw error; // Re-throw the error to be handled later
   }
 };
+
 
 // Delete a media
 export const deleteMedia = async (mediaId) => {

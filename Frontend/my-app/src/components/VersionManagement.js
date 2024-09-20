@@ -66,7 +66,14 @@ const VersionManagement = () => {
 
     return (
         <Box p={5}>
-            <Heading as='h2' size='xl' paddingLeft={3} color={'#086F83'}>
+            <Heading as='h2' size='xl' paddingLeft={3} 
+            sx={{
+                background: 'linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)',
+                backgroundClip: 'text',
+                color: 'transparent',
+                display: 'inline-block',
+            }}
+            >
                 Version Management
             </Heading>
             <br />

@@ -82,20 +82,33 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
 
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
-    setMediaFiles(files);
+    setMediaFiles(files); // Ensure this updates correctly
   };
+  
 
   const updateMedia = async () => {
     if (!task || !task.id) return;
-
+  
     const formData = new FormData();
     mediaFiles.forEach(file => {
-      formData.append('mediaFile', file);
+      formData.append('mediaFiles', file); // Ensure the key matches what the backend expects
     });
-    formData.append('taskId', task.id); // Attach the task ID here
-
+    formData.append('taskId', task.id); // If your API expects the task ID as well
+  
+    // Check if files were added
+    if (mediaFiles.length === 0) {
+      toast({
+        title: "No files selected",
+        description: "Please select at least one media file to upload.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+  
     try {
-      await saveMedia(formData); // Save the media to the task
+      await saveMedia(task.id, formData); // Pass the task ID here
       toast({
         title: "Media Updated",
         description: "Media files have been successfully updated.",
@@ -117,6 +130,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
       setMediaFiles([]); // Clear selected files
     }
   };
+  
 
   const getTagNamesByIds = (tagIds) => {
     const tagMap = new Map(tags.map(tag => [tag.id, tag.tagName]));
@@ -164,35 +178,35 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
             <Table variant="simple">
               <Tbody>
                 {/* Task Name */}
-                <Tr>
+                <Tr fontSize="lg">
                   <Td fontWeight="bold">Task Name :</Td>
                   <Td>{task.taskName || 'Unknown'}</Td>
                 </Tr>
                 <Divider />
 
                 {/* Due Date */}
-                <Tr>
+                <Tr fontSize="lg">
                   <Td fontWeight="bold">Due Date :</Td>
                   <Td>{formatDate(task.dueDate) || 'Unknown'}</Td>
                 </Tr>
                 <Divider />
 
                 {/* Assigned To */}
-                <Tr>
+                <Tr fontSize="lg">
                   <Td fontWeight="bold">Assigned To :</Td>
                   <Td>{getUserNameById(task.taskAssignedToID) || 'Unknown'}</Td>
                 </Tr>
                 <Divider />
 
                 {/* Status */}
-                <Tr>
+                <Tr fontSize="lg">
                   <Td fontWeight="bold">Status :</Td>
                   <Td>{task.status || 'Unknown'}</Td>
                 </Tr>
                 <Divider />
 
                 {/* Tags */}
-                <Tr>
+                <Tr fontSize="lg">
                   <Td fontWeight="bold">Tags :</Td>
                   <Td>
                     <HStack spacing={1} align="start">
