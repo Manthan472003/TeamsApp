@@ -23,7 +23,6 @@ import { saveMedia, getMedias } from '../Services/MediaService';
 
 const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
   const [size] = useState('xl');
-  const [subTasks, setSubTasks] = useState(['']);
   const [mediaFiles, setMediaFiles] = useState([]);
   const [uploadedMedia, setUploadedMedia] = useState([]);
   const toast = useToast();
@@ -77,15 +76,6 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
     return `${year}-${month}-${day}`;
   };
 
-  const handleSubTaskChange = (index, value) => {
-    const newSubTasks = [...subTasks];
-    newSubTasks[index] = value;
-    setSubTasks(newSubTasks);
-  };
-
-  const handleAddSubTask = () => {
-    setSubTasks([...subTasks, '']);
-  };
 
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
@@ -175,25 +165,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
               size="sm"
             />
 
-            {/* Sub-Tasks Section */}
-            <Text><strong>Sub-Tasks:</strong></Text>
-            {subTasks.map((subTask, index) => (
-              <Textarea
-                key={index}
-                placeholder={`Sub-task`}
-                value={subTask}
-                onChange={(e) => handleSubTaskChange(index, e.target.value)}
-                size="sm"
-                mb={2}
-                rows={1}
-                style={{ overflow: 'hidden', resize: 'none' }}
-              />
-            ))}
-            <Box textAlign="left">
-              <Button colorScheme="teal" size="sm" onClick={handleAddSubTask}>
-                Add Sub-Task
-              </Button>
-            </Box>
+
 
             {/* Media Upload Section */}
             <Text><strong>Upload Media Files:</strong></Text>
