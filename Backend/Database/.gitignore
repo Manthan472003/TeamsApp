@@ -3,4 +3,4 @@
 # dependencies
 /node_modules
 
-Backend\Database\Config\awsConfig.json
+/Config/awsConfig.json
