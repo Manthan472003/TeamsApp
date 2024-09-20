@@ -8,15 +8,19 @@ import {
   DrawerBody,
   VStack,
   Text,
+  Table,
+  Tbody,
+  Tr,
+  Td,
   Textarea,
   Input,
   Button,
   Tag,
   TagLabel,
   Icon,
-  Box,
   useToast,
   HStack,
+  Divider,
 } from '@chakra-ui/react';
 import { FaPaperclip } from 'react-icons/fa';
 import { saveMedia, getMedias } from '../Services/MediaService';
@@ -59,9 +63,9 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader>TASK DETAILS</DrawerHeader>
+          <DrawerHeader fontSize="2xl">TASK DETAILS</DrawerHeader>
           <DrawerBody>
-            <Text>No task selected.</Text>
+            <Text fontSize="lg">No task selected.</Text>
           </DrawerBody>
         </DrawerContent>
       </Drawer>
@@ -75,7 +79,6 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
-
 
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
@@ -128,74 +131,142 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
     return user ? user.userName : 'Unknown';
   };
 
+  const buttonStyles = {
+    base: {
+      fontSize: '23px',
+      fontWeight: 'bold',
+      color: '#ffffff',  // Text color set to white
+      backgroundImage: "linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)",
+      padding: '8px 6px',
+      borderRadius: '0 0 30px 0',
+      transition: 'all 0.3s ease',
+      marginBottom: '2px',
+      width: '100%',
+      textAlign: 'left',
+      justifyContent: 'start',
+      paddingLeft: '20px', // Add left padding here
+
+    },
+  };
+
   return (
     <Drawer onClose={onClose} isOpen={isOpen} size={size}>
       <DrawerOverlay />
       <DrawerContent>
         <DrawerCloseButton />
-        <DrawerHeader>TASK DETAILS</DrawerHeader>
+        <DrawerHeader
+          sx={buttonStyles.base}
+        >
+          TASK DETAILS
+        </DrawerHeader>
         <DrawerBody>
           <VStack spacing={4} align="stretch">
-            <Text><strong>Task Name:</strong> {task.taskName || 'Unknown'}</Text>
-            <Text><strong>Due Date:</strong> {formatDate(task.dueDate) || 'Unknown'}</Text>
-            <Text><strong>Assigned To:</strong> {getUserNameById(task.taskAssignedToID) || 'Unknown'}</Text>
-            <Text><strong>Status:</strong> {task.status || 'Unknown'}</Text>
-            <Text><strong>Tags:</strong>
-              <HStack spacing={1} align="start">
-                {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (
-                  <Tag
-                    size='md'
-                    key={idx}
-                    borderRadius='6px'
-                    variant='solid'
-                    colorScheme='green'
-                  >
-                    <TagLabel>{tagName}</TagLabel>
-                  </Tag>
-                ))}
-              </HStack>
-            </Text>
+            <Table variant="simple">
+              <Tbody>
+                {/* Task Name */}
+                <Tr>
+                  <Td fontWeight="bold">Task Name :</Td>
+                  <Td>{task.taskName || 'Unknown'}</Td>
+                </Tr>
+                <Divider />
+
+                {/* Due Date */}
+                <Tr>
+                  <Td fontWeight="bold">Due Date :</Td>
+                  <Td>{formatDate(task.dueDate) || 'Unknown'}</Td>
+                </Tr>
+                <Divider />
+
+                {/* Assigned To */}
+                <Tr>
+                  <Td fontWeight="bold">Assigned To :</Td>
+                  <Td>{getUserNameById(task.taskAssignedToID) || 'Unknown'}</Td>
+                </Tr>
+                <Divider />
+
+                {/* Status */}
+                <Tr>
+                  <Td fontWeight="bold">Status :</Td>
+                  <Td>{task.status || 'Unknown'}</Td>
+                </Tr>
+                <Divider />
+
+                {/* Tags */}
+                <Tr>
+                  <Td fontWeight="bold">Tags :</Td>
+                  <Td>
+                    <HStack spacing={1} align="start">
+                      {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (
+                        <Tag
+                          size='md'
+                          key={idx}
+                          borderRadius='6px'
+                          variant='solid'
+                          colorScheme='green'
+                        >
+                          <TagLabel>{tagName}</TagLabel>
+                        </Tag>
+                      ))}
+                    </HStack>
+                  </Td>
+                </Tr>
+                <Divider />
+              </Tbody>
+            </Table>
 
             {/* Description Textarea */}
-            <Text><strong>Description:</strong></Text>
+            <Text fontSize="lg">
+              <strong>Description:</strong>
+            </Text>
             <Textarea
               placeholder="Enter task description"
               value={task.description || ''}
               onChange={(e) => onUpdate({ ...task, description: e.target.value })}
-              size="sm"
+              size="md"
+              fontSize="md"
+              resize="none"
             />
 
-
-
             {/* Media Upload Section */}
-            <Text><strong>Upload Media Files:</strong></Text>
+            <Text fontSize="lg">
+              <strong>Upload Media Files:</strong>
+            </Text>
             <Input
               type="file"
               multiple
               accept="image/*,video/*"
               onChange={handleFileChange}
               leftIcon={<Icon as={FaPaperclip} />}
+              fontSize="md"
             />
             <Button
               colorScheme="teal"
+              size="lg"
               onClick={updateMedia}
+              mt={4}
+              fontSize="md"
             >
               Update Media
             </Button>
 
-            <Text><strong>Uploaded Files:</strong></Text>
+            <Text fontSize="lg">
+              <strong>Uploaded Files:</strong>
+            </Text>
             {mediaFiles.length > 0 && mediaFiles.map((file, index) => (
-              <Text key={index}>{file.name}</Text>
+              <Text key={index} fontSize="md">{file.name}</Text>
             ))}
+            <Divider />
 
             {/* Display Fetched Media */}
-            <Text><strong>Fetched Media:</strong></Text>
+            <Text fontSize="lg">
+              <strong>Fetched Media:</strong>
+            </Text>
             {uploadedMedia.length > 0 ? (
               uploadedMedia.map((media, index) => (
-                <Text key={index}>{media.mediaLink}</Text>
+                <Text key={index} fontSize="md">{media.mediaLink}</Text>
               ))
             ) : (
-              <Text>No media found.</Text>
+              <Text fontSize="md">No media found.</Text>
             )}
           </VStack>
         </DrawerBody>

@@ -11,6 +11,9 @@ const Media = sequelize.define('Media', {
         type: DataTypes.TEXT,
         allowNull: false
     },
+    taskId: {
+        type: DataTypes.INTEGER,
+    },
     createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,

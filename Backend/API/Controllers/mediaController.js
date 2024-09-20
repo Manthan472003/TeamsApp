@@ -1,4 +1,5 @@
 const Media = require('../../Database/Models/media');
+const Task = require('../../Database/Models/task');
 const multer = require('multer');
 const s3 = require('../../Database/Config/s3Config');
 const awsConfig = require('../../Database/Config/awsConfig.json');
@@ -57,10 +58,17 @@ const compressVideo = (mediaFile) => {
 const createMedia = async (req, res) => {
     try {
         const mediaFiles = req.files; // Uploaded files
+        const { taskId } = req.params; // Get taskId from request parameters
 
         // Check if mediaFiles are provided
         if (!mediaFiles || mediaFiles.length === 0) {
             return res.status(400).json({ message: 'At least one media file is required.' });
+        }
+
+        // Validate that taskId is provided and exists
+        const task = await Task.findOne({ where: { id: taskId } });
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found.' });
         }
 
         const newMediaEntries = [];
@@ -94,8 +102,11 @@ const createMedia = async (req, res) => {
             const data = await s3.upload(params).promise();
             const uploadedMediaLink = data.Location; // Get the file URL from the response
 
-            // Create a new Media entry in the database
-            const newMedia = await Media.create({ mediaLink: uploadedMediaLink });
+            // Create a new Media entry in the database, including taskId
+            const newMedia = await Media.create({
+                mediaLink: uploadedMediaLink,
+                taskId // Associate the media with the task
+            });
             newMediaEntries.push(newMedia);
         }
 
@@ -111,6 +122,8 @@ const createMedia = async (req, res) => {
         return res.status(500).json({ message: 'Error creating Media.', error });
     }
 };
+
+
 
 
 // Get all medias

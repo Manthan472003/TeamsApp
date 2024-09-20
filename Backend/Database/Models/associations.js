@@ -15,10 +15,6 @@ Task.belongsTo(Section, { foreignKey: 'sectionID' });
 Tag.belongsToMany(Task, { through: TaskTag, foreignKey: 'tagID', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Task.belongsToMany(Tag, { through: TaskTag, foreignKey: 'taskID', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 
-// Media to Task
-Media.belongsToMany(Task, { through: TaskMedia, foreignKey: 'mediaID', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
-Task.belongsToMany(Media, { through: TaskMedia, foreignKey: 'taskID', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
-
 //Version Management to User
 User.hasMany(VersionManagement, {foreignKey: 'userID', onDelete: 'CASCADE', onUpdate: 'CASCADE'});
 VersionManagement.belongsTo(User, {foreignKey : 'userID'});
@@ -26,3 +22,7 @@ VersionManagement.belongsTo(User, {foreignKey : 'userID'});
 // User to DailyReports
 User.hasMany(DailyReports, { foreignKey: 'userId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 DailyReports.belongsTo(User, { foreignKey: 'userId' });
+
+//Task to Media
+Task.hasMany(Media, {foreignKey: 'taskId'});
+Media.belongsTo(Task, {foreignKey: 'taskId'});
