@@ -4,26 +4,8 @@ import {
     FormControl,
     FormLabel,
     Button,
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Table,
-    Text,
-    Thead,
-    Tbody,
-    Tr,
-    Th,
-    Td,
-    HStack,
-    Accordion,
-    AccordionItem,
-    AccordionButton,
-    AccordionPanel,
-    AccordionIcon,
     Box,
+    HStack,
 } from "@chakra-ui/react";
 import {
     AutoComplete,
@@ -35,12 +17,10 @@ import { getTasks } from '../Services/TaskService';
 import { getTags } from '../Services/TagService';
 import { getSections } from '../Services/SectionService';
 
-function SearchBar({onApplyFilter}) {
+function SearchBar({ onApplyFilter }) {
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isAccordionOpen, setIsAccordionOpen] = useState(false);
 
     useEffect(() => {
         const fetchSuggestions = async () => {
@@ -79,17 +59,12 @@ function SearchBar({onApplyFilter}) {
         if (!selectedItems.some(selected => selected.id === item.id)) {
             setSelectedItems(prev => [...prev, item]);
         }
-        setQuery(''); 
+        setQuery('');
         setSuggestions([]);
     };
 
     const handleApply = () => {
-        onApplyFilter(selectedItems); // Pass selected items to parent
-        setIsModalOpen(false);
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
+        onApplyFilter(selectedItems);
     };
 
     const handleRemoveItem = (itemId) => {
@@ -136,7 +111,6 @@ function SearchBar({onApplyFilter}) {
                     </Button>
                 </HStack>
 
-                {/* Display selected items */}
                 <Box mt={2}>
                     {selectedItems.map(item => (
                         <HStack key={item.id} spacing={2} mb={2}>
@@ -145,61 +119,8 @@ function SearchBar({onApplyFilter}) {
                         </HStack>
                     ))}
                 </Box>
-
-                {/* Accordion to show related items */}
-                {isAccordionOpen && (
-                    <Accordion allowMultiple mt={4}>
-                        {selectedItems.map(item => (
-                            <AccordionItem key={item.id}>
-                                <AccordionButton>
-                                    <Box flex="1" textAlign="left">
-                                        {item.name}
-                                    </Box>
-                                    <AccordionIcon />
-                                </AccordionButton>
-                                <AccordionPanel pb={4}>
-                                    {/* Here, you would typically map through related items */}
-                                    <Text>{`This is related content for ${item.type}: ${item.name}`}</Text>
-                                </AccordionPanel>
-                            </AccordionItem>
-                        ))}
-                    </Accordion>
-                )}
-                
-                {/* Modal to show the filtered results */}
-                <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-                    <ModalOverlay />
-                    <ModalContent>
-                        <ModalHeader>Selected Items</ModalHeader>
-                        <ModalBody>
-                            <Table variant="simple">
-                                <Thead>
-                                    <Tr>
-                                        <Th>ID</Th>
-                                        <Th>Type</Th>
-                                        <Th>Name</Th>
-                                    </Tr>
-                                </Thead>
-                                <Tbody>
-                                    {selectedItems.map(item => (
-                                        <Tr key={item.id}>
-                                            <Td>{item.id}</Td>
-                                            <Td>{item.type.charAt(0).toUpperCase() + item.type.slice(1)}</Td>
-                                            <Td>{item.name}</Td>
-                                        </Tr>
-                                    ))}
-                                </Tbody>
-                            </Table>
-                        </ModalBody>
-                        <ModalFooter>
-                            <Button colorScheme="blue" onClick={handleCloseModal}>
-                                Close
-                            </Button>
-                        </ModalFooter>
-                    </ModalContent>
-                </Modal>
             </FormControl>
-        </Flex >
+        </Flex>
     );
 }
 

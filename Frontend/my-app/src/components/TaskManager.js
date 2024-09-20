@@ -40,25 +40,20 @@ const TaskManager = () => {
     const applyFilter = (filterItems) => {
         setFilteredItems(filterItems);
         
+        // Get section IDs from filtered tasks and open them
         const newOpenSections = sections.filter(section =>
             filterItems.some(item =>
-                (item.type === 'task' && tasksBySection[section.id]?.some(task => task.id === item.id)) ||
-                (item.type === 'section' && section.id === item.id)
+                item.type === 'task' && tasksBySection[section.id]?.some(task => task.id === item.id)
             )
         ).map(section => section.id);
-    
-        console.log('Filtered Items:', filterItems); // Should show the tasks
-        console.log('Tasks by Section:', tasksBySection); // Check tasks by section mapping
-        console.log('New Open Sections:', newOpenSections); // Should show section IDs to open
+
         setOpenSections(newOpenSections);
     };
-    
 
     const doesTaskMatchFilter = (task) => {
-        if (!filteredItems.length) return true; // If no filters are applied, show all tasks
+        if (!filteredItems.length) return true;
         return filteredItems.some(item =>
             (item.type === 'task' && item.id === task.id) ||
-            (item.type === 'tag' && task.tagName.includes(item.tagName)) ||
             (item.type === 'section' && task.sectionID === item.id)
         );
     };
@@ -372,7 +367,7 @@ const TaskManager = () => {
                 {sections.map(section => {
                     const tasksToShow = tasksBySection[section.id]?.filter(doesTaskMatchFilter) || [];
 
-                    return (
+                    return(
                         <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4} isOpen={openSections.includes(section.id)}>
                             <AccordionButton onClick={() => handleSectionClick(section.id)}>
                                 <Box flex='1' textAlign='left'>
@@ -419,7 +414,7 @@ const TaskManager = () => {
                                 />
                             </AccordionPanel>
                         </AccordionItem>
-                    );
+                    ) ;
                 })}
 
                 {/* "Others" Section */}

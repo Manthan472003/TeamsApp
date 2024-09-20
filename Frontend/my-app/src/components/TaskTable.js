@@ -4,14 +4,19 @@ import { EditIcon, DeleteIcon, CheckIcon } from '@chakra-ui/icons';
 import { getTags } from '../Services/TagService'; // Adjust import according to your file structure
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmCompleteModal from './ConfirmCompleteModal';
+import ViewTaskDrawer from './viewTaskDrawer'; 
 
 const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
     const { isOpen: isCompleteOpen, onOpen: onCompleteOpen, onClose: onCompleteClose } = useDisclosure();
+    const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure(); // For the Drawer
 
+    
     const [taskToDelete, setTaskToDelete] = useState(null);
     const [taskToComplete, setTaskToComplete] = useState(null);
     const [tags, setTags] = useState([]);
+
+    const [selectedTask, setSelectedTask] = useState(null); // State for the selected task
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -102,6 +107,12 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     // Remove the filtering of completed tasks
     const sortedTasks = tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
+    const handleTaskClick = (task) => {
+        setSelectedTask(task);
+        onDrawerOpen(); // Open the Drawer
+    };
+
+
     return (
         <>
             <Table variant='striped' mt={4} style={{ tableLayout: 'fixed' }}>
@@ -123,8 +134,9 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                 style={{
                                     backgroundColor: index % 2 === 0 ? '#f9e79f' : '#d7f2ff'
                                 }}
+
                             >
-                                <Td>{task.taskName}</Td>
+                                <Td  onClick={() => handleTaskClick(task)} >{task.taskName}</Td>
                                 <Td style={{ whiteSpace: 'normal', overflow: 'hidden' }}>
                                     <HStack spacing={2} style={{ flexWrap: 'wrap' }}>
                                         {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (
@@ -215,6 +227,14 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                 onConfirm={confirmComplete}
                 itemName={taskToComplete ? taskToComplete.taskName : ''}
             />
+
+              {/* Task Details Drawer */}
+              <ViewTaskDrawer
+                isOpen={isDrawerOpen}
+                onClose={onDrawerClose}
+                task={selectedTask}
+            />
+
         </>
     );
 };

@@ -1,0 +1,8 @@
+{
+    "aws": {
+        "accessKeyId": "AKIA6JQ44N5KTZRJNBK5",
+        "secretAccessKey": "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",
+        "region": "eu-north-1",
+        "bucketName": "teamsapp-media"
+    }
+}
