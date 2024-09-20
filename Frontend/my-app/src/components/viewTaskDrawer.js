@@ -15,8 +15,7 @@ import {
   TagLabel,
   Icon,
   Box,
-  Text,
-  Toast
+  Toast,
 } from '@chakra-ui/react';
 import { FaPaperclip } from 'react-icons/fa'; 
 import { saveMedia } from '../Services/MediaService';

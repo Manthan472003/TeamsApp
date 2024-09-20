@@ -3,8 +3,7 @@
       "username": "root",
       "password": "root",
       "database": "TeamsApp",
-      "host": "127.0.0.1",
-      "dialect": "mysql"
+      "host": "127.0.0.1"
     }
   }
    
