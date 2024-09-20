@@ -21,7 +21,7 @@ import {
 import { FaPaperclip } from 'react-icons/fa';
 import { saveMedia, getMedias } from '../Services/MediaService';
 
-const ViewTaskDrawer = ({ isOpen, onClose, task, users = [], tags = [], onUpdate }) => {
+const ViewTaskDrawer = ({ isOpen, onClose, task, users, tags, onUpdate }) => {
   const [size] = useState('xl');
   const [subTasks, setSubTasks] = useState(['']);
   const [mediaFiles, setMediaFiles] = useState([]);
@@ -153,7 +153,13 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, users = [], tags = [], onUpdate
             <Text><strong>Tags:</strong>
               <HStack spacing={1} align="start">
                 {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (
-                  <Tag key={idx} size='md' borderRadius='6px' variant='solid' colorScheme='green'>
+                  <Tag
+                    size='md'
+                    key={idx}
+                    borderRadius='6px'
+                    variant='solid'
+                    colorScheme='green'
+                  >
                     <TagLabel>{tagName}</TagLabel>
                   </Tag>
                 ))}

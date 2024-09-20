@@ -233,6 +233,8 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                 isOpen={isDrawerOpen}
                 onClose={onDrawerClose}
                 task={selectedTask}
+                users={users}
+                tags={tags}
             />
 
         </>
