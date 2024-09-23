@@ -171,7 +171,7 @@ const CompletedTask = () => {
                 ))}
 
                 {/* "Others" Section */}
-                <AccordionItem borderWidth={1} borderRadius="md" mb={4}>
+                {/* <AccordionItem borderWidth={1} borderRadius="md" mb={4}>
                     <AccordionButton>
                         <Box flex='1' textAlign='left'>
                             <Text fontSize='xl' fontWeight='bold' color='#149edf'>Others</Text>
@@ -188,7 +188,7 @@ const CompletedTask = () => {
 
                         />
                     </AccordionPanel>
-                </AccordionItem>
+                </AccordionItem> */}
             </Accordion>
         </Box>
     );

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-    Button, useDisclosure, Spacer, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading
+    Button, useDisclosure, Spacer, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading,
+    Divider
 } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 
@@ -366,8 +367,11 @@ const TaskManager = () => {
                 Dashboard
             </Heading>
             <br />
+            <Divider/>
+            <br/>
 
             <SearchBar onApplyFilter={applyFilter} />
+            
 
             <Accordion allowToggle>
                 {sections.map(section => {
