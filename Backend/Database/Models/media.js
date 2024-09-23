@@ -14,6 +14,9 @@ const Media = sequelize.define('Media', {
     taskId: {
         type: DataTypes.INTEGER,
     },
+    mediaType: {
+        type: DataTypes.ENUM('Image','Video')
+    },
     createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,

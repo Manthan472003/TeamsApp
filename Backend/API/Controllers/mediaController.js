@@ -12,9 +12,9 @@ const path = require('path');
 ffmpeg.setFfmpegPath(ffmpegInstaller.path); // Set ffmpeg path
 
 const storage = multer.memoryStorage();
-const upload = multer({ 
+const upload = multer({
     storage,
-    limits: { fieldSize: 5 * 1024 * 1024 } 
+    limits: { fieldSize: 5 * 1024 * 1024 }
 });
 
 
@@ -55,18 +55,31 @@ const compressVideo = (mediaFile) => {
 
 const getMediaByTaskId = async (req, res) => {
     const { taskId } = req.params;
+    if (!taskId) {
+        return res.status(400).json({ message: 'TaskId is required.' });
+    }
     try {
-        const media = await Media.find({ taskId }); // Ensure this query only fetches media for the given task ID
-        res.json(media);
+        if (taskId) {
+            const task = await Task.findOne({
+                where: { id: taskId }
+            });
+            if (!task) {
+                return res.status(404).json({ message: 'Task does not exist.' });
+            }
+        }
+
+        const medias = await Media.findAll({
+            where: { taskId: taskId }
+        });
+        return res.status(200).json(medias);
     } catch (error) {
-        console.error("Error fetching media:", error);
-        res.status(500).json({ message: "Error fetching media." });
+        console.error('Error retrieving Tasks by UserID:', error);
+        return res.status(500).json({ message: 'Error retrieving Tasks by UserId.' });
+
     }
 };
 
 
-
-// Create a new Media
 const createMedia = async (req, res) => {
     try {
         const mediaFiles = req.files; // Uploaded files
@@ -88,6 +101,7 @@ const createMedia = async (req, res) => {
         // If files are provided, upload each to S3
         for (const mediaFile of mediaFiles) {
             let buffer;
+            let mediaType;
 
             // Check if the file is an image or a video
             if (mediaFile.mimetype.startsWith('image/')) {
@@ -95,9 +109,11 @@ const createMedia = async (req, res) => {
                 buffer = await sharp(mediaFile.buffer)
                     .resize(1024) // Resize image to a width of 1024px, keeping aspect ratio
                     .toBuffer();
+                mediaType = 'Image'; // Set mediaType to Image
             } else if (mediaFile.mimetype.startsWith('video/')) {
                 // Compress video
                 buffer = await compressVideo(mediaFile);
+                mediaType = 'Video'; // Set mediaType to Video
             } else {
                 return res.status(400).json({ message: 'Unsupported media type.' });
             }
@@ -114,10 +130,11 @@ const createMedia = async (req, res) => {
             const data = await s3.upload(params).promise();
             const uploadedMediaLink = data.Location; // Get the file URL from the response
 
-            // Create a new Media entry in the database, including taskId
+            // Create a new Media entry in the database, including taskId and mediaType
             const newMedia = await Media.create({
                 mediaLink: uploadedMediaLink,
-                taskId // Associate the media with the task
+                taskId, // Associate the media with the task
+                mediaType // Set the mediaType
             });
             newMediaEntries.push(newMedia);
         }
@@ -134,6 +151,7 @@ const createMedia = async (req, res) => {
         return res.status(500).json({ message: 'Error creating Media.', error });
     }
 };
+
 
 
 

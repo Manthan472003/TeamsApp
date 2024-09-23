@@ -4,7 +4,7 @@ import { EditIcon, DeleteIcon, CheckIcon } from '@chakra-ui/icons';
 import { getTags } from '../Services/TagService'; // Adjust import according to your file structure
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmCompleteModal from './ConfirmCompleteModal';
-import ViewTaskDrawer from './ViewTaskDrawer'; 
+import ViewTaskDrawer from './ViewTaskDrawer';
 
 const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
@@ -136,7 +136,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                 }}
 
                             >
-                                <Td  onClick={() => handleTaskClick(task)} >{task.taskName}</Td>
+                                <Td  onClick={() => handleTaskClick(task)} cursor={'pointer'}  >{task.taskName}</Td>
                                 <Td style={{ whiteSpace: 'normal', overflow: 'hidden' }}>
                                     <HStack spacing={2} style={{ flexWrap: 'wrap' }}>
                                         {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (

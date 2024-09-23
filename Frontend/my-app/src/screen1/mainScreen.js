@@ -12,7 +12,7 @@ const MainScreen = () => {
       <Flex flex="1">
         <Sidebar />
         <Box
-          ml="250px" 
+          ml="300px" 
           p={4}
           flex="1"
           overflowY="auto" 

@@ -132,7 +132,7 @@ const Sidebar = ({ onSectionAdded }) => {
 
   return (
     <Box
-      width="250px"
+      width="300px"
       padding="16px"
       backgroundColor="#eeeffd"
       color="#2D5BA8"
@@ -182,7 +182,7 @@ const Sidebar = ({ onSectionAdded }) => {
               leftIcon={<HiOutlineFolderAdd size={20} />}
               {...buttonStyles.base}
               onClick={onSectionOpen}
-              width="150px"
+              width="200px"
             >
               Add Section
             </Button>
@@ -197,7 +197,7 @@ const Sidebar = ({ onSectionAdded }) => {
 
               {...buttonStyles.base}
               onClick={onTaskOpen}
-              width="150px"
+              width="200px"
             >
               Add Task
             </Button>
@@ -270,7 +270,7 @@ const Sidebar = ({ onSectionAdded }) => {
             as={Button}
             rightIcon={<HamburgerIcon />}
             colorScheme="#086F83"
-            width="215px"
+            width="100%"
             backgroundImage="linear-gradient(288deg, rgba(0,85,255,1) 1.5%, rgba(4,56,115,1) 91.6%)"
             color="white"
           >
