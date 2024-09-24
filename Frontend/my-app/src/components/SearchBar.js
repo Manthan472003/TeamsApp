@@ -1,4 +1,3 @@
-// SearchBar.jsx
 import React, { useState, useEffect } from 'react';
 import {
     Flex,
@@ -30,6 +29,8 @@ function SearchBar({ onApplyFilter }) {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
     const [users, setUsers] = useState([]);
+    const [allTags, setAllTags] = useState([]); // Store all tags fetched from backend
+    const [taskTags, setTaskTags] = useState([]); // Tags specific to the selected task
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -58,6 +59,8 @@ function SearchBar({ onApplyFilter }) {
                     getSections(),
                 ]);
 
+                setAllTags(tagsRes.data); // Save all tags for later use
+
                 const allSuggestions = [
                     ...tasksRes.data.map(task => ({ id: task.id, name: task.taskName, type: 'task', fullData: task })),
                     ...tagsRes.data.map(tag => ({ id: tag.id, name: tag.tagName, type: 'tag' })),
@@ -84,9 +87,15 @@ function SearchBar({ onApplyFilter }) {
         setQuery('');
         setSuggestions([]);
 
-        // If the selected item is a task, open the ViewTaskDrawer
+        // If the selected item is a task, open the ViewTaskDrawer and extract the task's tags
         if (item.type === 'task') {
-            setSelectedTask(item.fullData || item); // Ensure you have the full task data
+            const selectedTaskData = item.fullData || item;
+            setSelectedTask(selectedTaskData);
+
+            // Extract the tags specific to the selected task
+            const taskRelatedTags = allTags.filter(tag => selectedTaskData.tagIDs.includes(tag.id));
+            setTaskTags(taskRelatedTags);
+
             setIsDrawerOpen(true);
         }
     };
@@ -115,6 +124,7 @@ function SearchBar({ onApplyFilter }) {
     const handleDrawerClose = () => {
         setIsDrawerOpen(false);
         setSelectedTask(null);
+        setTaskTags([]); // Reset the task-specific tags when closing the drawer
     };
 
     const handleTaskUpdate = (updatedTask) => {
@@ -188,7 +198,7 @@ function SearchBar({ onApplyFilter }) {
                 onClose={handleDrawerClose}
                 task={selectedTask}
                 users={users}
-                tags={suggestions.filter(item => item.type === 'tag').map(tag => ({ id: tag.id, tagName: tag.name }))}
+                tags={taskTags} // Pass task-specific tags to the drawer
                 onUpdate={handleTaskUpdate}
             />
         </>

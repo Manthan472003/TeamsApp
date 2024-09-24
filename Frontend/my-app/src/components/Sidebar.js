@@ -144,7 +144,7 @@ const Sidebar = ({ onSectionAdded }) => {
       flexDirection="column"
     >
       <Flex direction="row" align="center" mb={4}>
-        <Image src={logo} alt="App Logo" boxSize="40px" />
+        <Image ml={8} src={logo} alt="App Logo" width="70px" height={10}/>
         <Text
           color="#2D5BA8"
           fontSize="3xl"

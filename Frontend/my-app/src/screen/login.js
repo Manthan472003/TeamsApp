@@ -78,8 +78,10 @@ const Login = () => {
         <Image
           src={logo}
           alt="Copious Logo"
-          boxSize="100 40"
+          width="50%"
+          height="130px"
         />
+
         <Heading color="teal.400">Copious !!</Heading>
         <Box minW={{ base: '90%', md: '468px' }}>
           <form onSubmit={handleLogin}>
