@@ -13,7 +13,6 @@ import {
     Image,
     Box,
     IconButton,
-    Spinner,
 } from '@chakra-ui/react';
 import { FaTrash } from 'react-icons/fa';
 import { createMedia } from '../Services/MediaService';
@@ -95,7 +94,6 @@ const AddMediaModal = ({ isOpen, onClose, taskId, onUploadComplete }) => {
                         ref={fileInputRef}
                         style={{ display: 'none' }} // Hide the input
                     />
-                    {loading && <Spinner size="lg" />} {/* Show spinner during upload */}
                     {showPreview && !loading && (
                         <Stack mt={4}>
                             <Text fontWeight="bold">Selected Files:</Text>

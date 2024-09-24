@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
     Button, useDisclosure, Spacer, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading,
-    Divider
 } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 
@@ -34,13 +33,15 @@ const TaskManager = () => {
     const [sectionToDelete, setSectionToDelete] = useState(null);
     const [filteredItems, setFilteredItems] = useState([]);
     const [openSections, setOpenSections] = useState([]); // State to manage open sections
+    const [selectedSection, setSelectedSection] = useState(null); // New state for selected section
+
 
 
     const toast = useToast();
 
     const applyFilter = (filterItems) => {
         setFilteredItems(filterItems);
-        
+
         // Get section IDs from filtered tasks and open them
         const newOpenSections = sections.filter(section =>
             filterItems.some(item =>
@@ -58,6 +59,25 @@ const TaskManager = () => {
             (item.type === 'section' && task.sectionID === item.id)
         );
     };
+
+    // Callback to be passed to SearchBar to handle section selection
+    const handleSectionSelected = (section) => {
+        setSelectedSection(section);  // Set the selected section
+        setOpenSections(prevOpenSections => {
+            if (!prevOpenSections.includes(section.id)) {
+                return [...prevOpenSections, section.id];
+            } else {
+                return prevOpenSections;
+            }
+        }); // Expand the section accordion
+    };
+
+    const filteredSections = useMemo(() => {
+        if (selectedSection) {
+            return sections.filter(section => section.id === selectedSection.id);
+        }
+        return sections; // If no section is selected, show all sections
+    }, [sections, selectedSection]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -357,27 +377,28 @@ const TaskManager = () => {
     return (
         <Box mt={5}>
             <Sidebar onSectionAdded={fetchSections} />
-            <Heading as='h2' size='xl' paddingLeft={3} 
-            sx={{
-                background: 'linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)',
-                backgroundClip: 'text',
-                color: 'transparent',
-                display: 'inline-block',
-            }}>
+            <Heading as='h2' size='xl' paddingLeft={3}
+                sx={{
+                    background: 'linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)',
+                    backgroundClip: 'text',
+                    color: 'transparent',
+                    display: 'inline-block',
+                }}>
                 Dashboard
             </Heading>
             <br />
-            <Divider/>
-            <br/>
+            <br />
 
-            <SearchBar onApplyFilter={applyFilter} />
-            
+            <SearchBar 
+            onSectionSelected={handleSectionSelected} 
+            onApplyFilter={applyFilter} />
+
 
             <Accordion allowToggle>
-                {sections.map(section => {
+                {filteredSections.map(section => {
                     const tasksToShow = tasksBySection[section.id]?.filter(doesTaskMatchFilter) || [];
 
-                    return(
+                    return (
                         <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4} isOpen={openSections.includes(section.id)}>
                             <AccordionButton onClick={() => handleSectionClick(section.id)}>
                                 <Box flex='1' textAlign='left'>
@@ -424,11 +445,11 @@ const TaskManager = () => {
                                 />
                             </AccordionPanel>
                         </AccordionItem>
-                    ) ;
+                    );
                 })}
 
                 {/* "Others" Section */}
-                <AccordionItem borderWidth={1} borderRadius="md" mb={4}>
+                {/* <AccordionItem borderWidth={1} borderRadius="md" mb={4}>
                     <AccordionButton>
                         <Box flex='1' textAlign='left'>
                             <Text fontSize='xl' fontWeight='bold' color='#149edf'>Others</Text>
@@ -446,7 +467,7 @@ const TaskManager = () => {
                             users={users}
                         />
                     </AccordionPanel>
-                </AccordionItem>
+                </AccordionItem> */}
             </Accordion>
 
 

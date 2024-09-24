@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Add useEffect here
 import { useNavigate } from 'react-router-dom';
 import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, InputRightElement, chakra, Box, Image, FormControl, Text } from '@chakra-ui/react';
 import { FaUserAlt, FaLock } from 'react-icons/fa';
 import axios from 'axios';
+// import jwtDecode from 'jwt-decode'; // Import jwt-decode
 import logo from '../assets/logo.png';
-
 
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
@@ -37,10 +37,11 @@ const Login = () => {
       const response = await axios.post('http://localhost:8080/users/login', { email, password });
 
       if (response.status === 200) {
-        console.log(response.data); // Check the response data
-        const { userName, userId } = response.data.user; // Extract userName and userId correctly
-        localStorage.setItem('userName', userName || email); // Store userName or email if userName is not available
-        localStorage.setItem('userId', userId); // Store userId
+        const { token } = response.data; // Assume token is returned in response
+        // const decodedToken = jwtDecode(token); // Decode the JWT
+
+        // Store user information from the decoded token
+        localStorage.setItem('token', token); // Store the token
 
         navigate('/home'); // Navigate to home after successful login
       }
@@ -62,7 +63,10 @@ const Login = () => {
     }
   };
 
-
+  // Clear local storage when the component mounts
+  useEffect(() => {
+    localStorage.clear(); // Clear local storage
+  }, []);
 
   return (
     <Flex
@@ -81,7 +85,6 @@ const Login = () => {
           width="50%"
           height="130px"
         />
-
         <Heading color="teal.400">Copious !!</Heading>
         <Box minW={{ base: '90%', md: '468px' }}>
           <form onSubmit={handleLogin}>
@@ -132,7 +135,5 @@ const Login = () => {
     </Flex>
   );
 };
-
-
 
 export default Login;

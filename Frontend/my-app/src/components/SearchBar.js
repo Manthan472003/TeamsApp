@@ -20,7 +20,7 @@ import { getSections } from '../Services/SectionService';
 import ViewTaskDrawer from './ViewTaskDrawer'; // Import the ViewTaskDrawer component
 import { getUsers } from '../Services/UserService'; // Import a service to fetch users
 
-function SearchBar({ onApplyFilter }) {
+function SearchBar({ onApplyFilter, onSectionSelected }) {
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
@@ -32,6 +32,7 @@ function SearchBar({ onApplyFilter }) {
     const [allTags, setAllTags] = useState([]); // Store all tags fetched from backend
     const [taskTags, setTaskTags] = useState([]); // Tags specific to the selected task
 
+    // Fetch users for the task drawer
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -41,10 +42,10 @@ function SearchBar({ onApplyFilter }) {
                 console.error('Error fetching users:', error);
             }
         };
-
         fetchUsers();
     }, []);
 
+    // Fetch suggestions (tasks, tags, and sections) when the query changes
     useEffect(() => {
         const fetchSuggestions = async () => {
             if (query.length < 2) {
@@ -80,6 +81,7 @@ function SearchBar({ onApplyFilter }) {
         fetchSuggestions();
     }, [query]);
 
+    // Handle selection of items (tasks, sections, or tags)
     const handleSelect = (item) => {
         if (!selectedItems.some(selected => selected.id === item.id)) {
             setSelectedItems(prev => [...prev, item]);
@@ -87,7 +89,12 @@ function SearchBar({ onApplyFilter }) {
         setQuery('');
         setSuggestions([]);
 
-        // If the selected item is a task, open the ViewTaskDrawer and extract the task's tags
+        // If a section is selected, pass the section to TaskManager via onSectionSelected
+        if (item.type === 'section') {
+            onSectionSelected(item);  // Trigger the callback with the selected section
+        }
+
+        // If a task is selected, open the task drawer
         if (item.type === 'task') {
             const selectedTaskData = item.fullData || item;
             setSelectedTask(selectedTaskData);
@@ -104,9 +111,9 @@ function SearchBar({ onApplyFilter }) {
         onApplyFilter(selectedItems);
     };
 
-    const handleRemoveItem = (itemId) => {
-        setSelectedItems(prev => prev.filter(item => item.id !== itemId));
-    };
+    // const handleRemoveItem = (itemId) => {
+    //     setSelectedItems(prev => prev.filter(item => item.id !== itemId));
+    // };
 
     const getTagColor = (type) => {
         switch (type) {
@@ -148,7 +155,7 @@ function SearchBar({ onApplyFilter }) {
                             <AutoCompleteList>
                                 {suggestions.map(item => (
                                     <AutoCompleteItem
-                                        key={`${item.type}-${item.id}`}
+                                        key={`${item.id}-${item.type}`} // Use a combination of id and type as the key
                                         value={item.name}
                                         textTransform="capitalize"
                                         onClick={() => handleSelect(item)}
@@ -178,7 +185,7 @@ function SearchBar({ onApplyFilter }) {
                         </Button>
                     </HStack>
 
-                    <Box mt={2}>
+                    {/* <Box mt={2}>
                         {selectedItems.map(item => (
                             <HStack key={`${item.type}-${item.id}`} spacing={2} mb={2} alignItems="center">
                                 <Box>{item.name}</Box>
@@ -188,7 +195,7 @@ function SearchBar({ onApplyFilter }) {
                                 <Button size="xs" onClick={() => handleRemoveItem(item.id)}>Remove</Button>
                             </HStack>
                         ))}
-                    </Box>
+                    </Box> */}
                 </FormControl>
             </Flex>
 

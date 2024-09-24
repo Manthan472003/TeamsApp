@@ -1,4 +1,3 @@
-// src/pages/Home.js
 import React, { useState, useEffect } from 'react';
 import { Box } from '@chakra-ui/react';
 import Header from '../components/Header';

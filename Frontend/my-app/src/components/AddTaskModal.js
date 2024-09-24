@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import jwtDecode from 'jwt-decode';
 import {
     Select, Button, Modal,
     ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, FormControl, FormLabel, Input,
@@ -6,8 +7,8 @@ import {
     useToast
 } from '@chakra-ui/react';
 import UserDropdown from './UserDropdown';
-import TagDropdown from './TagDropdown';  
-import { getSections } from '../Services/SectionService'; 
+import TagDropdown from './TagDropdown';
+import { getSections } from '../Services/SectionService';
 import { saveTask } from '../Services/TaskService'; // Adjust import path as necessary
 
 const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID }) => {
@@ -39,11 +40,12 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
         fetchSections();
 
         if (!propUserId) {
-            const storedUserId = localStorage.getItem('userId');
-            if (storedUserId) {
-                setUserId(storedUserId);
+            const token = localStorage.getItem('token'); // Adjust the key based on how you store your token
+            if (token) {
+                const decodedToken = jwtDecode(token);
+                setUserId(decodedToken.id); // Use 'id' based on your token structure
             } else {
-                console.error('No user ID found in local storage');
+                console.error('No token found in local storage');
             }
         } else {
             setUserId(propUserId);
@@ -80,7 +82,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             taskName,
             dueDate,
             taskAssignedToID: assignedTo,
-            taskCreatedByID: parseInt(userId, 10),
+            taskCreatedByID: parseInt(userId, 10), // Ensure userId is sent as a number
             status,
             sectionID: selectedSection, // Ensure this is included
             tagIDs: validTagIDs

@@ -14,6 +14,7 @@ import AddSectionModal from './AddSectionModal';
 import AddTaskModal from './AddTaskModal';
 import { getSections } from '../Services/SectionService';
 import ConfirmLogoutModal from './ConfirmLogoutModal';
+import jwt_decode from 'jwt-decode'; // Import jwt-decode
 
 const Sidebar = ({ onSectionAdded }) => {
   const navigate = useNavigate();
@@ -42,9 +43,10 @@ const Sidebar = ({ onSectionAdded }) => {
 
   useEffect(() => {
     fetchSections();
-    const loggedInUser = localStorage.getItem('userName');
-    if (loggedInUser) {
-      setUserName(loggedInUser);
+    const token = localStorage.getItem('token'); // Fetch the token from local storage
+    if (token) {
+      const decoded = jwt_decode(token); // Decode the JWT token
+      setUserName(decoded.userName); // Set the user information state
     }
   }, [fetchSections]);
 
@@ -67,10 +69,9 @@ const Sidebar = ({ onSectionAdded }) => {
   };
 
   const confirmLogout = () => {
-    localStorage.removeItem('userName');
+    localStorage.removeItem('token'); // Remove token on logout
     navigate('/login');
   };
-
 
   const handleReload = () => {
     window.location.reload();
@@ -106,8 +107,8 @@ const Sidebar = ({ onSectionAdded }) => {
       fontWeight: 'bold',
       borderWidth: '1px',
       borderColor: 'white',
-      color:'#2D5BA8',  
-          padding: '8px 6px',
+      color: '#2D5BA8',
+      padding: '8px 6px',
       borderRadius: '8px',
       transition: 'all 0.3s ease',
       marginBottom: '2px',
@@ -144,7 +145,7 @@ const Sidebar = ({ onSectionAdded }) => {
       flexDirection="column"
     >
       <Flex direction="row" align="center" mb={4}>
-        <Image ml={8} src={logo} alt="App Logo" width="70px" height={10}/>
+        <Image ml={8} src={logo} alt="App Logo" width="70px" height={10} />
         <Text
           color="#2D5BA8"
           fontSize="3xl"
@@ -194,7 +195,6 @@ const Sidebar = ({ onSectionAdded }) => {
 
             <Button
               leftIcon={<MdAddTask size={20} />}
-
               {...buttonStyles.base}
               onClick={onTaskOpen}
               width="200px"
@@ -281,14 +281,12 @@ const Sidebar = ({ onSectionAdded }) => {
             <MenuItem onClick={handleLogout} colorScheme="red">Logout</MenuItem>
           </MenuList>
         </Menu>
+        <ConfirmLogoutModal
+          isOpen={isLogoutOpen}
+          onClose={onLogoutClose}
+          onConfirm={confirmLogout}
+        />
       </Flex>
-
-      <ConfirmLogoutModal
-        isOpen={isLogoutOpen}
-        onClose={onLogoutClose}
-        onConfirm={confirmLogout}
-      />
-
     </Box>
   );
 };

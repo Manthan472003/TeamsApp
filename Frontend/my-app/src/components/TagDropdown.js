@@ -8,8 +8,9 @@ import {
     MenuButton,
     MenuList,
     MenuItem,
-    Stack,
-    Text,
+    HStack,
+    VStack,
+    Tag, TagLabel, TagCloseButton,
     Flex,
     useToast,
 } from '@chakra-ui/react';
@@ -136,24 +137,38 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
         }
     };
 
+    const handleTagRemove = (tagId) => {
+        setSelectedTagIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(tagId);
+          return newSet;
+        });
+      };
+
+      
     return (
-        <Box width="400px" p={4}>
-            <Stack spacing={3}>
-                <Box>
-                    <Flex wrap="wrap" gap={2}>
-                        {Array.from(selectedTagIds).map(tagId => (
-                            <Text
-                                key={tagId} // Ensure each selected tag has a unique key
-                                bg="teal.100"
-                                p={2}
+        <Box width="100%" p={4}>
+            <HStack spacing={3} align="center">
+                <Flex wrap="wrap" gap={2}>
+                    {Array.from(selectedTagIds).map(tagId => {
+                        const tag = tags.find(tag => tag.id === tagId);
+                        return (
+                            <Tag
+                                key={tagId}
+                                size="md"
                                 borderRadius="md"
-                                textAlign="center"
+                                variant="solid"
+                                colorScheme="teal"
+                                mr={2} // Optional: for spacing between tags
+                                mb={2} // Optional: for spacing below tags
                             >
-                                {tags.find(tag => tag.id === tagId)?.name || tagId}
-                            </Text>
-                        ))}
-                    </Flex>
-                </Box>
+                                <TagLabel>{tag ? tag.name : tagId}</TagLabel>
+                                <TagCloseButton onClick={() => handleTagRemove(tagId)} />
+                            </Tag>
+                        );
+                    })}
+                </Flex>
+
                 <Menu>
                     <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
                         Select Tags
@@ -161,7 +176,7 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
                     <MenuList>
                         {tags.length > 0 ? (
                             tags.map(tag => (
-                                <MenuItem key={tag.id}> {/* Ensure each MenuItem has a unique key */}
+                                <MenuItem key={tag.id}>
                                     <Checkbox
                                         isChecked={selectedTagIds.has(tag.id)}
                                         onChange={() => handleTagSelect(tag)}
@@ -175,25 +190,27 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
                         )}
                     </MenuList>
                 </Menu>
-                <Box>
-                    <Flex align="center">
-                        <Input
-                            value={customTag}
-                            onChange={(e) => setCustomTag(e.target.value)}
-                            placeholder="Add custom tag"
-                            mr={2}
-                        />
-                        <Button
-                            onClick={handleAddCustomTag}
-                            colorScheme="teal"
-                            width="300px"
-                        >
-                            Add Custom Tag
-                        </Button>
-                    </Flex>
-                </Box>
-            </Stack>
+            </HStack>
+
+            <VStack spacing={2} mt={4} align="stretch">
+                <Flex align="center">
+                    <Input
+                        value={customTag}
+                        onChange={(e) => setCustomTag(e.target.value)}
+                        placeholder="Add custom tag"
+                        mr={2}
+                    />
+                    <Button
+                        onClick={handleAddCustomTag}
+                        colorScheme="teal"
+                    >
+                        Add Custom Tag
+                    </Button>
+                </Flex>
+            </VStack>
         </Box>
+
+
     );
 };
 

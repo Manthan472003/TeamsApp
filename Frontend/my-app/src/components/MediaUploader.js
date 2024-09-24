@@ -154,16 +154,18 @@ const MediaUploader = ({ taskId, onUpdate }) => {
     return (
         <VStack spacing={4} align="stretch">
             <Stack direction="row" spacing={2} width={'100%'}>
-                <Text fontSize="lg" fontWeight="bold">Upload Media Files:</Text>
-                <Button
-                    colorScheme="blue"
-                    size="lg"
-                    onClick={onAddMediaOpen}
-                    leftIcon={<FaPlus />}
-                >
-                    Add Media
-                </Button>
+                <Text mt={2} fontSize="lg" fontWeight="bold">Upload Media Files:</Text>
             </Stack>
+
+            <Button
+                colorScheme="blue"
+                size="lg"
+                onClick={onAddMediaOpen}
+                leftIcon={<FaPlus />}
+                width={170}
+            >
+                Add Media
+            </Button>
             <Divider />
             {loading ? (
                 <Spinner size="lg" />

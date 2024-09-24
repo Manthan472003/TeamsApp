@@ -18,9 +18,7 @@ const createUser = async (req, res) => {
         }
 
         // Check if the email already exists
-        const existingUser = await User.findOne({
-            where: { email }
-        });
+        const existingUser = await User.findOne({ where: { email } });
 
         if (existingUser) {
             return res.status(409).json({ message: 'Email already exists.' });
@@ -31,26 +29,26 @@ const createUser = async (req, res) => {
         // Create a new user
         const newUser = await User.create({ userName, email, password: encryptedPassword, userType });
 
-
-        //Generating Token
+        // Generating Token with user details
         const token = jwt.sign(
-            { id: newUser.id, email: newUser.email, userType: newUser.userType },
+            { id: newUser.id, userName: newUser.userName, email: newUser.email, userType: newUser.userType },
             'shhhh',
-            {
-                expiresIn: "2h"
-            }
+            { expiresIn: "2h" }
         );
 
+        // Save the token in the database
         newUser.token = token;
-        newUser.password = undefined;
+        await newUser.save(); // Make sure to save the updated user
 
-
+        newUser.password = undefined; // Do not return the password
 
         return res.status(201).json({ message: 'User created successfully.', newUser });
     } catch (error) {
         return res.status(500).json({ message: 'Error creating user.', error });
     }
 };
+
+
 
 // Get all users
 const getAllUsers = async (req, res) => {
@@ -91,28 +89,40 @@ const updateUserById = async (req, res) => {
         }
 
         // Check if the user exists
-        const user = await User.findOne({
-            where: { id }
-        });
+        const user = await User.findOne({ where: { id } });
 
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
 
         // Check if the new email already exists (and ensure it's not the same user's current email)
-        const existingUser = await User.findOne({
-            where: { email }
-        });
+        const existingUser = await User.findOne({ where: { email } });
 
         if (existingUser && existingUser.id !== id) {
             return res.status(409).json({ message: 'Email already exists.' });
         }
 
-        // Update the user
+        // Update the user details
         user.userName = userName;
         user.email = email;
-        user.password = password;
         user.userType = userType;
+
+        // Hash the password if it has been updated
+        if (password) {
+            user.password = await bcrypt.hash(password, 10);
+        }
+
+        // Generate a new token with updated user details
+        const token = jwt.sign(
+            { id: user.id, userName: user.userName, email: user.email, userType: user.userType },
+            'shhhh',
+            { expiresIn: "2h" }
+        );
+
+        // Save the token in the database
+        user.token = token;
+
+        // Save the updated user
         await user.save();
 
         return res.status(200).json({ message: 'User updated successfully.', user });
@@ -120,6 +130,7 @@ const updateUserById = async (req, res) => {
         return res.status(500).json({ message: 'Error updating user.', error });
     }
 };
+
 
 // Delete user by ID
 const deleteUserById = async (req, res) => {
@@ -150,60 +161,52 @@ const loginUser = async (req, res) => {
         }
 
         // Find user by email
-        const user = await User.findOne({
-            where: { email }
-        });
+        const user = await User.findOne({ where: { email } });
 
-        const encryptedPassword = await bcrypt.hash(password, 10);
-
-
-        //What if user does not exist
+        // What if user does not exist
         if (!user) {
-            return res.status(400).json({ message: 'Incorrect email ' });
+            return res.status(400).json({ message: 'Incorrect email.' });
         }
 
-        //Match Password
-        if (user && await bcrypt.compare(encryptedPassword, user.password)) {
+        // Match Password
+        if (await bcrypt.compare(password, user.password)) {
+            // Generating Token with user details
             const token = jwt.sign(
-                { id: newUser.id, email: newUser.email, userType: newUser.userType },
+                { id: user.id, userName: user.userName, email: user.email, userType: user.userType },
                 'shhhh',
-                {
-                    expiresIn: "2h"
-                }
+                { expiresIn: "2h" }
             );
-            user.token = token;
-            user.password = undefined;
 
-            //send token in user cookie
-            //Cookie Sections=>
+            // Save the token in the database
+            user.token = token;
+            await user.save(); // Save the updated user with token
+
+            user.password = undefined; // Do not return the password
+
+            // Send token in the user's cookie
             const options = {
                 expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
                 httpOnly: true
-            }
-            res.status(200).cookie("token", token, options).json({
+            };
+
+            return res.status(200).cookie("token", token, options).json({
                 success: true,
                 token,
-                user
-            })
-
-
+                user: {
+                    userId: user.id,
+                    userName: user.userName,
+                    userType: user.userType
+                }
+            });
+        } else {
+            return res.status(400).json({ message: 'Incorrect password.' });
         }
 
-
-
-        // Login successful
-        return res.status(200).json({
-            message: 'Login successful',
-            user: {
-                userId: user.id, // Ensure userId is included
-                userName: user.userName,
-                userType: user.userType
-            }
-        });
     } catch (error) {
         return res.status(500).json({ message: 'Error logging in', error });
     }
 };
+
 
 
 
