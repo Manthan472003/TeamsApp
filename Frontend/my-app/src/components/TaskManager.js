@@ -414,14 +414,14 @@ const TaskManager = () => {
                                     leftIcon={<EditIcon />}
                                     onClick={() => handleEditSection(section)}
                                 />
-                                <Button
+                                {/* <Button
                                     variant='solid'
                                     colorScheme='red'
                                     size='sm'
                                     ml={2}
                                     leftIcon={<DeleteIcon />}
                                     onClick={(e) => { e.stopPropagation(); handleDeleteSection(section); }}
-                                />
+                                /> */}
                                 <AccordionIcon />
                             </AccordionButton>
                             <AccordionPanel pb={4}>

@@ -170,7 +170,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                     </Select>
                                 </Td>
                                 <Td>
-                                    <Button
+                                    {/* <Button
                                         variant='solid'
                                         colorScheme='green'
                                         size='sm'
@@ -178,7 +178,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                         onClick={() => handleEditClick(task)}
                                     >
                                         Edit
-                                    </Button>
+                                    </Button> */}
                                     <Button
                                         variant='solid'
                                         colorScheme='red'
