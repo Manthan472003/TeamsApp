@@ -20,4 +20,7 @@ router.delete('/:id', tagController.deleteTagById);
 // Get Tags by TagName (Search)
 router.get('/search/tag', tagController.getTagsByTagName);
 
+// Route for removing Tag From Task
+router.delete('/:tagID/tasks/:taskID/', tagController.removeTagFromTask);
+
 module.exports = router;
