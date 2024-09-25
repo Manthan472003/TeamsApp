@@ -13,3 +13,6 @@ export const updateTag = (tag) => axios.put(`${API_URL}/${tag.id}`, tag);
 
 // Delete a Tag
 export const deleteTag = (tagId) => axios.delete(`${API_URL}/${tagId}`);
+
+//Remove a Tag from Task
+export const removeTagFromTask = (tagId,taskId) => axios.delete(`${API_URL}/${tagId}/tasks/${taskId}`);

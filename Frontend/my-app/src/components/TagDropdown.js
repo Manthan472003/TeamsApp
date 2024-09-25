@@ -15,9 +15,9 @@ import {
     useToast,
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
-import { getTags, saveTag } from '../Services/TagService';
+import { getTags, saveTag, removeTagFromTask } from '../Services/TagService';
 
-const TagDropdown = ({ selectedTags, onTagSelect }) => {
+const TagDropdown = ({ selectedTags, onTagSelect, taskId }) => {
     const [tags, setTags] = useState([]);
     const [customTag, setCustomTag] = useState('');
     const [selectedTagIds, setSelectedTagIds] = useState(new Set());
@@ -27,8 +27,8 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
         const fetchData = async () => {
             try {
                 const response = await getTags();
-                console.log('Fetched tags:', response.data); // Debugging line
-                setTags(response.data.map(tag => ({ id: tag.id, name: tag.tagName }))); // Adjust according to your backend response
+                console.log('Fetched tags:', response.data);
+                setTags(response.data.map(tag => ({ id: tag.id, name: tag.tagName })));
             } catch (error) {
                 console.error('Error fetching tags:', error);
                 toast({
@@ -44,7 +44,6 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
     }, [toast]);
 
     useEffect(() => {
-        // Initialize selectedTagIds from selectedTags
         setSelectedTagIds(new Set(selectedTags));
     }, [selectedTags]);
 
@@ -55,10 +54,10 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
         } else {
             newSelectedTagIds.add(tag.id);
         }
-        const filteredTags = Array.from(newSelectedTagIds).filter(id => id != null); // Remove undefined values
-        console.log('Updated selected tags in TagDropdown:', filteredTags); // Debugging line
+        const filteredTags = Array.from(newSelectedTagIds).filter(id => id != null);
+        console.log('Updated selected tags in TagDropdown:', filteredTags);
         setSelectedTagIds(new Set(filteredTags));
-        onTagSelect(filteredTags); // This should pass the correct tag IDs
+        onTagSelect(filteredTags);
     };
 
     const handleAddCustomTag = async () => {
@@ -89,7 +88,6 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
         try {
             const response = await saveTag(newTag);
             if (response.status === 201) {
-                // Fetch the updated list of tags from the backend
                 await fetchTags();
                 setCustomTag('');
                 toast({
@@ -123,8 +121,8 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
     const fetchTags = async () => {
         try {
             const response = await getTags();
-            console.log('Fetched tags:', response.data); // Debugging line
-            setTags(response.data.map(tag => ({ id: tag.id, name: tag.tagName }))); // Adjust according to your backend response
+            console.log('Fetched tags:', response.data);
+            setTags(response.data.map(tag => ({ id: tag.id, name: tag.tagName })));
         } catch (error) {
             console.error('Error fetching tags:', error);
             toast({
@@ -137,15 +135,36 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
         }
     };
 
-    const handleTagRemove = (tagId) => {
-        setSelectedTagIds((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(tagId);
-          return newSet;
-        });
-      };
+    const handleTagRemove = async (tagId) => {
+        // Call the removeTagFromTask service here
+        console.log("TagID : ",tagId);
+        console.log("TaskID : ",taskId);
+        try {
+            await removeTagFromTask(tagId, taskId);
+            setSelectedTagIds(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(tagId);
+                return newSet;
+            });
+            toast({
+                title: "Tag Removed",
+                description: "The tag has been successfully removed from the task.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error('Error removing tag:', error);
+            toast({
+                title: "Error Removing Tag",
+                description: "There was an error removing the tag. Please try again.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+    };
 
-      
     return (
         <Box width="100%" p={4}>
             <HStack spacing={3} align="center">
@@ -159,8 +178,8 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
                                 borderRadius="md"
                                 variant="solid"
                                 colorScheme="teal"
-                                mr={2} // Optional: for spacing between tags
-                                mb={2} // Optional: for spacing below tags
+                                mr={2}
+                                mb={2}
                             >
                                 <TagLabel>{tag ? tag.name : tagId}</TagLabel>
                                 <TagCloseButton onClick={() => handleTagRemove(tagId)} />
@@ -209,8 +228,6 @@ const TagDropdown = ({ selectedTags, onTagSelect }) => {
                 </Flex>
             </VStack>
         </Box>
-
-
     );
 };
 

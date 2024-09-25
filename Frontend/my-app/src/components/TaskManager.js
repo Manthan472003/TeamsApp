@@ -2,16 +2,16 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
     Button, useDisclosure, Spacer, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading,
 } from '@chakra-ui/react';
-import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
+import { EditIcon } from '@chakra-ui/icons';
 
-import { getSections, deleteSection, updateSection } from '../Services/SectionService';
+import { getSections, updateSection } from '../Services/SectionService';
 import { saveTask, getTasksBySection, deleteTask, updateTask, getTasksWithoutSection } from '../Services/TaskService';
 import { getUsers } from '../Services/UserService';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import TaskTable from './TaskTable';
 import EditSectionModal from './EditSectionModal';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
+// import ConfirmDeleteModal from './ConfirmDeleteModal';
 import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
 
@@ -20,7 +20,7 @@ const TaskManager = () => {
     const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
     const { isOpen: isEditTaskOpen, onOpen: onEditTaskOpen, onClose: onEditTaskClose } = useDisclosure();
     const { isOpen: isEditSectionOpen, onOpen: onEditSectionOpen, onClose: onEditSectionClose } = useDisclosure();
-    const { isOpen: isConfirmDeleteOpen, onOpen: onConfirmDeleteOpen, onClose: onConfirmDeleteClose } = useDisclosure();
+    // const { isOpen: isConfirmDeleteOpen, onOpen: onConfirmDeleteOpen, onClose: onConfirmDeleteClose } = useDisclosure();
 
     const [sections, setSections] = useState([]);
     const [tasksBySection, setTasksBySection] = useState({});
@@ -30,7 +30,7 @@ const TaskManager = () => {
     const [taskToEdit, setTaskToEdit] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [sectionToEdit, setSectionToEdit] = useState(null);
-    const [sectionToDelete, setSectionToDelete] = useState(null);
+    // const [sectionToDelete, setSectionToDelete] = useState(null);
     const [filteredItems, setFilteredItems] = useState([]);
     const [openSections, setOpenSections] = useState([]); // State to manage open sections
     const [selectedSection, setSelectedSection] = useState(null); // New state for selected section
@@ -295,48 +295,48 @@ const TaskManager = () => {
         }
     };
 
-    const handleDeleteSection = (section) => {
-        setSectionToDelete(section);
-        onConfirmDeleteOpen();
-    };
+    // const handleDeleteSection = (section) => {
+    //     setSectionToDelete(section);
+    //     onConfirmDeleteOpen();
+    // };
 
-    const handleConfirmDelete = async () => {
-        if (!sectionToDelete) return;
-        try {
-            const response = await deleteSection(sectionToDelete.id); // Delete section
-            if (response.status === 200) {
-                setSections(prevSections =>
-                    prevSections.filter(sec => sec.id !== sectionToDelete.id)
-                );
-                setTasksBySection(prevTasks => {
-                    const newTasks = { ...prevTasks };
-                    delete newTasks[sectionToDelete.id];
-                    return newTasks;
-                });
-                await fetchTasksWithoutSection(); // Refresh tasks without section
-                toast({
-                    title: "Section deleted.",
-                    description: "The section was successfully deleted.",
-                    status: "success",
-                    duration: 5000,
-                    isClosable: true,
-                });
-            } else {
-                throw new Error(response.data.message);
-            }
-        } catch (error) {
-            console.error('Error deleting section:', error.response || error);
-            toast({
-                title: "Error deleting section.",
-                description: error.message,
-                status: "error",
-                duration: 5000,
-                isClosable: true,
-            });
-        } finally {
-            onConfirmDeleteClose();
-        }
-    };
+    // const handleConfirmDelete = async () => {
+    //     if (!sectionToDelete) return;
+    //     try {
+    //         const response = await deleteSection(sectionToDelete.id); // Delete section
+    //         if (response.status === 200) {
+    //             setSections(prevSections =>
+    //                 prevSections.filter(sec => sec.id !== sectionToDelete.id)
+    //             );
+    //             setTasksBySection(prevTasks => {
+    //                 const newTasks = { ...prevTasks };
+    //                 delete newTasks[sectionToDelete.id];
+    //                 return newTasks;
+    //             });
+    //             await fetchTasksWithoutSection(); // Refresh tasks without section
+    //             toast({
+    //                 title: "Section deleted.",
+    //                 description: "The section was successfully deleted.",
+    //                 status: "success",
+    //                 duration: 5000,
+    //                 isClosable: true,
+    //             });
+    //         } else {
+    //             throw new Error(response.data.message);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error deleting section:', error.response || error);
+    //         toast({
+    //             title: "Error deleting section.",
+    //             description: error.message,
+    //             status: "error",
+    //             duration: 5000,
+    //             isClosable: true,
+    //         });
+    //     } finally {
+    //         onConfirmDeleteClose();
+    //     }
+    // };
 
     const handleUpdateSection = async (section) => {
         try {
@@ -497,12 +497,12 @@ const TaskManager = () => {
                 />
             )}
 
-            <ConfirmDeleteModal
+            {/* <ConfirmDeleteModal
                 isOpen={isConfirmDeleteOpen}
                 onClose={onConfirmDeleteClose}
                 onConfirm={handleConfirmDelete}
                 itemName={sectionToDelete ? sectionToDelete.sectionName : ''}
-            />
+            /> */}
         </Box>
     );
 };

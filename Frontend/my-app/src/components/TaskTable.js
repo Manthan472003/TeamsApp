@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Thead, Tbody, Tr, Th, Td, Select, Button, HStack, Tag, TagLabel, useDisclosure } from '@chakra-ui/react';
-import { EditIcon, DeleteIcon, CheckIcon } from '@chakra-ui/icons';
+import {  DeleteIcon, CheckIcon } from '@chakra-ui/icons';
 import { getTags } from '../Services/TagService'; // Adjust import according to your file structure
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmCompleteModal from './ConfirmCompleteModal';
@@ -31,13 +31,13 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
         fetchTags();
     }, []);
 
-    const handleEditClick = (task) => {
-        if (onEdit) {
-            onEdit(task);
-        } else {
-            console.error('onEdit function is not defined');
-        }
-    };
+    // const handleEditClick = (task) => {
+    //     if (onEdit) {
+    //         onEdit(task);
+    //     } else {
+    //         console.error('onEdit function is not defined');
+    //     }
+    // };
     
 
     const formatDate = (dateString) => {
@@ -122,8 +122,8 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                         <Th width='17%' style={{ whiteSpace: 'normal' }}>Tags</Th>
                         <Th width='10%'>Due Date</Th>
                         <Th width='11%'>Assigned To</Th>
-                        <Th width='12%'>Status</Th>
-                        <Th width='25%'>Action</Th>
+                        <Th width='15%'>Status</Th>
+                        <Th width='22%'>Action</Th>
                     </Tr>
                 </Thead>
                 <Tbody>

@@ -192,6 +192,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
                       <TagDropdown
                         selectedTags={localTask.tagIDs || []}
                         onTagSelect={(selectedTags) => handleFieldChange('tagIDs', selectedTags)}
+                        taskId={task.id}
                       />
                     </Td>
                   </Tr>
