@@ -10,6 +10,7 @@ const taskTagRoutes = require('./Routes/taskTagRoutes');
 const dailyReportsRoutes = require('./Routes/dailyReportsRoutes')
 const versionManagementRoutes = require('./Routes/versionManagementRoutes');
 const commentRoutes = require('./Routes/commentRoutes');
+const sendMailRoute = require('./Routes/sendMailRoute')
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -26,6 +27,7 @@ app.use('/taskTags', taskTagRoutes);
 app.use('/dailyReports', dailyReportsRoutes)
 app.use('/versionManagement', versionManagementRoutes)
 app.use('/comment', commentRoutes)
+app.use('/sendMail', sendMailRoute)
 
 sequelize.sync().then(() => {
   app.listen(PORT, () => {
