@@ -1,8 +1,8 @@
-const router = require('express').Router();
-const { signup, getbill } = require('../Controllers/sendMail');
+const express = require('express');
+const { sendEmail } = require('../Controllers/sendMailController'); 
 
-/** HTTP Requests */
-router.post('/user/signup', signup);
-router.post('/product/getbill', getbill);
+const router = express.Router();
+
+router.post('/send', sendEmail);
 
 module.exports = router;
