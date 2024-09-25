@@ -19,7 +19,7 @@ import {
   DrawerFooter,
   Box,
   SimpleGrid,
-  HStack,
+  HStack
 } from '@chakra-ui/react';
 import { getMediaOfTheTask } from '../Services/MediaService';
 import { updateTask } from '../Services/TaskService';
@@ -27,6 +27,11 @@ import { getCommentsByTaskId, createComment } from '../Services/CommentService';
 import MediaUploader from './MediaUploader';
 import UserDropdown from './UserDropdown';
 import TagDropdown from './TagDropdown';
+import jwt_decode from 'jwt-decode'; // Import jwt-decode
+import { getUsers } from '../Services/UserService'; // Import the getUsers function
+
+
+
 
 const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) => {
   const [size] = useState('xl');
@@ -35,6 +40,8 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
   const [comments, setComments] = useState([]); // State for comments
   const [newComment, setNewComment] = useState(''); // State for new comment
   const [timeoutId, setTimeoutId] = useState(null);
+  const [users, setUsers] = useState([]); // Ensure users are also fetched and managed
+
 
   const fetchMedia = useCallback(async () => {
     if (!task || !task.id) return;
@@ -50,6 +57,23 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
       });
     }
   }, [task, toast]);
+
+  // Fetch users
+  const fetchUsers = useCallback(async () => {
+    try {
+      const response = await getUsers(); // Assuming getUsers function is available
+      setUsers(response.data); // Assuming response.data contains the array of users
+    } catch (error) {
+      console.error('Fetch Users Error:', error);
+      toast({
+        title: "Error fetching users.",
+        description: "Unable to fetch users. Please try again.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  }, [toast]);
 
   const fetchComments = useCallback(async () => {
     if (!task || !task.id) return;
@@ -70,10 +94,11 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
   useEffect(() => {
     if (isOpen && task) {
       setLocalTask(task);
+      fetchUsers();
       fetchMedia();
       fetchComments(); // Fetch comments when the drawer opens
     }
-  }, [isOpen, task, fetchMedia, fetchComments]);
+  }, [isOpen, task, fetchMedia, fetchComments, fetchUsers]);
 
   const handleFieldChange = (field, value) => {
     const updatedTask = { ...localTask, [field]: value };
@@ -116,16 +141,42 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     }
   };
 
+  const getUserNameById = (userId) => {
+    if (!users || users.length === 0) {
+      console.error('Users data is not available');
+      return 'Unknown';
+    }
+
+    const user = users.find(user => user.id === userId);
+    if (!user) {
+      console.error(`No user found for ID: ${userId}`);
+      return 'Unknown';
+    }
+    return user.userName;
+  };
+
+  const token = localStorage.getItem('token'); // Fetch the token from local storage
+  if (token) {
+    var decoded = jwt_decode(token); // Decode the JWT token
+  }
+
   const handleCommentSubmit = async () => {
     if (!newComment.trim()) return; // Prevent empty comments
     try {
       const commentData = {
         commentText: newComment,
         taskId: task.id,
-        createdByUserId: localTask.taskAssignedToID, // Replace with actual user ID from your state
+        createdByUserId: decoded.id, // Replace with actual user ID from your state
       };
       await createComment(commentData); // Call the createComment service
-      setComments([...comments, { commentText: newComment, createdByUserId: localTask.taskAssignedToID }]); // Update comments
+
+      // Add a new comment locally, including the createdAt timestamp
+      setComments([...comments, {
+        commentText: newComment,
+        createdByUserId: decoded.id,
+        createdAt: new Date().toISOString() // Ensure valid date format
+      }]);
+
       setNewComment(''); // Clear the input field
     } catch (error) {
       toast({
@@ -137,6 +188,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
       });
     }
   };
+
 
   if (!localTask) {
     return (
@@ -169,6 +221,30 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
       paddingLeft: '20px',
     },
   };
+
+  // Define a color palette
+  const colorPalette = [
+    "#ffddd6", // Color 1
+    "#d0f5d7", // Color 2
+    "#dee4ff", // Color 3
+    "#fadcec", // Color 4
+    "#fff1d4", // Color 5
+    "#d4fffc",
+    "#feffd4",
+    "#edd4ff"
+    // Add more colors as needed
+  ];
+
+  const getUserColor = (userId) => {
+    // Use the user ID modulo the length of the color palette to cycle through colors
+    const userIndex = userId % colorPalette.length; // Ensure you get a valid index
+    return colorPalette[userIndex];
+  };
+
+
+
+
+
 
   return (
     <Drawer onClose={onClose} isOpen={isOpen} size={size}>
@@ -259,27 +335,56 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
               />
 
               {/* Comment Section */}
-            <Box mt={2}>
-            <VStack align="start" spacing={2} mt={4}>
-                {comments.map((comment, index) => (
-                  <Text key={index}>
-                    <strong>User {comment.createdByUserId}: </strong>
-                    {comment.commentText}
-                  </Text>
-                ))}
-              </VStack>
+              <Box mt={2} p={4} borderWidth={1} borderRadius="md" backgroundColor="#f9f9f9" boxShadow="sm">
+                <Text fontSize="lg" fontWeight="bold" mb={3}>Comments:</Text>
 
-              <Text fontSize="lg"><strong>Add Comments :</strong></Text>
-              <HStack>
-              <Input
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                mb={2}
-              />
-              <Button onClick={handleCommentSubmit} colorScheme="blue">Comment</Button>
-              </HStack>
-            </Box>
+                <VStack align="start" spacing={3}>
+                  {comments.map((comment, index) => {
+                    const isUserComment = comment.createdByUserId === decoded.id; // Check if the comment is by the logged-in user
+                    const commentColor = getUserColor(comment.createdByUserId); // Get the color for the comment
+
+                    // Format the created date
+                    const formattedDate = new Date(comment.createdAt).toLocaleString(); // Adjust according to your date format
+
+                    return (
+                      <HStack
+                        key={index}
+                        p={2}
+                        borderWidth={1}
+                        borderRadius="md"
+                        backgroundColor={isUserComment ? "#e0f7fa" : commentColor} // Use assigned color for user comments
+                        boxShadow="sm"
+                        width="full"
+                        alignSelf={isUserComment ? "flex-end" : "flex-start"} // Align comments
+                        maxWidth="100%" // Ensures the comment box doesn't exceed the parent's width
+                      >
+                        <Box flex="1" overflow="hidden" textOverflow="ellipsis" whiteSpace="normal" width={12}>
+                          <Text fontWeight="bold" color={isUserComment ? "blue.600" : "gray.600"}>
+                            {isUserComment ? "You" : getUserNameById(comment.createdByUserId)}:
+                          </Text>
+                          <Text>{comment.commentText}</Text>
+                          <Text fontSize="sm" color="gray.500" textAlign="right">{formattedDate}</Text> {/* Display date and time */}
+                        </Box>
+                      </HStack>
+                    );
+                  })}
+                </VStack>
+
+                <HStack mt={4}>
+                  <Input
+                    placeholder="Add a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    size="lg"
+                    borderRadius="md"
+                    borderWidth={1}
+                    borderColor="gray.300"
+                  />
+                  <Button onClick={handleCommentSubmit} colorScheme="blue" size="sm">Comment</Button>
+                </HStack>
+              </Box>
+
+
             </Box>
             <DrawerFooter position="fixed" bottom="0" left="0" right="0" bg="white" zIndex="1">
               <Button colorScheme="blue" onClick={handleSaveAndClose} width="full">Update and Close</Button>
@@ -290,5 +395,6 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     </Drawer>
   );
 };
+
 
 export default ViewTaskDrawer;

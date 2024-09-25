@@ -118,8 +118,8 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                 <Thead>
                     <Tr>
                         <Th width='27%'>Task Name</Th>
-                        <Th width='17%' style={{ whiteSpace: 'normal' }}>Tags</Th>
-                        <Th width='10%'>Due Date</Th>
+                        <Th width='14%' style={{ whiteSpace: 'normal' }}>Tags</Th>
+                        <Th width='13%'>Due Date</Th>
                         <Th width='11%'>Assigned To</Th>
                         <Th width='15%'>Status</Th>
                         <Th width='22%'>Action</Th>
