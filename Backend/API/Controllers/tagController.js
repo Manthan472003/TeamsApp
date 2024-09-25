@@ -1,5 +1,7 @@
 const Tag = require('../../Database/Models/tag');
 const { Op } = require('sequelize');
+const Task = require('../../Database/Models/task');
+
 
 
 // Create a new tag (with existence check)
@@ -134,11 +136,64 @@ const getTagsByTagName = async (req, res) => {
     }
 };
 
+const removeTagFromTask = async (req, res) => {
+    try {
+        const { taskID, tagID } = req.params;
+
+        // Check if both taskID and tagID are provided
+        if (!taskID || !tagID) {
+            return res.status(400).json({ message: 'Both taskID and tagID are required' });
+        }
+
+        // Check if the task exists
+        const existingTask = await Task.findOne({ where: { id: taskID } });
+        if (!existingTask) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        // Check if the tag exists
+        const existingTag = await Tag.findOne({ where: { id: tagID } });
+        if (!existingTag) {
+            return res.status(404).json({ message: 'Tag not found' });
+        }
+
+        // // Debugging output
+        // console.log('Existing Task:', existingTask);
+        const tagIDsArray = existingTask.tagIDs || [];
+        // console.log('Current tagIDs:', tagIDsArray);
+        // console.log('Requested tagID:', tagID);
+
+        // Convert tagID to a number for comparison
+        const tagIDNumber = Number(tagID);
+
+        // Check if the tagID exists in the task's tagIDs array
+        if (!tagIDsArray.includes(tagIDNumber)) {
+            return res.status(400).json({ message: 'Tag ID not found in the task\'s tagIDs' });
+        }
+
+        // Remove the tagID from the tagIDs array
+        const updatedTagIDs = tagIDsArray.filter(tag => tag !== tagIDNumber);
+
+        // Update the task with the new tagIDs array
+        await existingTask.update({ tagIDs: updatedTagIDs });
+
+        return res.status(200).json({ message: 'Tag removed from task successfully', updatedTagIDs });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'An error occurred while processing your request.' });
+    }
+};
+
+
+
+
+
 module.exports = {
     createTag,
     getAllTags,
     getTagById,
     updateTagById,
     deleteTagById,
-    getTagsByTagName
+    getTagsByTagName,
+    removeTagFromTask
 };
