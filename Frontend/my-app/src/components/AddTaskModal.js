@@ -166,6 +166,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                             <TagDropdown
                                 selectedTags={selectedTags}
                                 onTagSelect={handleTagSelect}
+                                taskId={null} // Pass null since we are adding a task
                             />
                         </FormControl>
                         <FormControl mb={4}>

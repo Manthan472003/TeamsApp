@@ -14,14 +14,16 @@ import {
   Td,
   Input,
   Select,
-    Button,
+  Button,
   useToast,
   DrawerFooter,
   Box,
   SimpleGrid,
+  HStack,
 } from '@chakra-ui/react';
 import { getMediaOfTheTask } from '../Services/MediaService';
 import { updateTask } from '../Services/TaskService';
+import { getCommentsByTaskId, createComment } from '../Services/CommentService'; // Import comment services
 import MediaUploader from './MediaUploader';
 import UserDropdown from './UserDropdown';
 import TagDropdown from './TagDropdown';
@@ -30,6 +32,8 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
   const [size] = useState('xl');
   const toast = useToast();
   const [localTask, setLocalTask] = useState(task);
+  const [comments, setComments] = useState([]); // State for comments
+  const [newComment, setNewComment] = useState(''); // State for new comment
   const [timeoutId, setTimeoutId] = useState(null);
 
   const fetchMedia = useCallback(async () => {
@@ -47,12 +51,29 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     }
   }, [task, toast]);
 
+  const fetchComments = useCallback(async () => {
+    if (!task || !task.id) return;
+    try {
+      const response = await getCommentsByTaskId(task.id);
+      setComments(response.data); // Set fetched comments
+    } catch (error) {
+      toast({
+        title: 'Error fetching comments.',
+        description: 'Could not load comments.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  }, [task, toast]);
+
   useEffect(() => {
     if (isOpen && task) {
       setLocalTask(task);
       fetchMedia();
+      fetchComments(); // Fetch comments when the drawer opens
     }
-  }, [isOpen, task, fetchMedia]);
+  }, [isOpen, task, fetchMedia, fetchComments]);
 
   const handleFieldChange = (field, value) => {
     const updatedTask = { ...localTask, [field]: value };
@@ -95,6 +116,28 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     }
   };
 
+  const handleCommentSubmit = async () => {
+    if (!newComment.trim()) return; // Prevent empty comments
+    try {
+      const commentData = {
+        commentText: newComment,
+        taskId: task.id,
+        createdByUserId: localTask.taskAssignedToID, // Replace with actual user ID from your state
+      };
+      await createComment(commentData); // Call the createComment service
+      setComments([...comments, { commentText: newComment, createdByUserId: localTask.taskAssignedToID }]); // Update comments
+      setNewComment(''); // Clear the input field
+    } catch (error) {
+      toast({
+        title: "Comment Submission Failed",
+        description: "There was an error submitting your comment.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
   if (!localTask) {
     return (
       <Drawer onClose={onClose} isOpen={isOpen} size={size}>
@@ -108,7 +151,8 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
         </DrawerContent>
       </Drawer>
     );
-  };
+  }
+
   const buttonStyles = {
     base: {
       fontSize: '23px',
@@ -133,7 +177,6 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
         <DrawerCloseButton />
         <DrawerHeader sx={buttonStyles.base}>TASK DETAILS</DrawerHeader>
         <DrawerBody>
-
           <VStack spacing={4} align="stretch">
             <Box pb="100">
               <Table variant="simple">
@@ -147,45 +190,41 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
                       />
                     </Td>
                   </Tr>
-
-
                   <Tr>
-                <Td colSpan={2}>
-                  <SimpleGrid columns={3} spacing={4}>
-                    <Box>
-                      <Text fontWeight="bold">Due Date:</Text>
-                      <Input 
-                      mt={2 }
-                        type="date"
-                        value={localTask.dueDate || ''}
-                        onChange={(e) => handleFieldChange('dueDate', e.target.value)}
-                      />
-                    </Box>
-                    <Box>
-                      <Text mb={2} fontWeight="bold">Assigned To:</Text>
-                      <UserDropdown 
-                      
-                        selectedUser={localTask.taskAssignedToID}
-                        onUserSelect={(userId) => handleFieldChange('taskAssignedToID', userId)}
-                      />
-                    </Box>
-                    <Box>
-                      <Text fontWeight="bold">Status:</Text>
-                      <Select
-                      mt={2 }
-                        value={localTask.status || 'Not Started'}
-                        onChange={(e) => handleFieldChange('status', e.target.value)}
-                      >
-                        <option value="Not Started">Not Started</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="On Hold">On Hold</option>
-                        <option value="Completed">Completed</option>
-                      </Select>
-                    </Box>
-                  </SimpleGrid>
-                </Td>
-              </Tr>
-
+                    <Td colSpan={2}>
+                      <SimpleGrid columns={3} spacing={4}>
+                        <Box>
+                          <Text fontWeight="bold">Due Date:</Text>
+                          <Input
+                            mt={2}
+                            type="date"
+                            value={localTask.dueDate || ''}
+                            onChange={(e) => handleFieldChange('dueDate', e.target.value)}
+                          />
+                        </Box>
+                        <Box>
+                          <Text mb={2} fontWeight="bold">Assigned To:</Text>
+                          <UserDropdown
+                            selectedUser={localTask.taskAssignedToID}
+                            onUserSelect={(userId) => handleFieldChange('taskAssignedToID', userId)}
+                          />
+                        </Box>
+                        <Box>
+                          <Text fontWeight="bold">Status:</Text>
+                          <Select
+                            mt={2}
+                            value={localTask.status || 'Not Started'}
+                            onChange={(e) => handleFieldChange('status', e.target.value)}
+                          >
+                            <option value="Not Started">Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="On Hold">On Hold</option>
+                            <option value="Completed">Completed</option>
+                          </Select>
+                        </Box>
+                      </SimpleGrid>
+                    </Td>
+                  </Tr>
                   <Tr fontSize="lg">
                     <Td fontWeight="bold">Tags:</Td>
                     <Td>
@@ -198,7 +237,6 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
                   </Tr>
                 </Tbody>
               </Table>
-
 
               <Text mt={2} mb={2} fontSize="lg"><strong>Sub-Task:</strong></Text>
               <Input
@@ -219,8 +257,30 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
                 tags={tags}
                 onUpdate={fetchMedia}
               />
-            </Box>
 
+              {/* Comment Section */}
+            <Box mt={2}>
+            <VStack align="start" spacing={2} mt={4}>
+                {comments.map((comment, index) => (
+                  <Text key={index}>
+                    <strong>User {comment.createdByUserId}: </strong>
+                    {comment.commentText}
+                  </Text>
+                ))}
+              </VStack>
+
+              <Text fontSize="lg"><strong>Add Comments :</strong></Text>
+              <HStack>
+              <Input
+                placeholder="Add a comment..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                mb={2}
+              />
+              <Button onClick={handleCommentSubmit} colorScheme="blue">Comment</Button>
+              </HStack>
+            </Box>
+            </Box>
             <DrawerFooter position="fixed" bottom="0" left="0" right="0" bg="white" zIndex="1">
               <Button colorScheme="blue" onClick={handleSaveAndClose} width="full">Update and Close</Button>
             </DrawerFooter>

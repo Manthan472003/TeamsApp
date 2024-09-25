@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Thead, Tbody, Tr, Th, Td, Select, Button, HStack, Tag, TagLabel, useDisclosure } from '@chakra-ui/react';
-import {  DeleteIcon, CheckIcon } from '@chakra-ui/icons';
+import { DeleteIcon, CheckIcon } from '@chakra-ui/icons';
 import { getTags } from '../Services/TagService'; // Adjust import according to your file structure
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmCompleteModal from './ConfirmCompleteModal';
@@ -11,11 +11,9 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     const { isOpen: isCompleteOpen, onOpen: onCompleteOpen, onClose: onCompleteClose } = useDisclosure();
     const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure(); // For the Drawer
 
-    
     const [taskToDelete, setTaskToDelete] = useState(null);
     const [taskToComplete, setTaskToComplete] = useState(null);
     const [tags, setTags] = useState([]);
-
     const [selectedTask, setSelectedTask] = useState(null); // State for the selected task
 
     useEffect(() => {
@@ -38,19 +36,20 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     //         console.error('onEdit function is not defined');
     //     }
     // };
-    
+
+
 
     const formatDate = (dateString) => {
         const d = new Date(dateString);
         const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0'); 
+        const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     };
 
     const handleStatusChange = (taskId, newStatus) => {
         if (onStatusChange) {
-            onStatusChange(taskId, newStatus);
+            onStatusChange(taskId, newStatus);  // Trigger the status change and reload in parent
         } else {
             console.error('onStatusChange function is not defined');
         }
@@ -76,7 +75,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
 
     const confirmDelete = () => {
         if (onDelete && taskToDelete) {
-            onDelete(taskToDelete);
+            onDelete(taskToDelete);  // Trigger the delete and reload in parent
             setTaskToDelete(null);
             onDeleteClose();
         } else {
@@ -91,7 +90,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
 
     const confirmComplete = () => {
         if (onStatusChange && taskToComplete) {
-            onStatusChange(taskToComplete.id, 'Completed');
+            onStatusChange(taskToComplete.id, 'Completed');  // Trigger the complete and reload in parent
             setTaskToComplete(null);
             onCompleteClose();
         } else {
@@ -134,7 +133,6 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                                 style={{
                                     backgroundColor: index % 2 === 0 ? '#f9e79f' : '#d7f2ff'
                                 }}
-
                             >
                                 <Td  onClick={() => handleTaskClick(task)} cursor={'pointer'}  >{task.taskName}</Td>
                                 <Td style={{ whiteSpace: 'normal', overflow: 'hidden' }}>
@@ -228,15 +226,14 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                 itemName={taskToComplete ? taskToComplete.taskName : ''}
             />
 
-              {/* Task Details Drawer */}
-              <ViewTaskDrawer
+            {/* Task Details Drawer */}
+            <ViewTaskDrawer
                 isOpen={isDrawerOpen}
                 onClose={onDrawerClose}
                 task={selectedTask}
                 users={users}
                 tags={tags}
             />
-
         </>
     );
 };

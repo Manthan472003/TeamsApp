@@ -16,7 +16,7 @@ import { getSections } from '../Services/SectionService';
 import ConfirmLogoutModal from './ConfirmLogoutModal';
 import jwt_decode from 'jwt-decode'; // Import jwt-decode
 
-const Sidebar = ({ onSectionAdded }) => {
+const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeButton, setActiveButton] = useState(location.pathname);
@@ -99,6 +99,10 @@ const Sidebar = ({ onSectionAdded }) => {
       duration: 5000,
       isClosable: true,
     });
+
+    if (onTaskAdded) {
+      await onTaskAdded();  // Notify TaskManager to refresh tasks
+    }
   };
 
   const buttonStyles = {
@@ -204,7 +208,7 @@ const Sidebar = ({ onSectionAdded }) => {
             <AddTaskModal
               isOpen={isTaskOpen}
               onClose={onTaskClose}
-              onSubmit={handleTaskAdded}
+              onSubmit={handleTaskAdded}  // Call handleTaskAdded after adding a task
               userId={userName}
               sectionID={null}
             />

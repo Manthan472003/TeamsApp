@@ -168,6 +168,15 @@ const TaskManager = () => {
         }
     }, [toast]);
 
+    // Function to refresh tasks
+    const refreshTasks = async () => {
+        await fetchSections();
+        if (selectedSectionId) {
+            await fetchTasksBySection(selectedSectionId);
+        }
+        await fetchTasksWithoutSection();
+    };
+
     useEffect(() => {
         fetchSections();
         fetchUsers();
@@ -201,6 +210,7 @@ const TaskManager = () => {
             await saveTask(task); // Call API to save task
             if (task.sectionID !== null) {
                 await fetchTasksBySection(task.sectionID); // Refresh tasks for the specific section
+                refreshTasks();
             } else {
                 await fetchTasksWithoutSection(); // Refresh tasks without section
             }
@@ -221,7 +231,10 @@ const TaskManager = () => {
                 isClosable: true,
             });
         }
+        refreshTasks();
     };
+
+
 
     const handleStatusChange = async (taskId, newStatus) => {
         try {
@@ -376,7 +389,10 @@ const TaskManager = () => {
 
     return (
         <Box mt={5}>
-            <Sidebar onSectionAdded={fetchSections} />
+            <Sidebar
+                onSectionAdded={fetchSections}
+                onTaskAdded={refreshTasks} // Pass refreshTasks function here
+            />
             <Heading as='h2' size='xl' paddingLeft={3}
                 sx={{
                     background: 'linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)',
@@ -389,9 +405,9 @@ const TaskManager = () => {
             <br />
             <br />
 
-            <SearchBar 
-            onSectionSelected={handleSectionSelected} 
-            onApplyFilter={applyFilter} />
+            <SearchBar
+                onSectionSelected={handleSectionSelected}
+                onApplyFilter={applyFilter} />
 
 
             <Accordion allowToggle>
@@ -476,8 +492,8 @@ const TaskManager = () => {
                 isOpen={isTaskOpen}
                 onClose={onTaskClose}
                 onSubmit={(task) => addTaskToSection({ ...task, sectionID: selectedSectionId, createdBy: currentUserId })}
-                sectionID={selectedSectionId}
             />
+
 
             {taskToEdit && (
                 <EditTaskModal

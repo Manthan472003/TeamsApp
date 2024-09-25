@@ -14,7 +14,7 @@ import {
     Flex,
     useToast,
 } from '@chakra-ui/react';
-import { ChevronDownIcon } from '@chakra-ui/icons';
+import { AddIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { getTags, saveTag, removeTagFromTask } from '../Services/TagService';
 
 const TagDropdown = ({ selectedTags, onTagSelect, taskId }) => {
@@ -137,8 +137,8 @@ const TagDropdown = ({ selectedTags, onTagSelect, taskId }) => {
 
     const handleTagRemove = async (tagId) => {
         // Call the removeTagFromTask service here
-        console.log("TagID : ",tagId);
-        console.log("TaskID : ",taskId);
+        console.log("TagID : ", tagId);
+        console.log("TaskID : ", taskId);
         try {
             await removeTagFromTask(tagId, taskId);
             setSelectedTagIds(prev => {
@@ -220,8 +220,10 @@ const TagDropdown = ({ selectedTags, onTagSelect, taskId }) => {
                         mr={2}
                     />
                     <Button
+                        width={300}
                         onClick={handleAddCustomTag}
                         colorScheme="teal"
+                        leftIcon={<AddIcon />}
                     >
                         Add Custom Tag
                     </Button>
