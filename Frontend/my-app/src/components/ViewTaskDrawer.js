@@ -23,8 +23,10 @@ import { getCommentsByTaskId, createComment } from '../Services/CommentService';
 import MediaUploader from './MediaUploader';
 import UserDropdown from './UserDropdown';
 import TagDropdown from './TagDropdown';
+import SectionDropdown from './SectionDropdown';
 import jwt_decode from 'jwt-decode'; // Import jwt-decode
 import { getUsers } from '../Services/UserService'; // Import the getUsers function
+import { getSections } from '../Services/SectionService';
 
 
 
@@ -37,6 +39,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
   const [newComment, setNewComment] = useState(''); // State for new comment
   const [timeoutId, setTimeoutId] = useState(null);
   const [users, setUsers] = useState([]); // Ensure users are also fetched and managed
+  const [, setSections] =  useState([]);
 
 
   const fetchMedia = useCallback(async () => {
@@ -71,6 +74,23 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     }
   }, [toast]);
 
+    // Fetch users
+    const fetchSections = useCallback(async () => {
+      try {
+        const response = await getSections(); // Assuming getUsers function is available
+        setSections(response.data); // Assuming response.data contains the array of users
+      } catch (error) {
+        console.error('Fetch Sections Error:', error);
+        toast({
+          title: "Error fetching sections.",
+          description: "Unable to fetch sections. Please try again.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }, [toast]);
+
   const fetchComments = useCallback(async () => {
     if (!task || !task.id) return;
     try {
@@ -93,8 +113,9 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
       fetchUsers();
       fetchMedia();
       fetchComments(); // Fetch comments when the drawer opens
+      fetchSections();
     }
-  }, [isOpen, task, fetchMedia, fetchComments, fetchUsers]);
+  }, [isOpen, task, fetchMedia, fetchComments, fetchUsers, fetchSections]);
 
   const handleFieldChange = (field, value) => {
     const updatedTask = { ...localTask, [field]: value };
@@ -150,6 +171,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     }
     return user.userName;
   };
+
 
   const token = localStorage.getItem('token'); // Fetch the token from local storage
   if (token) {
@@ -294,36 +316,30 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={3} spacing={4}>
+                <SimpleGrid columns={2} spacing={4}>
                   <Box>
-                    <Text fontSize="lg" fontWeight="bold">Due Date:</Text>
-                    <Input
-                      mt={2}
-                      type="date"
-                      value={localTask.dueDate || ''}
-                      onChange={(e) => handleFieldChange('dueDate', e.target.value)}
+                    <Text mb={2} fontSize="lg" fontWeight="bold">Section:</Text>
+                    <SectionDropdown
+                      selectedSection={localTask.sectionID}
+                      onSectionSelect={(sectionID) => handleFieldChange('sectionID', sectionID)}
                     />
                   </Box>
 
-                  <Box>
-                    <Text mb={2} fontSize="lg" fontWeight="bold">Assigned To:</Text>
-                    <UserDropdown
-                      selectedUser={localTask.taskAssignedToID}
-                      onUserSelect={(userId) => handleFieldChange('taskAssignedToID', userId)}
-                    />
-                  </Box>
 
                   <Box>
-                    <Text fontSize="lg" fontWeight="bold">Status:</Text>
+                    <Text fontSize="lg" fontWeight="bold">Platform:</Text>
                     <Select
                       mt={2}
-                      value={localTask.status || 'Not Started'}
-                      onChange={(e) => handleFieldChange('status', e.target.value)}
+                      value={localTask.platformType || 'Platform-Independent'}
+                      onChange={(e) => handleFieldChange('platformType', e.target.value)}
                     >
-                      <option value="Not Started">Not Started</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="On Hold">On Hold</option>
-                      <option value="Completed">Completed</option>
+                      <option value="Platform-Independent">Platform-Independent</option>
+                      <option value="iOS">iOS</option>
+                      <option value="Android">Android</option>
+                      <option value="Web">Web</option>
+                      <option value="WindowsOS">WindowsOS</option>
+                      <option value="MacOS">MacOS</option>
+                      <option value="Linux">Linux</option>
                     </Select>
                   </Box>
                 </SimpleGrid>

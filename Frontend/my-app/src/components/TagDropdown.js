@@ -10,17 +10,30 @@ import {
     MenuItem,
     HStack,
     VStack,
-    Tag, TagLabel, TagCloseButton,
+    Tag,
+    TagLabel,
+    TagCloseButton,
     Flex,
     useToast,
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+    PopoverHeader,
+    PopoverArrow,
+    PopoverCloseButton,
+    PopoverBody,
+    PopoverFooter,
+    ButtonGroup,
 } from '@chakra-ui/react';
-import { AddIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import { AddIcon } from '@chakra-ui/icons';
 import { getTags, saveTag, removeTagFromTask } from '../Services/TagService';
 
 const TagDropdown = ({ selectedTags, onTagSelect, taskId }) => {
     const [tags, setTags] = useState([]);
     const [customTag, setCustomTag] = useState('');
     const [selectedTagIds, setSelectedTagIds] = useState(new Set());
+    const initialFocusRef = React.useRef();
+
     const toast = useToast();
 
     useEffect(() => {
@@ -136,7 +149,6 @@ const TagDropdown = ({ selectedTags, onTagSelect, taskId }) => {
     };
 
     const handleTagRemove = async (tagId) => {
-        // Call the removeTagFromTask service here
         console.log("TagID : ", tagId);
         console.log("TaskID : ", taskId);
         try {
@@ -178,8 +190,8 @@ const TagDropdown = ({ selectedTags, onTagSelect, taskId }) => {
                                 borderRadius="md"
                                 variant="solid"
                                 colorScheme="teal"
-                                mr={2}
-                                mb={2}
+                                mr={1}
+                                height="40px"
                             >
                                 <TagLabel>{tag ? tag.name : tagId}</TagLabel>
                                 <TagCloseButton onClick={() => handleTagRemove(tagId)} />
@@ -188,47 +200,80 @@ const TagDropdown = ({ selectedTags, onTagSelect, taskId }) => {
                     })}
                 </Flex>
 
-                <Menu>
-                    <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                        Select Tags
-                    </MenuButton>
-                    <MenuList>
-                        {tags.length > 0 ? (
-                            tags.map(tag => (
-                                <MenuItem key={tag.id}>
-                                    <Checkbox
-                                        isChecked={selectedTagIds.has(tag.id)}
-                                        onChange={() => handleTagSelect(tag)}
-                                    >
-                                        {tag.name}
-                                    </Checkbox>
-                                </MenuItem>
-                            ))
-                        ) : (
-                            <MenuItem>No tags available</MenuItem>
-                        )}
-                    </MenuList>
-                </Menu>
+                <Popover initialFocusRef={initialFocusRef} placement='bottom' closeOnBlur={false}>
+                    {({ onClose }) => (
+                        <>
+                            <PopoverTrigger>
+                                <Button>Add Tags</Button>
+                            </PopoverTrigger>
+                            <PopoverContent color='black' bg='white'>
+                                <PopoverHeader pt={4} fontWeight='bold' border='0'>
+                                    Add Tags
+                                </PopoverHeader>
+                                <PopoverArrow />
+                                <PopoverCloseButton />
+                                <PopoverBody>
+                                    <Menu>
+                                        <MenuButton as={Button} leftIcon={<AddIcon />}>
+                                            Select Tags
+                                        </MenuButton>
+                                        <MenuList>
+                                            {tags.length > 0 ? (
+                                                tags.map(tag => (
+                                                    <MenuItem key={tag.id}>
+                                                        <Checkbox
+                                                            isChecked={selectedTagIds.has(tag.id)}
+                                                            onChange={() => handleTagSelect(tag)}
+                                                        >
+                                                            {tag.name}
+                                                        </Checkbox>
+                                                    </MenuItem>
+                                                ))
+                                            ) : (
+                                                <MenuItem>No tags available</MenuItem>
+                                            )}
+                                        </MenuList>
+                                    </Menu>
+                                    <VStack mt={2} spacing={2} align="stretch">
+                                        <Flex align="center">
+                                            <Input
+                                                width={300}
+                                                value={customTag}
+                                                onChange={(e) => setCustomTag(e.target.value)}
+                                                placeholder="Add custom tag"
+                                                mr={2}
+                                            />
+                                        </Flex>
+                                    </VStack>
+                                </PopoverBody>
+                                <PopoverFooter
+                                    border='0'
+                                    d='flex'
+                                    alignItems='center'
+                                    justifyContent='space-between'
+                                    pb={4}
+                                >
+                                    <ButtonGroup size='sm'>
+                                        <Button colorScheme='green' width={208}
+                                            onClick={handleAddCustomTag}
+                                            leftIcon={<AddIcon />}
+                                        >
+                                            Add Custom Tag
+                                        </Button>
+                                        <Button
+                                            width={78}
+                                            colorScheme='blue'
+                                            onClick={onClose} // Close the popover directly
+                                        >
+                                            Close
+                                        </Button>
+                                    </ButtonGroup>
+                                </PopoverFooter>
+                            </PopoverContent>
+                        </>
+                    )}
+                </Popover>
             </HStack>
-
-            <VStack spacing={2} mt={4} align="stretch">
-                <Flex align="center">
-                    <Input
-                        value={customTag}
-                        onChange={(e) => setCustomTag(e.target.value)}
-                        placeholder="Add custom tag"
-                        mr={2}
-                    />
-                    <Button
-                        width={300}
-                        onClick={handleAddCustomTag}
-                        colorScheme="teal"
-                        leftIcon={<AddIcon />}
-                    >
-                        Add Custom Tag
-                    </Button>
-                </Flex>
-            </VStack>
         </Box>
     );
 };

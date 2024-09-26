@@ -24,7 +24,7 @@ const TaskManager = () => {
 
     const [sections, setSections] = useState([]);
     const [tasksBySection, setTasksBySection] = useState({});
-    const [tasksWithoutSection, setTasksWithoutSection] = useState([]);
+    const [, setTasksWithoutSection] = useState([]);
     const [users, setUsers] = useState([]);
     const [selectedSectionId, setSelectedSectionId] = useState(null);
     const [taskToEdit, setTaskToEdit] = useState(null);

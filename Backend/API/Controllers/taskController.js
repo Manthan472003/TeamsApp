@@ -120,13 +120,9 @@ const getTaskById = async (req, res) => {
 const updateTaskById = async (req, res) => {
     const { id } = req.params;
 
-    // Log the ID to confirm it's being received
-    console.log("Task ID:", id);
 
     const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, platformType, tagIDs } = req.body;
 
-    // Log the entire request body for debugging
-    console.log("Request Body:", req.body);
 
     if (!id) {
         return res.status(400).json({ message: 'ID parameter is required for update.' });

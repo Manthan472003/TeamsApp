@@ -22,7 +22,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
   const location = useLocation();
   const [activeButton, setActiveButton] = useState(location.pathname);
   const [userName, setUserName] = useState('');
-  const [isOpen, setIsOpen] = useState(location.pathname === '/Home'); // Manage Collapse state
+  const [, setIsOpen] = useState(location.pathname === '/Home'); // Manage Collapse state
   const { isOpen: isSectionOpen, onOpen: onSectionOpen, onClose: onSectionClose } = useDisclosure();
   const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
   const { isOpen: isLogoutOpen, onOpen: onLogoutOpen, onClose: onLogoutClose } = useDisclosure();
