@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'; // Add useEffect here
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, InputRightElement, chakra, Box, Image, FormControl, Text } from '@chakra-ui/react';
 import { FaUserAlt, FaLock } from 'react-icons/fa';
-import axios from 'axios';
-// import jwtDecode from 'jwt-decode'; // Import jwt-decode
+import { loginUser } from '../Services/UserService'; // Import the loginUser function
 import logo from '../assets/logo.png';
 
 const CFaUserAlt = chakra(FaUserAlt);
@@ -34,13 +33,12 @@ const Login = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8080/users/login', { email, password });
+      const response = await loginUser(email, password); // Use the loginUser function from UserService
 
       if (response.status === 200) {
         const { token } = response.data; // Assume token is returned in response
-        // const decodedToken = jwtDecode(token); // Decode the JWT
 
-        // Store user information from the decoded token
+        // Store user information from the token
         localStorage.setItem('token', token); // Store the token
 
         navigate('/home'); // Navigate to home after successful login

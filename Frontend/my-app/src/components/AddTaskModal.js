@@ -2,12 +2,14 @@ import React, { useRef, useState, useEffect } from 'react';
 import jwtDecode from 'jwt-decode';
 import {
     Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody, DrawerFooter,
-    Button, FormControl, FormLabel, Input, Select, useToast, SimpleGrid
+    Button, FormControl, FormLabel, Input, Select, useToast, SimpleGrid,Box
 } from '@chakra-ui/react';
 import UserDropdown from './UserDropdown';
 import TagDropdown from './TagDropdown';
 import { getSections } from '../Services/SectionService';
 import { saveTask } from '../Services/TaskService'; // Adjust import path as necessary
+import { IoIosSave,IoMdCloseCircleOutline } from "react-icons/io";
+
 
 const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID }) => {
     const initialRef = useRef(null);
@@ -15,6 +17,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     const [dueDate, setDueDate] = useState('');
     const [assignedTo, setAssignedTo] = useState('');
     const [status, setStatus] = useState('Not Started');
+    const [platformType, setPlatformType] = useState('Platform-Independent');
     const [selectedTags, setSelectedTags] = useState([]);
     const [sections, setSections] = useState([]);
     const [selectedSection, setSelectedSection] = useState(sectionID || '');
@@ -59,6 +62,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
         setDueDate('');
         setAssignedTo('');
         setStatus('Not Started');
+        setPlatformType('Platform-Independent');
         setSelectedTags([]);
         setSelectedSection(sectionID || '');
     };
@@ -82,6 +86,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             taskAssignedToID: assignedTo,
             taskCreatedByID: parseInt(userId, 10),
             status,
+            platformType,
             sectionID: selectedSection,
             tagIDs: validTagIDs
         };
@@ -157,15 +162,19 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                             <FormControl mb={4}>
                                 <FormLabel>Add Platform For Section</FormLabel>
                                 <Select
-                                    value={selectedSection}
-                                    onChange={(e) => setSelectedSection(e.target.value)}
+                                    value={platformType}
+                                    onChange={(e) => setPlatformType(e.target.value)}
                                 >
-                                    <option value="">Select Section</option>
-                                    {sections.map(section => (
-                                        <option key={section.id} value={section.id}>
-                                            {section.sectionName}
-                                        </option>
-                                    ))}
+                                    <option value="Platform-Independent">Platform-Independent</option>
+                                    <option value="iOS">iOS</option>
+                                    <option value="Android">Android</option>
+                                    <option value="Web">MacOS</option>
+                                    <option value="WindowsOS">WindowsOS</option>
+                                    <option value="MacOS">MacOS</option>
+                                    <option value="Linux">Linux</option>
+
+
+
                                 </Select>
                             </FormControl>
                         </SimpleGrid>
@@ -205,7 +214,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                 <TagDropdown
                                     selectedTags={selectedTags}
                                     onTagSelect={handleTagSelect}
-                                    taskId={null} 
+                                    taskId={null}
                                 />
                             </FormControl>
 
@@ -222,11 +231,17 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                             </FormControl>
                         </SimpleGrid>
 
-                        <Button type='submit' colorScheme='blue' mr={3}>Save</Button>
-                        <Button onClick={() => {
-                            resetForm();
-                            onClose();
-                        }}>Cancel</Button>
+                        <Box display="flex" justifyContent="flex-end" mt={4}>
+                            <Button leftIcon={<IoIosSave size={22} />} fontSize={20} width={150} type="submit" colorScheme="blue" ml={3}>
+                                Save
+                            </Button>
+                            <Button leftIcon={<IoMdCloseCircleOutline size={22} />} fontSize={20} width={150} ml={2} onClick={() => {
+                                resetForm();
+                                onClose();
+                            }}>
+                                Cancel
+                            </Button>
+                        </Box>
                     </form>
                 </DrawerBody>
 

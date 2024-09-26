@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Box, VStack, Button, Flex, Image, Text, Collapse, useDisclosure, useToast, Menu, MenuButton, MenuList, MenuItem
+  Box, VStack, Button, Flex, Image, Text, useDisclosure, useToast, Menu, MenuButton, MenuList, MenuItem,
+  SimpleGrid
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircleIcon, HamburgerIcon } from '@chakra-ui/icons';
@@ -172,6 +173,49 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         flex="1"
         position="relative"
       >
+
+        <SimpleGrid columns={2} spacing={2} width="100%">
+          <Button
+            {...buttonStyles.base}
+            {...(activeButton === '/add-section' && buttonStyles.active)}
+            _hover={{ ...buttonStyles.hover }}
+            onClick={onSectionOpen}
+            flexDirection="column"
+            alignItems="center"
+            size="xl"
+            padding={4}
+          >
+            <Box as={HiOutlineFolderAdd} size={24} mb={2} />
+            Add Section
+          </Button>
+          <AddSectionModal
+            isOpen={isSectionOpen}
+            onClose={onSectionClose}
+            onSectionAdded={handleSectionAdded}
+          />
+
+          <Button
+            {...buttonStyles.base}
+            {...(activeButton === '/add-task' && buttonStyles.active)}
+            _hover={{ ...buttonStyles.hover }}
+            onClick={onTaskOpen}
+            flexDirection="column"
+            alignItems="center"
+            size="xl"
+            padding={4}
+          >
+            <Box as={MdAddTask} size={24} mb={2} />
+            Add Task
+          </Button>
+          <AddTaskModal
+            isOpen={isTaskOpen}
+            onClose={onTaskClose}
+            onSubmit={handleTaskAdded}
+            userId={userName}
+            sectionID={null}
+          />
+        </SimpleGrid>
+
         <Button
           leftIcon={<MdDashboard size={20} />}
           {...buttonStyles.base}
@@ -181,7 +225,9 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         >
           Dashboard
         </Button>
-        <Collapse in={isOpen}>
+
+
+        {/* <Collapse in={isOpen}>
           <VStack align="start" spacing={0} paddingLeft={4} paddingBottom={2}>
             <Button
               leftIcon={<HiOutlineFolderAdd size={20} />}
@@ -213,7 +259,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
               sectionID={null}
             />
           </VStack>
-        </Collapse>
+        </Collapse> */}
 
         <Button
           leftIcon={<CheckCircleIcon size={25} />}
@@ -224,6 +270,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         >
           Completed Tasks
         </Button>
+
         {/* <Button
           leftIcon={<DeleteIcon />}
           {...buttonStyles.base}
@@ -233,6 +280,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         >
           Bin
         </Button> */}
+
         <Button
           leftIcon={<RiInformationFill size={18} />}
           {...buttonStyles.base}

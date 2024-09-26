@@ -8,10 +8,6 @@ import {
   DrawerBody,
   VStack,
   Text,
-  Table,
-  Tbody,
-  Tr,
-  Td,
   Input,
   Select,
   Button,
@@ -255,64 +251,93 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
         <DrawerBody>
           <VStack spacing={4} align="stretch">
             <Box pb="100">
-              <Table variant="simple">
-                <Tbody>
-                  <Tr fontSize="lg">
-                    <Td fontWeight="bold">Task Name:</Td>
-                    <Td>
-                      <Input
-                        value={localTask.taskName || ''}
-                        onChange={(e) => handleFieldChange('taskName', e.target.value)}
-                      />
-                    </Td>
-                  </Tr>
-                  <Tr>
-                    <Td colSpan={2}>
-                      <SimpleGrid columns={3} spacing={4}>
-                        <Box>
-                          <Text fontWeight="bold">Due Date:</Text>
-                          <Input
-                            mt={2}
-                            type="date"
-                            value={localTask.dueDate || ''}
-                            onChange={(e) => handleFieldChange('dueDate', e.target.value)}
-                          />
-                        </Box>
-                        <Box>
-                          <Text mb={2} fontWeight="bold">Assigned To:</Text>
-                          <UserDropdown
-                            selectedUser={localTask.taskAssignedToID}
-                            onUserSelect={(userId) => handleFieldChange('taskAssignedToID', userId)}
-                          />
-                        </Box>
-                        <Box>
-                          <Text fontWeight="bold">Status:</Text>
-                          <Select
-                            mt={2}
-                            value={localTask.status || 'Not Started'}
-                            onChange={(e) => handleFieldChange('status', e.target.value)}
-                          >
-                            <option value="Not Started">Not Started</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="On Hold">On Hold</option>
-                            <option value="Completed">Completed</option>
-                          </Select>
-                        </Box>
-                      </SimpleGrid>
-                    </Td>
-                  </Tr>
-                  <Tr fontSize="lg">
-                    <Td fontWeight="bold">Tags:</Td>
-                    <Td>
-                      <TagDropdown
-                        selectedTags={localTask.tagIDs || []}
-                        onTagSelect={(selectedTags) => handleFieldChange('tagIDs', selectedTags)}
-                        taskId={task.id}
-                      />
-                    </Td>
-                  </Tr>
-                </Tbody>
-              </Table>
+              <SimpleGrid columns={1} spacing={4}>
+                <Box>
+                  <Text mt={2} mb={2} fontSize="lg" fontWeight="bold">Task Name:</Text>
+                  <Input
+                    value={localTask.taskName || ''}
+                    onChange={(e) => handleFieldChange('taskName', e.target.value)}
+                  />
+                </Box>
+
+                <SimpleGrid columns={3} spacing={4}>
+                  <Box>
+                    <Text fontSize="lg" fontWeight="bold">Due Date:</Text>
+                    <Input
+                      mt={2}
+                      type="date"
+                      value={localTask.dueDate || ''}
+                      onChange={(e) => handleFieldChange('dueDate', e.target.value)}
+                    />
+                  </Box>
+
+                  <Box>
+                    <Text mb={2} fontSize="lg" fontWeight="bold">Assigned To:</Text>
+                    <UserDropdown
+                      selectedUser={localTask.taskAssignedToID}
+                      onUserSelect={(userId) => handleFieldChange('taskAssignedToID', userId)}
+                    />
+                  </Box>
+
+                  <Box>
+                    <Text fontSize="lg" fontWeight="bold">Status:</Text>
+                    <Select
+                      mt={2}
+                      value={localTask.status || 'Not Started'}
+                      onChange={(e) => handleFieldChange('status', e.target.value)}
+                    >
+                      <option value="Not Started">Not Started</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="On Hold">On Hold</option>
+                      <option value="Completed">Completed</option>
+                    </Select>
+                  </Box>
+                </SimpleGrid>
+
+                <SimpleGrid columns={3} spacing={4}>
+                  <Box>
+                    <Text fontSize="lg" fontWeight="bold">Due Date:</Text>
+                    <Input
+                      mt={2}
+                      type="date"
+                      value={localTask.dueDate || ''}
+                      onChange={(e) => handleFieldChange('dueDate', e.target.value)}
+                    />
+                  </Box>
+
+                  <Box>
+                    <Text mb={2} fontSize="lg" fontWeight="bold">Assigned To:</Text>
+                    <UserDropdown
+                      selectedUser={localTask.taskAssignedToID}
+                      onUserSelect={(userId) => handleFieldChange('taskAssignedToID', userId)}
+                    />
+                  </Box>
+
+                  <Box>
+                    <Text fontSize="lg" fontWeight="bold">Status:</Text>
+                    <Select
+                      mt={2}
+                      value={localTask.status || 'Not Started'}
+                      onChange={(e) => handleFieldChange('status', e.target.value)}
+                    >
+                      <option value="Not Started">Not Started</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="On Hold">On Hold</option>
+                      <option value="Completed">Completed</option>
+                    </Select>
+                  </Box>
+                </SimpleGrid>
+
+                <Box>
+                  <Text fontSize="lg" fontWeight="bold">Tags:</Text>
+                  <TagDropdown
+                    selectedTags={localTask.tagIDs || []}
+                    onTagSelect={(selectedTags) => handleFieldChange('tagIDs', selectedTags)}
+                    taskId={task.id}
+                  />
+                </Box>
+              </SimpleGrid>
+
 
               <Text mt={2} mb={2} fontSize="lg"><strong>Sub-Task:</strong></Text>
               <Input
