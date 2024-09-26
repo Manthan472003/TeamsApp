@@ -8,7 +8,7 @@ const { Op } = require('sequelize');
 
 // Create a new task (with user, section, and tag existence checks)
 const createTask = async (req, res) => {
-    const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, tagIDs } = req.body;
+    const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, platformType, tagIDs } = req.body;
 
     // Validate required fields
     if (!taskName || !sectionID) {
@@ -70,6 +70,7 @@ const createTask = async (req, res) => {
             taskCreatedByID,
             status,
             sectionID,
+            platformType,
             tagIDs, // Handle this as JSON array
         });
 
@@ -118,60 +119,54 @@ const getTaskById = async (req, res) => {
 // Update task by ID (with user and section existence check)
 const updateTaskById = async (req, res) => {
     const { id } = req.params;
-    const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, tagIDs } = req.body;
+
+    // Log the ID to confirm it's being received
+    console.log("Task ID:", id);
+
+    const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, platformType, tagIDs } = req.body;
+
+    // Log the entire request body for debugging
+    console.log("Request Body:", req.body);
 
     if (!id) {
         return res.status(400).json({ message: 'ID parameter is required for update.' });
     }
-    // if (!taskName || !sectionID) {
-    //     return res.status(400).json({ message: 'Task name and section ID are required for update.' });
-    // }
 
     try {
         // Find the task to update
-        const task = await Task.findOne({
-            where: { id }
-        });
+        const task = await Task.findOne({ where: { id } });
         if (!task) {
             return res.status(404).json({ message: 'Task not found.' });
         }
 
-        // Check if the assigned user exists (if provided)
+        // Check for assigned user and creator if IDs are provided
+        const userChecks = [];
         if (taskAssignedToID) {
-            const assignedUser = await User.findOne({
-                where: { id: taskAssignedToID }
-            });
-            if (!assignedUser) {
-                return res.status(404).json({ message: 'Assigned user does not exist.' });
-            }
+            userChecks.push(User.findOne({ where: { id: taskAssignedToID } }));
         }
-
-        // Check if the task creator exists (if provided)
         if (taskCreatedByID) {
-            const createdByUser = await User.findOne({
-                where: { id: taskCreatedByID }
-            });
-            if (!createdByUser) {
-                return res.status(404).json({ message: 'Task creator does not exist.' });
-            }
+            userChecks.push(User.findOne({ where: { id: taskCreatedByID } }));
+        }
+        const [assignedUser, createdByUser] = await Promise.all(userChecks);
+
+        if (taskAssignedToID && !assignedUser) {
+            return res.status(404).json({ message: 'Assigned user does not exist.' });
+        }
+        if (taskCreatedByID && !createdByUser) {
+            return res.status(404).json({ message: 'Task creator does not exist.' });
         }
 
-        // Check if the section exists
-        const section = await Section.findOne({
-            where: { id: sectionID }
-        });
-        if (!section) {
-            return res.status(404).json({ message: 'Section does not exist.' });
+        // Check if the section exists if sectionID is provided
+        if (sectionID) {
+            const section = await Section.findOne({ where: { id: sectionID } });
+            if (!section) {
+                return res.status(404).json({ message: 'Section does not exist.' });
+            }
         }
 
         // Validate tagIDs if provided
         if (tagIDs && Array.isArray(tagIDs)) {
-            const tags = await Tag.findAll({
-                where: {
-                    id: tagIDs
-                }
-            });
-
+            const tags = await Tag.findAll({ where: { id: tagIDs } });
             const tagIdsInDb = tags.map(tag => tag.id);
             const invalidTagIds = tagIDs.filter(tagId => !tagIdsInDb.includes(tagId));
 
@@ -180,18 +175,22 @@ const updateTaskById = async (req, res) => {
             }
         }
 
+        // Prepare update fields
+        const updateFields = {
+            ...(taskName && { taskName }),
+            ...(description && { description }),
+            ...(dueDate && { dueDate }),
+            ...(subTask && { subTask }),
+            ...(taskAssignedToID && { taskAssignedToID }),
+            ...(taskCreatedByID && { taskCreatedByID }),
+            ...(status && { status }),
+            ...(sectionID && { sectionID }),
+            ...(platformType && { platformType }),
+            ...(tagIDs && { tagIDs }), // Handle this as JSON array
+        };
+
         // Update the task
-        await task.update({
-            taskName,
-            description,
-            dueDate,
-            subTask,
-            taskAssignedToID,
-            taskCreatedByID,
-            status,
-            sectionID,
-            tagIDs, // Handle this as JSON array
-        });
+        await task.update(updateFields);
 
         return res.status(200).json({ message: 'Task updated successfully.', task });
     } catch (error) {
@@ -199,6 +198,9 @@ const updateTaskById = async (req, res) => {
         return res.status(500).json({ message: 'Error updating task.' });
     }
 };
+
+
+
 
 
 // Delete task by ID

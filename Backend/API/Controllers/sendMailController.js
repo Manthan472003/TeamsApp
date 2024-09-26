@@ -1,28 +1,38 @@
-const nodemailer = require('nodemailer'); 
+const nodemailer = require('nodemailer');
 const { EMAIL, PASSWORD } = require('../env.js');
 
-const mailOptions = {
-    from: EMAIL, 
-    cc: 'deodhemanthan10@gmail.com',
-    to: 'kendreparth8@gmail.com',
-    subject: "Sending Email to Parth",
-    text: "Welcome to NodeMailer, It's Working",
-    html: '<h1>Welcome</h1><p>That was easy!</p>',
-};   
+const sendEmail = (req, res) => {
+    const { email, subject, text, html } = req.body; 
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: EMAIL, 
-        pass: PASSWORD 
+    if (!email) {
+        return res.status(400).send('Email is required.');
     }
-});
 
-// Send the mail
-transporter.sendMail(mailOptions, function(error, info) {
-    if (error) {
-        console.log('Error occurred:', error);
-    } else {
-        console.log('Email sent:', info.response);
-    }
-});
+    const mailOptions = {
+        from: EMAIL,
+        to: email, 
+        subject: subject || "Default Subject", 
+        text: text || "Default text",
+        html: html || '<h1>Welcome!</h1><p>Thank you for signing up!</p>', 
+    };
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: EMAIL,
+            pass: PASSWORD,
+        },
+    });
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error('Error occurred:', error);
+            return res.status(500).send(`Error sending email: ${error.message}`);
+        } else {
+            console.log('Email sent:', info.response);
+            return res.status(200).send('Email sent successfully');
+        }
+    });
+};
+
+module.exports = { sendEmail };

@@ -1,10 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import jwtDecode from 'jwt-decode';
 import {
-    Select, Button, Modal,
-    ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, FormControl, FormLabel, Input,
-    ModalCloseButton,
-    useToast
+    Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody, DrawerFooter,
+    Button, FormControl, FormLabel, Input, Select, useToast, SimpleGrid
 } from '@chakra-ui/react';
 import UserDropdown from './UserDropdown';
 import TagDropdown from './TagDropdown';
@@ -19,7 +17,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     const [status, setStatus] = useState('Not Started');
     const [selectedTags, setSelectedTags] = useState([]);
     const [sections, setSections] = useState([]);
-    const [selectedSection, setSelectedSection] = useState(sectionID || ''); // Initialize with sectionID prop
+    const [selectedSection, setSelectedSection] = useState(sectionID || '');
     const [userId, setUserId] = useState(propUserId || '');
     const toast = useToast();
 
@@ -40,10 +38,10 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
         fetchSections();
 
         if (!propUserId) {
-            const token = localStorage.getItem('token'); // Adjust the key based on how you store your token
+            const token = localStorage.getItem('token');
             if (token) {
                 const decodedToken = jwtDecode(token);
-                setUserId(decodedToken.id); // Use 'id' based on your token structure
+                setUserId(decodedToken.id);
             } else {
                 console.error('No token found in local storage');
             }
@@ -53,7 +51,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     }, [propUserId]);
 
     useEffect(() => {
-        setSelectedSection(sectionID || ''); // Update selectedSection when sectionID changes
+        setSelectedSection(sectionID || '');
     }, [sectionID]);
 
     const resetForm = () => {
@@ -62,7 +60,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
         setAssignedTo('');
         setStatus('Not Started');
         setSelectedTags([]);
-        setSelectedSection(sectionID || ''); // Reset section
+        setSelectedSection(sectionID || '');
     };
 
     const handleUserSelect = (userId) => {
@@ -82,9 +80,9 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             taskName,
             dueDate,
             taskAssignedToID: assignedTo,
-            taskCreatedByID: parseInt(userId, 10), // Ensure userId is sent as a number
+            taskCreatedByID: parseInt(userId, 10),
             status,
-            sectionID: selectedSection, // Ensure this is included
+            sectionID: selectedSection,
             tagIDs: validTagIDs
         };
 
@@ -111,30 +109,67 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
         }
     };
 
+    const buttonStyles = {
+        base: {
+            fontSize: '23px',
+            fontWeight: 'bold',
+            color: '#ffffff',
+            backgroundImage: 'linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)',
+            padding: '8px 6px',
+            borderRadius: '0 0 0 0',
+            transition: 'all 0.3s ease',
+            marginBottom: '2px',
+            width: '100%',
+            textAlign: 'left',
+            justifyContent: 'start',
+            paddingLeft: '20px',
+        },
+    };
+
     return (
-        <Modal initialFocusRef={initialRef} isOpen={isOpen} onClose={onClose} size="md">
-            <ModalOverlay />
-            <ModalContent maxH="90vh">
-                <ModalHeader position="sticky" top={0} bg="white" zIndex={1}>
-                    Add Task
-                </ModalHeader>
-                <ModalCloseButton />
-                <ModalBody pb={0} overflowY="auto" maxH="calc(100vh - 150px)">
+        <Drawer
+            isOpen={isOpen}
+            placement="right"
+            onClose={onClose}
+            size="xl"
+        >
+            <DrawerOverlay />
+            <DrawerContent>
+                <DrawerHeader sx={buttonStyles.base}>Add Task</DrawerHeader>
+                <DrawerBody>
                     <form onSubmit={handleSubmit}>
-                        <FormControl mb={4}>
-                            <FormLabel>Section</FormLabel>
-                            <Select
-                                value={selectedSection}
-                                onChange={(e) => setSelectedSection(e.target.value)}
-                            >
-                                <option value="">Select Section</option>
-                                {sections.map(section => (
-                                    <option key={section.id} value={section.id}>
-                                        {section.sectionName}
-                                    </option>
-                                ))}
-                            </Select>
-                        </FormControl>
+                        <SimpleGrid columns={2} spacing={4}>
+                            <FormControl mb={4}>
+                                <FormLabel>Section</FormLabel>
+                                <Select
+                                    value={selectedSection}
+                                    onChange={(e) => setSelectedSection(e.target.value)}
+                                >
+                                    <option value="">Select Section</option>
+                                    {sections.map(section => (
+                                        <option key={section.id} value={section.id}>
+                                            {section.sectionName}
+                                        </option>
+                                    ))}
+                                </Select>
+                            </FormControl>
+
+                            <FormControl mb={4}>
+                                <FormLabel>Add Platform For Section</FormLabel>
+                                <Select
+                                    value={selectedSection}
+                                    onChange={(e) => setSelectedSection(e.target.value)}
+                                >
+                                    <option value="">Select Section</option>
+                                    {sections.map(section => (
+                                        <option key={section.id} value={section.id}>
+                                            {section.sectionName}
+                                        </option>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </SimpleGrid>
+
                         <FormControl mb={4}>
                             <FormLabel>Task Name</FormLabel>
                             <Input
@@ -145,52 +180,61 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                 required
                             />
                         </FormControl>
-                        <FormControl mb={4}>
-                            <FormLabel>Due Date</FormLabel>
-                            <Input
-                                value={dueDate}
-                                type='date'
-                                onChange={(e) => setDueDate(e.target.value)}
-                                required
-                            />
-                        </FormControl>
-                        <FormControl mb={4}>
-                            <FormLabel>Assigned To</FormLabel>
-                            <UserDropdown
-                                selectedUser={assignedTo}
-                                onUserSelect={handleUserSelect}
-                            />
-                        </FormControl>
-                        <FormControl mb={4}>
-                            <FormLabel>Tags</FormLabel>
-                            <TagDropdown
-                                selectedTags={selectedTags}
-                                onTagSelect={handleTagSelect}
-                                taskId={null} // Pass null since we are adding a task
-                            />
-                        </FormControl>
-                        <FormControl mb={4}>
-                            <FormLabel>Status</FormLabel>
-                            <Select
-                                value={status}
-                                onChange={(e) => setStatus(e.target.value)}
-                            >
-                                <option value="Not Started">Not Started</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="On Hold">On Hold</option>
-                            </Select>
-                        </FormControl>
-                        <ModalFooter position="sticky" bottom={0} bg="white" borderTopWidth="1px">
-                            <Button type='submit' colorScheme='blue' mr={3}>Save</Button>
-                            <Button onClick={() => {
-                                resetForm();
-                                onClose();
-                            }}>Cancel</Button>
-                        </ModalFooter>
+                        <SimpleGrid columns={2} spacing={4}>
+                            <FormControl mb={4}>
+                                <FormLabel>Due Date</FormLabel>
+                                <Input
+                                    value={dueDate}
+                                    type='date'
+                                    onChange={(e) => setDueDate(e.target.value)}
+                                    required
+                                />
+                            </FormControl>
+                            <FormControl mb={4}>
+                                <FormLabel>Assigned To</FormLabel>
+                                <UserDropdown
+                                    selectedUser={assignedTo}
+                                    onUserSelect={handleUserSelect}
+                                />
+                            </FormControl>
+                        </SimpleGrid>
+
+                        <SimpleGrid columns={2} spacing={4}>
+                            <FormControl mb={4}>
+                                <FormLabel>Tags</FormLabel>
+                                <TagDropdown
+                                    selectedTags={selectedTags}
+                                    onTagSelect={handleTagSelect}
+                                    taskId={null} 
+                                />
+                            </FormControl>
+
+                            <FormControl mb={4}>
+                                <FormLabel>Status</FormLabel>
+                                <Select
+                                    value={status}
+                                    onChange={(e) => setStatus(e.target.value)}
+                                >
+                                    <option value="Not Started">Not Started</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="On Hold">On Hold</option>
+                                </Select>
+                            </FormControl>
+                        </SimpleGrid>
+
+                        <Button type='submit' colorScheme='blue' mr={3}>Save</Button>
+                        <Button onClick={() => {
+                            resetForm();
+                            onClose();
+                        }}>Cancel</Button>
                     </form>
-                </ModalBody>
-            </ModalContent>
-        </Modal>
+                </DrawerBody>
+
+                <DrawerFooter>
+                    {/* Any additional footer actions can go here */}
+                </DrawerFooter>
+            </DrawerContent>
+        </Drawer>
     );
 };
 

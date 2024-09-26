@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, chakra, Box, Link, Image, FormControl, FormHelperText, InputRightElement } from '@chakra-ui/react';
 import { FaUserAlt, FaLock } from 'react-icons/fa';
-import { saveUser } from '../Services/UserService'; // Import the saveUser function
+import { saveUser } from '../Services/UserService'; 
 import logo from '../assets/logo.png';
-
 
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
@@ -23,14 +22,33 @@ const Signup = () => {
     event.preventDefault();
 
     try {
-      const user = { userName: username, email, password };
-      await saveUser(user);
-      navigate('/login');
+        const user = { userName: username, email, password };
+        await saveUser(user);
+
+        // Define your email content
+        const emailContent = {
+            email: email,
+            subject: "Welcome to Copious Teams!",
+            text: "Thank you for signing up!",
+            html: '<h1>Welcome!</h1><p>Thank you for signing up. We are glad to have you as our Team Member !!</p>',
+        };
+
+        // Send confirmation email
+        await fetch('http://localhost:8080/sendMail', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(emailContent), 
+      });
+      
+        navigate('/login');
     } catch (error) {
-      console.error('Error signing up:', error.response ? error.response.data : error.message);
-      alert('Signup failed. Please check your inputs or try again later.');
+        console.error('Error signing up:', error.response ? error.response.data : error.message);
+        alert('Signup failed. Please check your inputs or try again later.');
     }
-  };
+};
+
 
   return (
     <Flex
@@ -42,7 +60,7 @@ const Signup = () => {
       alignItems="center"
     >
       <Stack flexDir="column" mb="2" justifyContent="center" alignItems="center">
-      <Image
+        <Image
           src={logo}
           alt="Copious Logo"
           width="50%"

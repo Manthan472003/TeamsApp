@@ -36,6 +36,10 @@ const Task = sequelize.define('Task', {
         type: DataTypes.INTEGER,
         allowNull: false
     },
+    platformType: {
+        type: DataTypes.ENUM('iOS', 'Android', 'Linux', 'WindowsOS', 'MacOS', 'Web', 'Platform-Independent'),
+        defaultValue: 'Platform-Independent'
+    },
     tagIDs: {
         type: DataTypes.JSON,
         allowNull: true
