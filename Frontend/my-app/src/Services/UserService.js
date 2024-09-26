@@ -8,7 +8,6 @@ export const getUsers = () => axios.get(API_URL);
 //Fetch User by ID
 export const getUser = (userId) => axios.get(`${API_URL}/${userId}`);
 
-
 // Save a new User
 export const saveUser = (user) => axios.post(API_URL, user);
 

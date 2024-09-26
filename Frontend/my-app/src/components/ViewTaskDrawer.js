@@ -19,27 +19,26 @@ import {
 } from '@chakra-ui/react';
 import { getMediaOfTheTask } from '../Services/MediaService';
 import { updateTask } from '../Services/TaskService';
-import { getCommentsByTaskId, createComment } from '../Services/CommentService'; // Import comment services
+import { getCommentsByTaskId, createComment } from '../Services/CommentService';
 import MediaUploader from './MediaUploader';
 import UserDropdown from './UserDropdown';
 import TagDropdown from './TagDropdown';
 import SectionDropdown from './SectionDropdown';
-import jwt_decode from 'jwt-decode'; // Import jwt-decode
-import { getUsers } from '../Services/UserService'; // Import the getUsers function
+import jwt_decode from 'jwt-decode';
+import { getUsers } from '../Services/UserService';
 import { getSections } from '../Services/SectionService';
-
-
-
+import { sendEmail } from '../Services/MailService';
 
 const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) => {
   const [size] = useState('xl');
   const toast = useToast();
-  const [localTask, setLocalTask] = useState(task);
-  const [comments, setComments] = useState([]); // State for comments
-  const [newComment, setNewComment] = useState(''); // State for new comment
+  const [localTask, setLocalTask] = useState(task || {}); // Initialize with an empty object
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
   const [timeoutId, setTimeoutId] = useState(null);
-  const [users, setUsers] = useState([]); // Ensure users are also fetched and managed
-  const [, setSections] =  useState([]);
+  const [users, setUsers] = useState([]);
+  const [previousAssignedUser, setPreviousAssignedUser] = useState(task?.taskAssignedToID || null); // Use optional chaining
+  const [, setSections] = useState([]);
 
 
   const fetchMedia = useCallback(async () => {
@@ -57,11 +56,11 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     }
   }, [task, toast]);
 
-  // Fetch users
   const fetchUsers = useCallback(async () => {
     try {
-      const response = await getUsers(); // Assuming getUsers function is available
-      setUsers(response.data); // Assuming response.data contains the array of users
+      const response = await getUsers();
+      setUsers(response.data);
+      console.log("Fetched Users:", response.data); // Log fetched users
     } catch (error) {
       console.error('Fetch Users Error:', error);
       toast({
@@ -73,29 +72,29 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
       });
     }
   }, [toast]);
+  
 
-    // Fetch users
-    const fetchSections = useCallback(async () => {
-      try {
-        const response = await getSections(); // Assuming getUsers function is available
-        setSections(response.data); // Assuming response.data contains the array of users
-      } catch (error) {
-        console.error('Fetch Sections Error:', error);
-        toast({
-          title: "Error fetching sections.",
-          description: "Unable to fetch sections. Please try again.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    }, [toast]);
+  const fetchSections = useCallback(async () => {
+    try {
+      const response = await getSections();
+      setSections(response.data);
+    } catch (error) {
+      console.error('Fetch Sections Error:', error);
+      toast({
+        title: "Error fetching sections.",
+        description: "Unable to fetch sections. Please try again.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  }, [toast]);
 
   const fetchComments = useCallback(async () => {
     if (!task || !task.id) return;
     try {
       const response = await getCommentsByTaskId(task.id);
-      setComments(response.data); // Set fetched comments
+      setComments(response.data);
     } catch (error) {
       toast({
         title: 'Error fetching comments.',
@@ -110,9 +109,10 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
   useEffect(() => {
     if (isOpen && task) {
       setLocalTask(task);
+      setPreviousAssignedUser(task.taskAssignedToID); // Ensure this is set when task is updated
       fetchUsers();
       fetchMedia();
-      fetchComments(); // Fetch comments when the drawer opens
+      fetchComments();
       fetchSections();
     }
   }, [isOpen, task, fetchMedia, fetchComments, fetchUsers, fetchSections]);
@@ -126,7 +126,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     }
 
     const newTimeoutId = setTimeout(async () => {
-      await updateTask(updatedTask); // Update task on field change if needed
+      await updateTask(updatedTask);
     }, 500);
 
     setTimeoutId(newTimeoutId);
@@ -137,6 +137,42 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
       try {
         await updateTask(localTask);
         onUpdate(localTask);
+
+        // Only send email if the assigned user has changed
+        const assignedUserID = localTask.taskAssignedToID;
+        if (previousAssignedUser !== assignedUserID) {
+          const assignedUserEmail = users.find(user => user.id === assignedUserID)?.email;
+          if (assignedUserEmail) {
+            try {
+              await sendEmail({
+                email: assignedUserEmail,
+                subject: 'Task Assigned to You',
+                text: `You have been assigned a new task: ${localTask.taskName}`,
+                html: `<h1>${localTask.taskName}</h1><p>You have been assigned a new task.</p>`
+              });
+              console.log('Email sent successfully to:', assignedUserEmail);
+            } catch (emailError) {
+              console.error('Error sending email:', emailError);
+              toast({
+                title: "Email Sending Failed",
+                description: "Could not send email to the assigned user.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+              });
+            }
+          } else {
+            console.warn('No email found for assigned user ID:', assignedUserID);
+            toast({
+              title: "No Email Found",
+              description: "The assigned user does not have a valid email address.",
+              status: "warning",
+              duration: 5000,
+              isClosable: true,
+            });
+          }
+        }
+
         toast({
           title: "Task Updated",
           description: "The task has been successfully updated.",
@@ -144,7 +180,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
           duration: 5000,
           isClosable: true,
         });
-        onClose(); // Close the drawer after saving
+        onClose();
       } catch (error) {
         console.error('Failed to update task:', error);
         toast({
@@ -172,30 +208,27 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     return user.userName;
   };
 
-
-  const token = localStorage.getItem('token'); // Fetch the token from local storage
+  const token = localStorage.getItem('token');
   if (token) {
-    var decoded = jwt_decode(token); // Decode the JWT token
+    var decoded = jwt_decode(token);
   }
 
   const handleCommentSubmit = async () => {
-    if (!newComment.trim()) return; // Prevent empty comments
+    if (!newComment.trim()) return;
     try {
       const commentData = {
         commentText: newComment,
         taskId: task.id,
-        createdByUserId: decoded.id, // Replace with actual user ID from your state
+        createdByUserId: decoded.id,
       };
-      await createComment(commentData); // Call the createComment service
-
-      // Add a new comment locally, including the createdAt timestamp
+      await createComment(commentData);
       setComments([...comments, {
         commentText: newComment,
         createdByUserId: decoded.id,
-        createdAt: new Date().toISOString() // Ensure valid date format
+        createdAt: new Date().toISOString()
       }]);
 
-      setNewComment(''); // Clear the input field
+      setNewComment('');
     } catch (error) {
       toast({
         title: "Comment Submission Failed",
@@ -207,14 +240,14 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     }
   };
 
-
-  if (!localTask) {
+  // Conditional rendering for task check
+  if (!task) {
     return (
       <Drawer onClose={onClose} isOpen={isOpen} size={size}>
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader fontSize="2xl">TASK DETAILS</DrawerHeader>
+          <DrawerHeader>Task Details</DrawerHeader>
           <DrawerBody>
             <Text fontSize="lg">No task selected.</Text>
           </DrawerBody>
@@ -222,6 +255,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
       </Drawer>
     );
   }
+
 
   const buttonStyles = {
     base: {
@@ -240,29 +274,21 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     },
   };
 
-  // Define a color palette
   const colorPalette = [
-    "#ffddd6", // Color 1
-    "#d0f5d7", // Color 2
-    "#dee4ff", // Color 3
-    "#fadcec", // Color 4
-    "#fff1d4", // Color 5
+    "#ffddd6",
+    "#d0f5d7",
+    "#dee4ff",
+    "#fadcec",
+    "#fff1d4",
     "#d4fffc",
     "#feffd4",
     "#edd4ff"
-    // Add more colors as needed
   ];
 
   const getUserColor = (userId) => {
-    // Use the user ID modulo the length of the color palette to cycle through colors
-    const userIndex = userId % colorPalette.length; // Ensure you get a valid index
+    const userIndex = userId % colorPalette.length;
     return colorPalette[userIndex];
   };
-
-
-
-
-
 
   return (
     <Drawer onClose={onClose} isOpen={isOpen} size={size}>
@@ -297,7 +323,10 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
                     <Text mb={2} fontSize="lg" fontWeight="bold">Assigned To:</Text>
                     <UserDropdown
                       selectedUser={localTask.taskAssignedToID}
-                      onUserSelect={(userId) => handleFieldChange('taskAssignedToID', userId)}
+                      onUserSelect={(userId) => {
+                        handleFieldChange('taskAssignedToID', userId);
+                        setPreviousAssignedUser(localTask.taskAssignedToID);
+                      }}
                     />
                   </Box>
 
@@ -324,7 +353,6 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
                       onSectionSelect={(sectionID) => handleFieldChange('sectionID', sectionID)}
                     />
                   </Box>
-
 
                   <Box>
                     <Text fontSize="lg" fontWeight="bold">Platform:</Text>
@@ -354,7 +382,6 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
                 </Box>
               </SimpleGrid>
 
-
               <Text mt={2} mb={2} fontSize="lg"><strong>Sub-Task:</strong></Text>
               <Input
                 placeholder="Enter Sub-task "
@@ -375,17 +402,14 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
                 onUpdate={fetchMedia}
               />
 
-              {/* Comment Section */}
               <Box mt={2} p={4} borderWidth={1} borderRadius="md" backgroundColor="#f9f9f9" boxShadow="sm">
                 <Text fontSize="lg" fontWeight="bold" mb={3}>Comments:</Text>
 
                 <VStack align="start" spacing={3}>
                   {comments.map((comment, index) => {
-                    const isUserComment = comment.createdByUserId === decoded.id; // Check if the comment is by the logged-in user
-                    const commentColor = getUserColor(comment.createdByUserId); // Get the color for the comment
-
-                    // Format the created date
-                    const formattedDate = new Date(comment.createdAt).toLocaleString(); // Adjust according to your date format
+                    const isUserComment = comment.createdByUserId === decoded.id;
+                    const commentColor = getUserColor(comment.createdByUserId);
+                    const formattedDate = new Date(comment.createdAt).toLocaleString();
 
                     return (
                       <HStack
@@ -393,18 +417,18 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
                         p={2}
                         borderWidth={1}
                         borderRadius="md"
-                        backgroundColor={isUserComment ? "#e0f7fa" : commentColor} // Use assigned color for user comments
+                        backgroundColor={isUserComment ? "#e0f7fa" : commentColor}
                         boxShadow="sm"
                         width="full"
-                        alignSelf={isUserComment ? "flex-end" : "flex-start"} // Align comments
-                        maxWidth="100%" // Ensures the comment box doesn't exceed the parent's width
+                        alignSelf={isUserComment ? "flex-end" : "flex-start"}
+                        maxWidth="100%"
                       >
                         <Box flex="1" overflow="hidden" textOverflow="ellipsis" whiteSpace="normal" width={12}>
                           <Text fontWeight="bold" color={isUserComment ? "blue.600" : "gray.600"}>
                             {isUserComment ? "You" : getUserNameById(comment.createdByUserId)}:
                           </Text>
                           <Text>{comment.commentText}</Text>
-                          <Text fontSize="sm" color="gray.500" textAlign="right">{formattedDate}</Text> {/* Display date and time */}
+                          <Text fontSize="sm" color="gray.500" textAlign="right">{formattedDate}</Text>
                         </Box>
                       </HStack>
                     );
@@ -421,11 +445,9 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
                     borderWidth={1}
                     borderColor="gray.300"
                   />
-                  <Button onClick={handleCommentSubmit} colorScheme="blue" size="sm">Comment</Button>
+                  <Button onClick={handleCommentSubmit} colorScheme="blue" height="45px" size="sm">Comment</Button>
                 </HStack>
               </Box>
-
-
             </Box>
             <DrawerFooter position="fixed" bottom="0" left="0" right="0" bg="white" zIndex="1">
               <Button colorScheme="blue" onClick={handleSaveAndClose} width="full">Update and Close</Button>
@@ -436,6 +458,5 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     </Drawer>
   );
 };
-
 
 export default ViewTaskDrawer;

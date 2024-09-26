@@ -2,20 +2,22 @@ import React, { useRef, useState, useEffect } from 'react';
 import jwtDecode from 'jwt-decode';
 import {
     Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody, DrawerFooter,
-    Button, FormControl, FormLabel, Input, Select, useToast, SimpleGrid,Box
+    Button, FormControl, FormLabel, Input, Select, useToast, SimpleGrid, Box
 } from '@chakra-ui/react';
 import UserDropdown from './UserDropdown';
 import TagDropdown from './TagDropdown';
 import { getSections } from '../Services/SectionService';
-import { saveTask } from '../Services/TaskService'; // Adjust import path as necessary
-import { IoIosSave,IoMdCloseCircleOutline } from "react-icons/io";
-
+import { saveTask } from '../Services/TaskService'; 
+import { sendEmail } from '../Services/MailService'; 
+import { getUser } from '../Services/UserService'; // Import getUser
+import { IoIosSave, IoMdCloseCircleOutline } from "react-icons/io";
 
 const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID }) => {
     const initialRef = useRef(null);
     const [taskName, setTaskName] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [assignedTo, setAssignedTo] = useState('');
+    const [assignedUserEmail, setAssignedUserEmail] = useState(''); // Store email
     const [status, setStatus] = useState('Not Started');
     const [platformType, setPlatformType] = useState('Platform-Independent');
     const [selectedTags, setSelectedTags] = useState([]);
@@ -61,14 +63,21 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
         setTaskName('');
         setDueDate('');
         setAssignedTo('');
+        setAssignedUserEmail('');
         setStatus('Not Started');
         setPlatformType('Platform-Independent');
         setSelectedTags([]);
         setSelectedSection(sectionID || '');
     };
 
-    const handleUserSelect = (userId) => {
+    const handleUserSelect = async (userId) => {
         setAssignedTo(userId);
+        try {
+            const response = await getUser(userId); // Fetch user details
+            setAssignedUserEmail(response.data.email); // Set email
+        } catch (error) {
+            console.error('Error fetching user details:', error);
+        }
     };
 
     const handleTagSelect = (tags) => {
@@ -100,6 +109,19 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                 duration: 5000,
                 isClosable: true,
             });
+
+            // Send email to the assigned user
+            if (assignedUserEmail) {
+                const emailContent = {
+                    email: assignedUserEmail, // Use fetched email
+                    subject: `New Task Assigned: ${taskName}`,
+                    text: `You have been assigned a new task: ${taskName}. Due date: ${dueDate}.`,
+                    html: `<h1>New Task Assigned</h1><p>You have been assigned a new task: <strong>${taskName}</strong>.</p><p>Due date: <strong>${dueDate}</strong>.</p>`,
+                };
+
+                await sendEmail(emailContent);
+            }
+
             resetForm();
             onClose();
         } catch (error) {
@@ -172,9 +194,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                     <option value="WindowsOS">WindowsOS</option>
                                     <option value="MacOS">MacOS</option>
                                     <option value="Linux">Linux</option>
-
-
-
                                 </Select>
                             </FormControl>
                         </SimpleGrid>

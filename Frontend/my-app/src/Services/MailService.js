@@ -8,7 +8,7 @@ export const sendEmail = async (emailContent) => {
             },
         });
 
-        return response.data; // Return the response data
+        return response.data; 
     } catch (error) {
         console.error('Error sending email:', error);
         throw error;
