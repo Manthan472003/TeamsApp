@@ -39,6 +39,8 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
   const [users, setUsers] = useState([]);
   const [previousAssignedUser, setPreviousAssignedUser] = useState(task?.taskAssignedToID || null); // Use optional chaining
   const [assignedUserEmail, setAssignedUserEmail] = useState('');
+  const [previousDueDate] = useState(task?.dueDate || '');
+  const [previousStatus] = useState(task?.status || '');
 
   const [, setSections] = useState([]);
 
@@ -138,10 +140,21 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     const updatedTask = { ...localTask, [field]: value };
     setLocalTask(updatedTask);
 
+    // Handle due date change
+    if (field === 'dueDate' && previousDueDate !== value) {
+      sendEmailNotification('dueDateChange');
+    }
+
     if (field === 'taskAssignedToID') {
       fetchUserById(value); // Fetch email when assigned user changes
     }
 
+    // Handle status change
+    if (field === 'status' && value === 'Completed' && previousStatus !== 'Completed') {
+      sendEmailNotification('taskCompleted');
+    }
+
+    // Handle timeout for task update
     if (timeoutId) {
       clearTimeout(timeoutId);
     }
@@ -156,24 +169,16 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
   const handleSaveAndClose = async () => {
     if (localTask) {
       try {
-        await updateTask(localTask); 
-        onUpdate(localTask); 
+        await updateTask(localTask);
+        onUpdate(localTask);
 
-        // Only send email if the assigned user has changed
         const assignedUserID = localTask.taskAssignedToID;
         if (previousAssignedUser !== assignedUserID) {
-          if (assignedUserEmail) {
-            sendEmailNotification();
-          } else {
-            console.warn('No email found for assigned user ID:', assignedUserID);
-            toast({
-              title: "No Email Found",
-              description: "The assigned user does not have a valid email address.",
-              status: "warning",
-              duration: 5000,
-              isClosable: true,
-            });
-          }
+          sendEmailNotification('assignedUserChange', previousAssignedUser, assignedUserID);
+        }
+
+        if (localTask.status === 'Completed' && previousStatus !== 'Completed') {
+          sendEmailNotification('taskCompleted');
         }
 
         toast({
@@ -199,28 +204,118 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
   };
 
   // Function to send email notification
-  const sendEmailNotification = () => {
-    sendEmail({
-      email: assignedUserEmail,
-      subject: 'Task Assigned to You',
-      text: `You have been assigned a new task: ${localTask.taskName}`,
-      html: `<h1>${localTask.taskName}</h1><p>You have been assigned a new task.</p>`
-    })
-      .then(() => {
-        console.log('Email sent successfully to:', assignedUserEmail);
-      })
-      .catch((emailError) => {
-        console.error('Error sending email:', emailError);
-        toast({
-          title: "Email Sending Failed",
-          description: "Could not send email to the assigned user.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      });
+  const sendEmailNotification = async (type, oldUserId = null, newUserId = null, changedDate = null) => {
+    const emails = [];
+
+    switch (type) {
+      case 'dueDateChange':
+        if (assignedUserEmail) {
+          emails.push(assignedUserEmail);
+        } else {
+          console.warn('Assigned user email is not available.');
+        }
+        break;
+
+      case 'assignedUserChange':
+        if (oldUserId) {
+          const oldEmail = await fetchUserEmailById(oldUserId);
+          if (oldEmail) {
+            emails.push(oldEmail);
+          }
+        }
+        if (newUserId) {
+          const newEmail = await fetchUserEmailById(newUserId);
+          if (newEmail) {
+            emails.push(newEmail);
+          } else {
+            console.warn(`New user email not found for ID: ${newUserId}`);
+          }
+        }
+        break;
+
+      case 'taskCompleted':
+        if (assignedUserEmail) {
+          emails.push(assignedUserEmail);
+        }
+        if (decoded?.email) { // Assuming the creator's email is decoded.email
+          emails.push(decoded.email);
+        }
+        break;
+
+      default:
+        console.warn('Unknown email notification type.');
+        break;
+    }
+
+    if (emails.length > 0) {
+      const message = getEmailMessage(type, oldUserId, newUserId, changedDate);
+      sendEmailToUsers(emails, 'Task Notification', message);
+    } else {
+      console.warn('No valid emails found to send notifications.');
+    }
   };
 
+  // Helper function to fetch user email by ID
+  const fetchUserEmailById = async (userId) => {
+    try {
+      const response = await getUser(userId);
+      return response?.data?.email || null; // Return email or null if not found
+    } catch (error) {
+      console.error('Error fetching user email:', error);
+      return null; // Return null if there's an error
+    }
+  };
+
+  // Function to construct email message based on type
+  const getEmailMessage = (type, oldUserId, newUserId, changedDate) => {
+    switch (type) {
+      case 'dueDateChange':
+        return `🎉 Hello! \n\nThe due date for the task "${localTask.taskName}" has been updated to **${changedDate}**. Please mark your calendars and stay on track!`;
+
+      case 'assignedUserChange':
+        const oldUserName = getUserNameById(oldUserId);
+        const newUserName = getUserNameById(newUserId);
+        return `🔄 Hello! \n\nThe task "${localTask.taskName}" has been reassigned from **${oldUserName}** to **${newUserName}**. Please connect if you have insights to share!`;
+
+      case 'taskCompleted':
+        return `🏆 Congratulations! \n\nThe task "${localTask.taskName}" has been successfully completed! Thank you for your hard work and dedication!`;
+
+      default:
+        return `📬 Hello! \n\nYou have received a notification regarding the task "${localTask.taskName}". Please check your task list for more details.`;
+    }
+  };
+
+  // Function to send emails to users
+  const sendEmailToUsers = (emails, subject, message) => {
+    emails.forEach(email => {
+      if (!email) {
+        console.error('No email address provided for sending:', email);
+        return; // Skip if the email is invalid
+      }
+
+      sendEmail({
+        email,
+        subject,
+        text: message,
+        html: `<h1>${subject}</h1><p>${message}</p>`
+      })
+        .then(() => {
+          console.log('Email sent successfully to:', email);
+        })
+        .catch((emailError) => {
+          console.error('Error sending email:', emailError);
+          toast({
+            title: "Email Sending Failed",
+            description: "Could not send email notifications.",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+        });
+    });
+  };
+
+  // Function to get user name by ID
   const getUserNameById = (userId) => {
     if (!users || users.length === 0) {
       console.error('Users data is not available');
@@ -234,6 +329,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     }
     return user.userName;
   };
+
 
   const token = localStorage.getItem('token');
   if (token) {

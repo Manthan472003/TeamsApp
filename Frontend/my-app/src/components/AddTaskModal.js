@@ -7,9 +7,10 @@ import {
 import UserDropdown from './UserDropdown';
 import TagDropdown from './TagDropdown';
 import { getSections } from '../Services/SectionService';
-import { saveTask } from '../Services/TaskService'; 
-import { sendEmail } from '../Services/MailService'; 
-import { getUser } from '../Services/UserService'; // Import getUser
+import { saveTask } from '../Services/TaskService';
+import { sendEmail } from '../Services/MailService';
+import { getUser } from '../Services/UserService';
+import { getTags } from '../Services/TagService'; // Import the service to get tags
 import { IoIosSave, IoMdCloseCircleOutline } from "react-icons/io";
 
 const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID }) => {
@@ -17,13 +18,16 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     const [taskName, setTaskName] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [assignedTo, setAssignedTo] = useState('');
-    const [assignedUserEmail, setAssignedUserEmail] = useState(''); // Store email
+    const [assignedUserEmail, setAssignedUserEmail] = useState('');
+    const [createdByUserName, setCreatedByUserName] = useState('');
     const [status, setStatus] = useState('Not Started');
     const [platformType, setPlatformType] = useState('Platform-Independent');
     const [selectedTags, setSelectedTags] = useState([]);
     const [sections, setSections] = useState([]);
+    const [tags, setTags] = useState([]); // State to hold tags
     const [selectedSection, setSelectedSection] = useState(sectionID || '');
     const [userId, setUserId] = useState(propUserId || '');
+    const [ setAssignedUserName] = useState('');
     const toast = useToast();
 
     useEffect(() => {
@@ -40,13 +44,28 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             }
         };
 
+        const fetchTags = async () => {
+            try {
+                const response = await getTags();
+                if (response && response.data) {
+                    setTags(response.data);
+                } else {
+                    throw new Error('Unexpected response format');
+                }
+            } catch (error) {
+                console.error('Error fetching tags:', error);
+            }
+        };
+
         fetchSections();
+        fetchTags();
 
         if (!propUserId) {
             const token = localStorage.getItem('token');
             if (token) {
                 const decodedToken = jwtDecode(token);
                 setUserId(decodedToken.id);
+                setCreatedByUserName(decodedToken.userName);
             } else {
                 console.error('No token found in local storage');
             }
@@ -73,8 +92,9 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     const handleUserSelect = async (userId) => {
         setAssignedTo(userId);
         try {
-            const response = await getUser(userId); // Fetch user details
-            setAssignedUserEmail(response.data.email); // Set email
+            const response = await getUser(userId);
+            setAssignedUserEmail(response.data.email);
+            setAssignedUserName(response.data.userName); // Store username in a new state
         } catch (error) {
             console.error('Error fetching user details:', error);
         }
@@ -82,6 +102,11 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
 
     const handleTagSelect = (tags) => {
         setSelectedTags(tags);
+    };
+
+    const getTagNamesByIds = (tagIds) => {
+        const tagMap = new Map(tags.map(tag => [tag.id, tag.tagName]));
+        return tagIds.map(id => tagMap.get(id) || 'Unknown');
     };
 
     const handleSubmit = async (event) => {
@@ -112,11 +137,25 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
 
             // Send email to the assigned user
             if (assignedUserEmail) {
+                const tagNames = getTagNamesByIds(validTagIDs).join(', ');
+
                 const emailContent = {
-                    email: assignedUserEmail, // Use fetched email
-                    subject: `New Task Assigned: ${taskName}`,
-                    text: `You have been assigned a new task: ${taskName}. Due date: ${dueDate}.`,
-                    html: `<h1>New Task Assigned</h1><p>You have been assigned a new task: <strong>${taskName}</strong>.</p><p>Due date: <strong>${dueDate}</strong>.</p>`,
+                    email: assignedUserEmail,
+                    subject: `New Task Assigned : ${taskName}`,
+                    text: `You have been assigned a new task : ${taskName}. Due date: ${dueDate}.`,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; padding: 20px;">
+                            <h1 style="color: #007BFF;">New Task Assigned</h1>
+                            <p style="font-size: 16px;">You have been assigned a new task:</p>
+                            <h2 style="color: #333;">Task Name : <strong>${taskName}</strong></h2>
+                            <p><strong>Due Date :</strong> ${dueDate}</p>
+                            <p><strong>Created By :</strong> ${createdByUserName}</p> 
+                            <p><strong>Status :</strong> ${status}</p>
+                            <p><strong>Platform Type :</strong> ${platformType}</p>
+                            <p><strong>Tags :</strong> ${tagNames || 'None'}</p>
+                            <p style="margin-top: 20px;">Thank you!</p>
+                        </div>
+                    `,
                 };
 
                 await sendEmail(emailContent);
@@ -234,6 +273,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                     selectedTags={selectedTags}
                                     onTagSelect={handleTagSelect}
                                     taskId={null}
+                                    allTags={tags} // Pass all tags to the TagDropdown
                                 />
                             </FormControl>
 
