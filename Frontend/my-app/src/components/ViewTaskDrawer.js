@@ -156,31 +156,14 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
   const handleSaveAndClose = async () => {
     if (localTask) {
       try {
-        await updateTask(localTask);
-        onUpdate(localTask);
+        await updateTask(localTask); 
+        onUpdate(localTask); 
 
         // Only send email if the assigned user has changed
         const assignedUserID = localTask.taskAssignedToID;
         if (previousAssignedUser !== assignedUserID) {
           if (assignedUserEmail) {
-            try {
-              await sendEmail({
-                email: assignedUserEmail,
-                subject: 'New Task Assigned to You',
-                text: `You have been assigned a new task  : ${localTask.taskName}`,
-                html: `<h1>${localTask.taskName}</h1><p>You have been assigned a new task.</p>`
-              });
-              console.log('Email sent successfully to:', assignedUserEmail);
-            } catch (emailError) {
-              console.error('Error sending email:', emailError);
-              toast({
-                title: "Email Sending Failed",
-                description: "Could not send email to the assigned user.",
-                status: "error",
-                duration: 5000,
-                isClosable: true,
-              });
-            }
+            sendEmailNotification();
           } else {
             console.warn('No email found for assigned user ID:', assignedUserID);
             toast({
@@ -192,6 +175,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
             });
           }
         }
+
         toast({
           title: "Task Updated",
           description: "The task has been successfully updated.",
@@ -199,7 +183,8 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
           duration: 5000,
           isClosable: true,
         });
-        onClose();
+
+        onClose(); // Close the drawer immediately
       } catch (error) {
         console.error('Failed to update task:', error);
         toast({
@@ -213,6 +198,28 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     }
   };
 
+  // Function to send email notification
+  const sendEmailNotification = () => {
+    sendEmail({
+      email: assignedUserEmail,
+      subject: 'Task Assigned to You',
+      text: `You have been assigned a new task: ${localTask.taskName}`,
+      html: `<h1>${localTask.taskName}</h1><p>You have been assigned a new task.</p>`
+    })
+      .then(() => {
+        console.log('Email sent successfully to:', assignedUserEmail);
+      })
+      .catch((emailError) => {
+        console.error('Error sending email:', emailError);
+        toast({
+          title: "Email Sending Failed",
+          description: "Could not send email to the assigned user.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      });
+  };
 
   const getUserNameById = (userId) => {
     if (!users || users.length === 0) {
