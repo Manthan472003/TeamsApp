@@ -25,7 +25,7 @@ import UserDropdown from './UserDropdown';
 import TagDropdown from './TagDropdown';
 import SectionDropdown from './SectionDropdown';
 import jwt_decode from 'jwt-decode';
-import { getUsers } from '../Services/UserService';
+import { getUsers, getUser } from '../Services/UserService';
 import { getSections } from '../Services/SectionService';
 import { sendEmail } from '../Services/MailService';
 
@@ -38,6 +38,8 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
   const [timeoutId, setTimeoutId] = useState(null);
   const [users, setUsers] = useState([]);
   const [previousAssignedUser, setPreviousAssignedUser] = useState(task?.taskAssignedToID || null); // Use optional chaining
+  const [assignedUserEmail, setAssignedUserEmail] = useState('');
+
   const [, setSections] = useState([]);
 
 
@@ -72,7 +74,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
       });
     }
   }, [toast]);
-  
+
 
   const fetchSections = useCallback(async () => {
     try {
@@ -106,20 +108,39 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     }
   }, [task, toast]);
 
+  // Fetch user by ID
+  const fetchUserById = useCallback(async (userId) => {
+    try {
+      const response = await getUser(userId);
+      if (response && response.data) {
+        setAssignedUserEmail(response.data.email || ''); // Set the email state
+      } else {
+        console.warn('User not found or no email available');
+      }
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  }, []);
+
   useEffect(() => {
     if (isOpen && task) {
       setLocalTask(task);
-      setPreviousAssignedUser(task.taskAssignedToID); // Ensure this is set when task is updated
+      setPreviousAssignedUser(task.taskAssignedToID);
       fetchUsers();
       fetchMedia();
       fetchComments();
       fetchSections();
+      fetchUserById(task.taskAssignedToID); // Fetch email for initially assigned user
     }
-  }, [isOpen, task, fetchMedia, fetchComments, fetchUsers, fetchSections]);
+  }, [isOpen, task, fetchUsers, fetchMedia, fetchComments, fetchSections, fetchUserById]);
 
   const handleFieldChange = (field, value) => {
     const updatedTask = { ...localTask, [field]: value };
     setLocalTask(updatedTask);
+
+    if (field === 'taskAssignedToID') {
+      fetchUserById(value); // Fetch email when assigned user changes
+    }
 
     if (timeoutId) {
       clearTimeout(timeoutId);
@@ -141,13 +162,12 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
         // Only send email if the assigned user has changed
         const assignedUserID = localTask.taskAssignedToID;
         if (previousAssignedUser !== assignedUserID) {
-          const assignedUserEmail = users.find(user => user.id === assignedUserID)?.email;
           if (assignedUserEmail) {
             try {
               await sendEmail({
                 email: assignedUserEmail,
-                subject: 'Task Assigned to You',
-                text: `You have been assigned a new task: ${localTask.taskName}`,
+                subject: 'New Task Assigned to You',
+                text: `You have been assigned a new task  : ${localTask.taskName}`,
                 html: `<h1>${localTask.taskName}</h1><p>You have been assigned a new task.</p>`
               });
               console.log('Email sent successfully to:', assignedUserEmail);
@@ -172,7 +192,6 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
             });
           }
         }
-
         toast({
           title: "Task Updated",
           description: "The task has been successfully updated.",
@@ -193,6 +212,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
       }
     }
   };
+
 
   const getUserNameById = (userId) => {
     if (!users || users.length === 0) {
