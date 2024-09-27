@@ -188,7 +188,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                             sortedTasks.map((task, index) => (
                                 <tr key={task.id} style={{ backgroundColor: index % 2 === 0 ? '#ebfff0' : '#d7f2ff' }}>
                                 <td style={{cursor: 'pointer'}} onClick={() => handleTaskClick(task)} >{task.taskName}</td>
-                                <td>
+                                <td style={{cursor: 'pointer'}} onClick={() => handleTaskClick(task)}>
                                         <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                                             {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (
                                                 <span key={idx} className="tag">
@@ -248,6 +248,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
                 task={selectedTask}
                 users={users}
                 tags={tags}
+                onStatusChange={handleStatusChange}
             />
         </>
     );

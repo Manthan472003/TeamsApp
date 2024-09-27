@@ -134,6 +134,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                 duration: 5000,
                 isClosable: true,
             });
+            onClose();
 
             // Send email to the assigned user
             if (assignedUserEmail) {
@@ -162,7 +163,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             }
 
             resetForm();
-            onClose();
         } catch (error) {
             console.error('Error adding task:', error);
             toast({

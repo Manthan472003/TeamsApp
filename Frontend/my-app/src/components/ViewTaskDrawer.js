@@ -15,8 +15,10 @@ import {
   DrawerFooter,
   Box,
   SimpleGrid,
-  HStack
+  HStack,
+  useDisclosure
 } from '@chakra-ui/react';
+import { CheckIcon } from '@chakra-ui/icons';
 import { getMediaOfTheTask } from '../Services/MediaService';
 import { updateTask } from '../Services/TaskService';
 import { getCommentsByTaskId, createComment } from '../Services/CommentService';
@@ -28,21 +30,24 @@ import jwt_decode from 'jwt-decode';
 import { getUsers, getUser } from '../Services/UserService';
 import { getSections } from '../Services/SectionService';
 import { sendEmail } from '../Services/MailService';
+import ConfirmCompleteModal from './ConfirmCompleteModal';
 
-const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) => {
+const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onStatusChange }) => {
   const [size] = useState('xl');
   const toast = useToast();
   const [localTask, setLocalTask] = useState(task || {}); // Initialize with an empty object
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [timeoutId, setTimeoutId] = useState(null);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState([]);  // Ensure this state is populated before accessing
   const [previousAssignedUser, setPreviousAssignedUser] = useState(task?.taskAssignedToID || null); // Use optional chaining
   const [assignedUserEmail, setAssignedUserEmail] = useState('');
-  const [previousDueDate] = useState(task?.dueDate || '');
-  const [previousStatus] = useState(task?.status || '');
-
+  const [previousDueDate, setPreviousDueDate] = useState(task?.dueDate || '');  // Store previousDueDate in state
+  const [previousStatus, setPreviousStatus] = useState(task?.status || '');
   const [, setSections] = useState([]);
+
+  const { isOpen: isCompleteOpen, onOpen: onCompleteOpen, onClose: onCompleteClose } = useDisclosure();
+  const [taskToComplete, setTaskToComplete] = useState(null);
 
 
   const fetchMedia = useCallback(async () => {
@@ -64,7 +69,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     try {
       const response = await getUsers();
       setUsers(response.data);
-      console.log("Fetched Users:", response.data); // Log fetched users
+      console.log("Fetched Users:", response.data); // Check fetched users
     } catch (error) {
       console.error('Fetch Users Error:', error);
       toast({
@@ -76,7 +81,6 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
       });
     }
   }, [toast]);
-
 
   const fetchSections = useCallback(async () => {
     try {
@@ -128,59 +132,73 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     if (isOpen && task) {
       setLocalTask(task);
       setPreviousAssignedUser(task.taskAssignedToID);
+      setPreviousDueDate(task.dueDate);  // Initialize previousDueDate when task loads
+      setPreviousStatus(task.status);  // Initialize previousStatus when task loads
       fetchUsers();
       fetchMedia();
       fetchComments();
       fetchSections();
-      fetchUserById(task.taskAssignedToID); // Fetch email for initially assigned user
+      fetchUserById(task.taskAssignedToID);
     }
   }, [isOpen, task, fetchUsers, fetchMedia, fetchComments, fetchSections, fetchUserById]);
+
 
   const handleFieldChange = (field, value) => {
     const updatedTask = { ...localTask, [field]: value };
     setLocalTask(updatedTask);
 
-    // Handle due date change
-    if (field === 'dueDate' && previousDueDate !== value) {
-      sendEmailNotification('dueDateChange');
-    }
-
-    if (field === 'taskAssignedToID') {
-      fetchUserById(value); // Fetch email when assigned user changes
-    }
-
-    // Handle status change
-    if (field === 'status' && value === 'Completed' && previousStatus !== 'Completed') {
-      sendEmailNotification('taskCompleted');
-    }
-
-    // Handle timeout for task update
+    // Handle timeout for task update (debounced)
     if (timeoutId) {
       clearTimeout(timeoutId);
     }
 
     const newTimeoutId = setTimeout(async () => {
-      await updateTask(updatedTask);
+      await updateTask(updatedTask); // Only update the task, no email notifications here
     }, 500);
 
     setTimeoutId(newTimeoutId);
+
+    // Update assignedUserEmail when due date is changed
+    if (field === 'dueDate') {
+      fetchUserById(localTask.taskAssignedToID);
+    }
   };
 
   const handleSaveAndClose = async () => {
     if (localTask) {
       try {
-        await updateTask(localTask);
-        onUpdate(localTask);
+        await updateTask(localTask);  // Update task first
+        onUpdate(localTask);  // Trigger any onUpdate callback
 
         const assignedUserID = localTask.taskAssignedToID;
+
+        // Check if assigned user has changed and send email notification
         if (previousAssignedUser !== assignedUserID) {
-          sendEmailNotification('assignedUserChange', previousAssignedUser, assignedUserID);
+          await sendEmailNotification('assignedUserChange', previousAssignedUser, assignedUserID);
+          setPreviousAssignedUser(assignedUserID);  // Update the state to reflect the new assigned user
         }
 
+        // Check if the due date has changed and send email notification
+        if (previousDueDate !== localTask.dueDate) {
+          if (assignedUserEmail) {
+            sendEmailNotification('dueDateChange', null, null, localTask.dueDate);
+            setPreviousDueDate(localTask.dueDate);  // Update previousDueDate after successful save
+          } else {
+            await fetchUserById(localTask.taskAssignedToID);
+            if (assignedUserEmail) {
+              sendEmailNotification('dueDateChange', null, null, localTask.dueDate);
+              setPreviousDueDate(localTask.dueDate);  // Update previousDueDate after successful save
+            }
+          }
+        }
+
+        // Check if the task status has changed to 'Completed' and send email notification
         if (localTask.status === 'Completed' && previousStatus !== 'Completed') {
-          sendEmailNotification('taskCompleted');
+          await sendEmailNotification('taskCompleted');
+          setPreviousStatus('Completed');  // Update previousStatus after successful save
         }
 
+        // Display success toast
         toast({
           title: "Task Updated",
           description: "The task has been successfully updated.",
@@ -189,7 +207,8 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
           isClosable: true,
         });
 
-        onClose(); // Close the drawer immediately
+        // Close the drawer
+        onClose();
       } catch (error) {
         console.error('Failed to update task:', error);
         toast({
@@ -220,13 +239,17 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
         if (oldUserId) {
           const oldEmail = await fetchUserEmailById(oldUserId);
           if (oldEmail) {
-            emails.push(oldEmail);
+            const oldUserMessage = getEmailMessage(type, oldUserId, newUserId)?.oldUserMessage;
+            emails.push({ email: oldEmail, message: oldUserMessage });
+          } else {
+            console.warn(`Old user email not found for ID: ${oldUserId}`);
           }
         }
         if (newUserId) {
           const newEmail = await fetchUserEmailById(newUserId);
           if (newEmail) {
-            emails.push(newEmail);
+            const newUserMessage = getEmailMessage(type, oldUserId, newUserId)?.newUserMessage;
+            emails.push({ email: newEmail, message: newUserMessage });
           } else {
             console.warn(`New user email not found for ID: ${newUserId}`);
           }
@@ -237,7 +260,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
         if (assignedUserEmail) {
           emails.push(assignedUserEmail);
         }
-        if (decoded?.email) { // Assuming the creator's email is decoded.email
+        if (decoded?.email) {
           emails.push(decoded.email);
         }
         break;
@@ -247,35 +270,55 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
         break;
     }
 
+    // Ensure valid emails before sending
     if (emails.length > 0) {
-      const message = getEmailMessage(type, oldUserId, newUserId, changedDate);
-      sendEmailToUsers(emails, 'Task Notification', message);
+      const validEmails = emails.filter(item => item.email);  // Filter out any invalid emails
+      if (validEmails.length > 0) {
+        const message = getEmailMessage(type, oldUserId, newUserId, changedDate);
+        await sendEmailToUsers(validEmails, 'Task Notification', message);
+      } else {
+        console.warn('No valid emails found to send notifications.');
+      }
     } else {
-      console.warn('No valid emails found to send notifications.');
+      console.warn('No emails found for sending notifications.');
     }
   };
 
   // Helper function to fetch user email by ID
   const fetchUserEmailById = async (userId) => {
+    if (!userId) {
+      console.warn('Invalid userId:', userId);
+      return null;  // Return null for invalid userId
+    }
+
     try {
       const response = await getUser(userId);
-      return response?.data?.email || null; // Return email or null if not found
+      if (response?.data && response.data.email) {
+        return response.data.email;
+      } else {
+        console.warn(`No email found for user with ID: ${userId}`);
+        return null;  // Return null if no email found
+      }
     } catch (error) {
       console.error('Error fetching user email:', error);
-      return null; // Return null if there's an error
+      return null;  // Return null on error
     }
   };
 
   // Function to construct email message based on type
-  const getEmailMessage = (type, oldUserId, newUserId, changedDate) => {
+  const getEmailMessage = (type, oldUserId = null, newUserId = null, changedDate = null) => {
+    // const oldUserName = oldUserId ? getUserNameById(oldUserId) : 'Unknown';  // Skip lookup if oldUserId is invalid
+    const newUserName = newUserId ? getUserNameById(newUserId) : 'Unknown';  // Skip lookup if newUserId is invalid
+
     switch (type) {
       case 'dueDateChange':
-        return `🎉 Hello! \n\nThe due date for the task "${localTask.taskName}" has been updated to **${changedDate}**. Please mark your calendars and stay on track!`;
+        return `🎉 Hello! \n\nThe due date for the task "${localTask.taskName}" has been updated to ${changedDate}. Please mark your calendars and stay on track!`;
 
       case 'assignedUserChange':
-        const oldUserName = getUserNameById(oldUserId);
-        const newUserName = getUserNameById(newUserId);
-        return `🔄 Hello! \n\nThe task "${localTask.taskName}" has been reassigned from **${oldUserName}** to **${newUserName}**. Please connect if you have insights to share!`;
+        return {
+          oldUserMessage: `Relax! The task "${localTask.taskName}" has been reassigned to ${newUserName}.`,
+          newUserMessage: `You are the new assignee of the task "${localTask.taskName}". Welcome aboard!`,
+        };
 
       case 'taskCompleted':
         return `🏆 Congratulations! \n\nThe task "${localTask.taskName}" has been successfully completed! Thank you for your hard work and dedication!`;
@@ -287,7 +330,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
 
   // Function to send emails to users
   const sendEmailToUsers = (emails, subject, message) => {
-    emails.forEach(email => {
+    emails.forEach(({ email, message }) => {
       if (!email) {
         console.error('No email address provided for sending:', email);
         return; // Skip if the email is invalid
@@ -315,19 +358,25 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     });
   };
 
-  // Function to get user name by ID
+
+  // Adjusted getUserNameById function
   const getUserNameById = (userId) => {
+    if (!userId) {  // Handle null or undefined userId
+      console.warn(`No valid user ID provided: ${userId}`);
+      return 'Unknown';
+    }
+
     if (!users || users.length === 0) {
       console.error('Users data is not available');
       return 'Unknown';
     }
 
-    const user = users.find(user => user.id === userId);
+    const user = users.find(user => String(user.id) === String(userId));  // Ensure ID comparison works even if types differ
     if (!user) {
       console.error(`No user found for ID: ${userId}`);
-      return 'Unknown';
+      return 'Unknown';  // Return 'Unknown' if user is not found
     }
-    return user.userName;
+    return user.userName;  // Return the user's name
   };
 
 
@@ -361,6 +410,24 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
         isClosable: true,
       });
     }
+  };
+
+  const handleCompleteClick = (task) => {
+    setTaskToComplete(task);
+    onCompleteOpen();
+  };
+
+  const confirmComplete = () => {
+    console.log('onStatusChange:', onStatusChange);
+    console.log('taskToComplete:', taskToComplete);
+    if (onStatusChange && taskToComplete) {
+      onStatusChange(taskToComplete.id, 'Completed');
+      setTaskToComplete(null);
+      onCompleteClose();
+    } else {
+      console.error('onStatusChange function is not defined');
+    }
+    onClose(); // Close the drawer immediately
   };
 
   // Conditional rendering for task check
@@ -413,172 +480,186 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { } }) =
     return colorPalette[userIndex];
   };
 
+
   return (
-    <Drawer onClose={onClose} isOpen={isOpen} size={size}>
-      <DrawerOverlay />
-      <DrawerContent>
-        <DrawerCloseButton />
-        <DrawerHeader sx={buttonStyles.base}>TASK DETAILS</DrawerHeader>
-        <DrawerBody>
-          <VStack spacing={4} align="stretch">
-            <Box pb="100">
-              <SimpleGrid columns={1} spacing={4}>
-                <Box>
-                  <Text mt={2} mb={2} fontSize="lg" fontWeight="bold">Task Name:</Text>
-                  <Input
-                    value={localTask.taskName || ''}
-                    onChange={(e) => handleFieldChange('taskName', e.target.value)}
-                  />
-                </Box>
-
-                <SimpleGrid columns={3} spacing={4}>
+    <>
+      <Drawer onClose={onClose} isOpen={isOpen} size={size}>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader sx={buttonStyles.base}>TASK DETAILS</DrawerHeader>
+          <DrawerBody>
+            <VStack spacing={4} align="stretch">
+              <Box pb="100">
+                <SimpleGrid columns={1} spacing={4}>
                   <Box>
-                    <Text fontSize="lg" fontWeight="bold">Due Date:</Text>
+                    <Text mt={2} mb={2} fontSize="lg" fontWeight="bold">Task Name:</Text>
                     <Input
-                      mt={2}
-                      type="date"
-                      value={localTask.dueDate || ''}
-                      onChange={(e) => handleFieldChange('dueDate', e.target.value)}
+                      value={localTask.taskName || ''}
+                      onChange={(e) => handleFieldChange('taskName', e.target.value)}
                     />
                   </Box>
 
-                  <Box>
-                    <Text mb={2} fontSize="lg" fontWeight="bold">Assigned To:</Text>
-                    <UserDropdown
-                      selectedUser={localTask.taskAssignedToID}
-                      onUserSelect={(userId) => {
-                        handleFieldChange('taskAssignedToID', userId);
-                        setPreviousAssignedUser(localTask.taskAssignedToID);
-                      }}
-                    />
-                  </Box>
+                  <SimpleGrid columns={3} spacing={4}>
+                    <Box>
+                      <Text fontSize="lg" fontWeight="bold">Due Date:</Text>
+                      <Input
+                        mt={2}
+                        type="date"
+                        value={localTask.dueDate || ''}
+                        onChange={(e) => handleFieldChange('dueDate', e.target.value)}
+                      />
+                    </Box>
 
-                  <Box>
-                    <Text fontSize="lg" fontWeight="bold">Status:</Text>
-                    <Select
-                      mt={2}
-                      value={localTask.status || 'Not Started'}
-                      onChange={(e) => handleFieldChange('status', e.target.value)}
-                    >
-                      <option value="Not Started">Not Started</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="On Hold">On Hold</option>
-                      <option value="Completed">Completed</option>
-                    </Select>
-                  </Box>
-                </SimpleGrid>
+                    <Box>
+                      <Text mb={2} fontSize="lg" fontWeight="bold">Assigned To:</Text>
+                      <UserDropdown
+                        selectedUser={localTask.taskAssignedToID}
+                        onUserSelect={(userId) => {
+                          handleFieldChange('taskAssignedToID', userId);
+                          setPreviousAssignedUser(localTask.taskAssignedToID);
+                        }}
+                      />
+                    </Box>
 
-                <SimpleGrid columns={2} spacing={4}>
-                  <Box>
-                    <Text mb={2} fontSize="lg" fontWeight="bold">Section:</Text>
-                    <SectionDropdown
-                      selectedSection={localTask.sectionID}
-                      onSectionSelect={(sectionID) => handleFieldChange('sectionID', sectionID)}
-                    />
-                  </Box>
-
-                  <Box>
-                    <Text fontSize="lg" fontWeight="bold">Platform:</Text>
-                    <Select
-                      mt={2}
-                      value={localTask.platformType || 'Platform-Independent'}
-                      onChange={(e) => handleFieldChange('platformType', e.target.value)}
-                    >
-                      <option value="Platform-Independent">Platform-Independent</option>
-                      <option value="iOS">iOS</option>
-                      <option value="Android">Android</option>
-                      <option value="Web">Web</option>
-                      <option value="WindowsOS">WindowsOS</option>
-                      <option value="MacOS">MacOS</option>
-                      <option value="Linux">Linux</option>
-                    </Select>
-                  </Box>
-                </SimpleGrid>
-
-                <Box>
-                  <Text fontSize="lg" fontWeight="bold">Tags:</Text>
-                  <TagDropdown
-                    selectedTags={localTask.tagIDs || []}
-                    onTagSelect={(selectedTags) => handleFieldChange('tagIDs', selectedTags)}
-                    taskId={task.id}
-                  />
-                </Box>
-              </SimpleGrid>
-
-              <Text mt={2} mb={2} fontSize="lg"><strong>Sub-Task:</strong></Text>
-              <Input
-                placeholder="Enter Sub-task "
-                value={localTask.subTask || ''}
-                onChange={(e) => handleFieldChange('subTask', e.target.value)}
-              />
-
-              <Text mt={2} mb={2} fontSize="lg"><strong>Description:</strong></Text>
-              <Input
-                placeholder="Enter task description"
-                value={localTask.description || ''}
-                onChange={(e) => handleFieldChange('description', e.target.value)}
-              />
-
-              <MediaUploader
-                taskId={task.id}
-                tags={tags}
-                onUpdate={fetchMedia}
-              />
-
-              <Box mt={2} p={4} borderWidth={1} borderRadius="md" backgroundColor="#f9f9f9" boxShadow="sm">
-                <Text fontSize="lg" fontWeight="bold" mb={3}>Comments:</Text>
-
-                <VStack align="start" spacing={3}>
-                  {comments.map((comment, index) => {
-                    const isUserComment = comment.createdByUserId === decoded.id;
-                    const commentColor = getUserColor(comment.createdByUserId);
-                    const formattedDate = new Date(comment.createdAt).toLocaleString();
-
-                    return (
-                      <HStack
-                        key={index}
-                        p={2}
-                        borderWidth={1}
-                        borderRadius="md"
-                        backgroundColor={isUserComment ? "#e0f7fa" : commentColor}
-                        boxShadow="sm"
-                        width="full"
-                        alignSelf={isUserComment ? "flex-end" : "flex-start"}
-                        maxWidth="100%"
+                    <Box>
+                      <Text fontSize="lg" fontWeight="bold">Status:</Text>
+                      <Select
+                        mt={2}
+                        value={localTask.status || 'Not Started'}
+                        onChange={(e) => handleFieldChange('status', e.target.value)}
                       >
-                        <Box flex="1" overflow="hidden" textOverflow="ellipsis" whiteSpace="normal" width={12}>
-                          <Text fontWeight="bold" color={isUserComment ? "blue.600" : "gray.600"}>
-                            {isUserComment ? "You" : getUserNameById(comment.createdByUserId)}:
-                          </Text>
-                          <Text>{comment.commentText}</Text>
-                          <Text fontSize="sm" color="gray.500" textAlign="right">{formattedDate}</Text>
-                        </Box>
-                      </HStack>
-                    );
-                  })}
-                </VStack>
+                        <option value="Not Started">Not Started</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="On Hold">On Hold</option>
+                        <option value="Completed">Completed</option>
+                      </Select>
+                    </Box>
+                  </SimpleGrid>
 
-                <HStack mt={4}>
-                  <Input
-                    placeholder="Add a comment..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    size="lg"
-                    borderRadius="md"
-                    borderWidth={1}
-                    borderColor="gray.300"
-                  />
-                  <Button onClick={handleCommentSubmit} colorScheme="blue" height="45px" size="sm">Comment</Button>
-                </HStack>
+                  <SimpleGrid columns={2} spacing={4}>
+                    <Box>
+                      <Text mb={2} fontSize="lg" fontWeight="bold">Section:</Text>
+                      <SectionDropdown
+                        selectedSection={localTask.sectionID}
+                        onSectionSelect={(sectionID) => handleFieldChange('sectionID', sectionID)}
+                      />
+                    </Box>
+
+                    <Box>
+                      <Text fontSize="lg" fontWeight="bold">Platform:</Text>
+                      <Select
+                        mt={2}
+                        value={localTask.platformType || 'Platform-Independent'}
+                        onChange={(e) => handleFieldChange('platformType', e.target.value)}
+                      >
+                        <option value="Platform-Independent">Platform-Independent</option>
+                        <option value="iOS">iOS</option>
+                        <option value="Android">Android</option>
+                        <option value="Web">Web</option>
+                        <option value="WindowsOS">WindowsOS</option>
+                        <option value="MacOS">MacOS</option>
+                        <option value="Linux">Linux</option>
+                      </Select>
+                    </Box>
+                  </SimpleGrid>
+
+                  <Box>
+                    <Text fontSize="lg" fontWeight="bold">Tags:</Text>
+                    <TagDropdown
+                      selectedTags={localTask.tagIDs || []}
+                      onTagSelect={(selectedTags) => handleFieldChange('tagIDs', selectedTags)}
+                      taskId={task.id}
+                    />
+                  </Box>
+                </SimpleGrid>
+
+                <Text mt={2} mb={2} fontSize="lg"><strong>Sub-Task:</strong></Text>
+                <Input
+                  placeholder="Enter Sub-task "
+                  value={localTask.subTask || ''}
+                  onChange={(e) => handleFieldChange('subTask', e.target.value)}
+                />
+
+                <Text mt={2} mb={2} fontSize="lg"><strong>Description:</strong></Text>
+                <Input
+                  placeholder="Enter task description"
+                  value={localTask.description || ''}
+                  onChange={(e) => handleFieldChange('description', e.target.value)}
+                />
+
+                <MediaUploader
+                  taskId={task.id}
+                  tags={tags}
+                  onUpdate={fetchMedia}
+                />
+
+                <Box mt={2} p={4} borderWidth={1} borderRadius="md" backgroundColor="#f9f9f9" boxShadow="sm">
+                  <Text fontSize="lg" fontWeight="bold" mb={3}>Comments:</Text>
+
+                  <VStack align="start" spacing={3}>
+                    {comments.map((comment, index) => {
+                      const isUserComment = comment.createdByUserId === decoded.id;
+                      const commentColor = getUserColor(comment.createdByUserId);
+                      const formattedDate = new Date(comment.createdAt).toLocaleString();
+
+                      return (
+                        <HStack
+                          key={index}
+                          p={2}
+                          borderWidth={1}
+                          borderRadius="md"
+                          backgroundColor={isUserComment ? "#e0f7fa" : commentColor}
+                          boxShadow="sm"
+                          width="full"
+                          alignSelf={isUserComment ? "flex-end" : "flex-start"}
+                          maxWidth="100%"
+                        >
+                          <Box flex="1" overflow="hidden" textOverflow="ellipsis" whiteSpace="normal" width={12}>
+                            <Text fontWeight="bold" color={isUserComment ? "blue.600" : "gray.600"}>
+                              {isUserComment ? "You" : getUserNameById(comment.createdByUserId)}:
+                            </Text>
+                            <Text>{comment.commentText}</Text>
+                            <Text fontSize="sm" color="gray.500" textAlign="right">{formattedDate}</Text>
+                          </Box>
+                        </HStack>
+                      );
+                    })}
+                  </VStack>
+
+                  <HStack mt={4}>
+                    <Input
+                      placeholder="Add a comment..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      size="lg"
+                      borderRadius="md"
+                      borderWidth={1}
+                      borderColor="gray.300"
+                    />
+                    <Button onClick={handleCommentSubmit} colorScheme="blue" height="45px" size="sm">Comment</Button>
+                  </HStack>
+                </Box>
               </Box>
-            </Box>
-            <DrawerFooter position="fixed" bottom="0" left="0" right="0" bg="white" zIndex="1">
-              <Button colorScheme="blue" onClick={handleSaveAndClose} width="full">Update and Close</Button>
-            </DrawerFooter>
-          </VStack>
-        </DrawerBody>
-      </DrawerContent>
-    </Drawer>
+              <DrawerFooter position="fixed" bottom="0" left="0" right="0" bg="white" zIndex="1">
+                <Button colorScheme="green" onClick={() => handleCompleteClick(task)} width={400}>
+                  {<CheckIcon />}
+                  Completed
+                </Button>
+                <Button ml={400} colorScheme="blue" onClick={handleSaveAndClose} width={500}>Update Task</Button>
+              </DrawerFooter>
+            </VStack>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+      {/* Complete Confirmation Modal */}
+      <ConfirmCompleteModal
+        isOpen={isCompleteOpen}
+        onClose={onCompleteClose}
+        onConfirm={confirmComplete}
+        itemName={taskToComplete ? taskToComplete.taskName : ''}
+      />
+    </>
   );
 };
 
