@@ -238,7 +238,7 @@ const deleteTaskById = async (req, res) => {
         }
 
         // Perform a soft delete
-        task.isDelete = 'Yes';
+        task.isDelete = true;
         await task.save();
 
         return res.status(200).json({ message: 'Task deleted successfully.' });
@@ -252,7 +252,7 @@ const deleteTaskById = async (req, res) => {
 const getDeletedTasks = async (req, res) => {
     try {
         const deletedTasks = await Task.findAll({
-            where: { isDelete: 'Yes' }
+            where: { isDelete: true }
         });
         return res.status(200).json(deletedTasks);
     } catch (error) {
@@ -271,14 +271,14 @@ const restoreTaskById = async (req, res) => {
 
     try {
         const task = await Task.findOne({
-            where: { id, isDelete: 'Yes' }
+            where: { id, isDelete: true }
         });
         if (!task) {
             return res.status(404).json({ message: 'Task not found in bin.' });
         }
 
         // Restore the task
-        task.isDelete = 'No';
+        task.isDelete = false;
         await task.save();
 
         return res.status(200).json({ message: 'Task restored successfully.' });
