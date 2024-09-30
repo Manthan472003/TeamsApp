@@ -3,6 +3,7 @@ const Section = require('../../Database/Models/section');
 const User = require('../../Database/Models/user');
 const Tag = require('../../Database/Models/tag');
 const { Op } = require('sequelize');
+const Notification = require('../../Database/Models/notifications');
 
 
 
@@ -18,9 +19,7 @@ const createTask = async (req, res) => {
     try {
         // Check if the assigned user exists (if provided)
         if (taskAssignedToID) {
-            const assignedUser = await User.findOne({
-                where: { id: taskAssignedToID }
-            });
+            const assignedUser = await User.findOne({ where: { id: taskAssignedToID } });
             if (!assignedUser) {
                 return res.status(404).json({ message: 'Assigned user does not exist.' });
             }
@@ -28,30 +27,21 @@ const createTask = async (req, res) => {
 
         // Check if the task creator exists (if provided)
         if (taskCreatedByID) {
-            const createdByUser = await User.findOne({
-                where: { id: taskCreatedByID }
-            });
+            const createdByUser = await User.findOne({ where: { id: taskCreatedByID } });
             if (!createdByUser) {
                 return res.status(404).json({ message: 'Task creator does not exist.' });
             }
         }
 
         // Check if the section exists
-        const section = await Section.findOne({
-            where: { id: sectionID }
-        });
+        const section = await Section.findOne({ where: { id: sectionID } });
         if (!section) {
             return res.status(404).json({ message: 'Section does not exist.' });
         }
 
         // Validate tagIDs if provided
         if (tagIDs && Array.isArray(tagIDs)) {
-            const tags = await Tag.findAll({
-                where: {
-                    id: tagIDs
-                }
-            });
-
+            const tags = await Tag.findAll({ where: { id: tagIDs } });
             const tagIdsInDb = tags.map(tag => tag.id);
             const invalidTagIds = tagIDs.filter(tagId => !tagIdsInDb.includes(tagId));
 
@@ -71,8 +61,23 @@ const createTask = async (req, res) => {
             status,
             sectionID,
             platformType,
-            tagIDs, // Handle this as JSON array
+            tagIDs // Handle this as JSON array
         });
+
+        // Create a notification for the task
+        const notificationText = `New task created: ${taskName}`;
+        const userIds = [];
+        if (taskAssignedToID) userIds.push(taskAssignedToID);
+        if (taskCreatedByID) userIds.push(taskCreatedByID);
+
+        let notificationId;
+        if (userIds.length > 0) {
+            const notification = await Notification.create({ notificationText, userIds });
+            notificationId = notification.id;
+        }
+
+        // Update the task with the newly created notification ID
+        await newTask.update({ notificationIDs: [notificationId] }); // Store the notification ID
 
         return res.status(201).json({ message: 'Task created successfully.', newTask });
     } catch (error) {
@@ -80,6 +85,8 @@ const createTask = async (req, res) => {
         return res.status(500).json({ message: 'Error creating task.' });
     }
 };
+
+
 
 
 // Get all tasks
@@ -119,10 +126,7 @@ const getTaskById = async (req, res) => {
 // Update task by ID (with user and section existence check)
 const updateTaskById = async (req, res) => {
     const { id } = req.params;
-
-
     const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, platformType, tagIDs } = req.body;
-
 
     if (!id) {
         return res.status(400).json({ message: 'ID parameter is required for update.' });
@@ -188,12 +192,48 @@ const updateTaskById = async (req, res) => {
         // Update the task
         await task.update(updateFields);
 
+        // Create a notification for the task update
+        const notificationText = `Task updated: ${taskName || 'Task details changed.'}`;
+        const userIds = new Set(); // Use a Set to avoid duplicate user IDs
+
+        if (taskAssignedToID) userIds.add(taskAssignedToID);
+        if (taskCreatedByID) userIds.add(taskCreatedByID);
+
+        // Notify previous assignee if the assigned user has changed
+        if (taskAssignedToID && taskAssignedToID !== task.taskAssignedToID) {
+            userIds.add(task.taskAssignedToID); // Notify previous assignee if changed
+        }
+
+        // Create the notification if there are users to notify
+        let notificationId;
+        if (userIds.size > 0) {
+            const notification = await Notification.create({
+                notificationText,
+                userIds: Array.from(userIds),
+            });
+
+            // Check if the notification was created successfully
+            if (notification) {
+                notificationId = notification.id;
+            } else {
+                console.error('Notification creation failed.');
+                return res.status(500).json({ message: 'Failed to create notification.' });
+            }
+        }
+
+        // Update the task's notificationIDs by pushing the new notification ID
+        if (notificationId) {
+            task.notificationIDs.push(notificationId); // Use push to add the new notification ID
+            await task.update({ notificationIDs: task.notificationIDs }); // Save the updated notification IDs
+        }
+
         return res.status(200).json({ message: 'Task updated successfully.', task });
     } catch (error) {
         console.error('Error updating task:', error);
         return res.status(500).json({ message: 'Error updating task.' });
     }
 };
+
 
 
 

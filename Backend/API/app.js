@@ -9,8 +9,9 @@ const mediaRoutes = require('./Routes/mediaRoutes');
 const taskTagRoutes = require('./Routes/taskTagRoutes');
 const dailyReportsRoutes = require('./Routes/dailyReportsRoutes')
 const versionManagementRoutes = require('./Routes/versionManagementRoutes');
+const notificationRoutes = require('./Routes/notificationRoutes');
 const commentRoutes = require('./Routes/commentRoutes');
-const sendMailRoute = require('./Routes/sendMailRoute')
+const sendMailRoute = require('./Routes/sendMailRoute');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -24,10 +25,11 @@ app.use('/sections', sectionRoutes);
 app.use('/tags', tagRoutes);
 app.use('/media', mediaRoutes);
 app.use('/taskTags', taskTagRoutes);
-app.use('/dailyReports', dailyReportsRoutes)
-app.use('/versionManagement', versionManagementRoutes)
-app.use('/comment', commentRoutes)
-app.use('/sendMail', sendMailRoute)
+app.use('/dailyReports', dailyReportsRoutes);
+app.use('/versionManagement', versionManagementRoutes);
+app.use('/notifications', notificationRoutes);
+app.use('/comment', commentRoutes);
+app.use('/sendMail', sendMailRoute);
 
 sequelize.sync().then(() => {
   app.listen(PORT, () => {
