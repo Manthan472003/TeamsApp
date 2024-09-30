@@ -403,12 +403,11 @@ const TaskManager = () => {
                 Dashboard
             </Heading>
             <br />
-            <br />
 
             <SearchBar
                 onSectionSelected={handleSectionSelected}
-                onApplyFilter={applyFilter} />
-
+                onApplyFilter={applyFilter} 
+            />
 
             <Accordion allowToggle>
                 {filteredSections.map(section => {

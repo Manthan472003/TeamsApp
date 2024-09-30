@@ -10,6 +10,9 @@ import Bin from './components/Bin';
 import VersionManagement from './components/VersionManagement'; 
 import MyTasks from './components/MyTasks';
 import DailyReports from './components/DailyReports';
+import Sections from './components/Sections';
+import Users from './components/Users';
+
 
 function App() {
   return (
@@ -36,6 +39,12 @@ function App() {
           </Route>
           <Route path="/daily-reports" element={<MainScreen />}>
             <Route index element={<DailyReports />} />
+          </Route>
+          <Route path="sections" element={<MainScreen />}>
+            <Route index element={<Sections />} />
+          </Route>
+          <Route path="/users" element={<MainScreen />}>
+            <Route index element={<Users />} />
           </Route>
         </Routes>
       </Router>

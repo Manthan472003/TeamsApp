@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, Button, HStack, Tag, TagLabel, useDisclosure } from '@chakra-ui/react';
-import { RepeatIcon } from '@chakra-ui/icons'; // Updated icon for Restore button
+import { useDisclosure } from '@chakra-ui/react';
+import { TbRestore } from "react-icons/tb";
 import { getTags } from '../Services/TagService'; // Adjust import according to your file structure
 import ConfirmRestoreModal from './ConfirmRestoreModal'; // Import ConfirmRestoreModal
 
@@ -71,63 +71,71 @@ const CompletedTaskTable = ({ tasks, onStatusChange, users }) => {
 
     return (
         <>
-            <Table variant='striped' mt={4} style={{ tableLayout: 'fixed' }}>
-                <Thead>
-                    <Tr>
-                        <Th width='40%'>Task Name</Th>
-                        <Th width='20%' style={{ whiteSpace: 'normal' }}>Tags</Th>
-                        <Th width='20%'>Assigned To</Th>
-                        <Th width='20%'>Action</Th>
-                    </Tr>
-                </Thead>
-                <Tbody>
+            <table style={{ width: '100%', borderCollapse: 'collapse', borderRadius: '10px', overflow: 'hidden', marginTop: '16px', tableLayout: 'fixed' }}>
+                <thead style={{ backgroundColor: '#f7fafc' }}>
+                    <tr>
+                        <th style={{ width: '40%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Task Name</th>
+                        <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left', whiteSpace: 'normal' }}>Tags</th>
+                        <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Assigned To</th>
+                        <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
                     {sortedTasks.length > 0 ? (
                         sortedTasks.map((task, index) => (
-                            <Tr
+                            <tr
                                 key={task.id}
                                 style={{
-                                    backgroundColor: index % 2 === 0 ? '#f9e79f' : '#d7f2ff'
+                                    backgroundColor: index % 2 === 0 ? '#ebfff0' : '#d7f2ff'
                                 }}
                             >
-                                <Td>{task.taskName}</Td>
-                                <Td style={{ whiteSpace: 'normal', overflow: 'hidden' }}>
-                                    <HStack spacing={2} style={{ flexWrap: 'wrap' }}>
+                                <td style={{ padding: '10px' }}>{task.taskName}</td>
+                                <td style={{ padding: '10px', whiteSpace: 'normal', overflow: 'hidden' }}>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                                         {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (
-                                            <Tag
-                                                size='md'
-                                                key={idx}
-                                                borderRadius='6px'
-                                                variant='solid'
-                                                colorScheme='green'
-                                            >
-                                                <TagLabel>{tagName}</TagLabel>
-                                            </Tag>
+                                            <span key={idx} style={{
+                                                display: 'inline-block',
+                                                backgroundColor: '#48bb78',
+                                                color: 'white',
+                                                borderRadius: '6px',
+                                                padding: '4px 8px',
+                                                margin: '2px'
+                                            }}>
+                                                {tagName}
+                                            </span>
                                         ))}
-                                    </HStack>
-                                </Td>
-                                <Td>{getUserNameById(task.taskAssignedToID)}</Td>
-                                <Td>
-                                    <Button
-                                        variant='solid'
-                                        colorScheme='green'
-                                        size='sm'
-                                        leftIcon={<RepeatIcon />}
+                                    </div>
+                                </td>
+                                <td style={{ padding: '10px' }}>{getUserNameById(task.taskAssignedToID)}</td>
+                                <td style={{ padding: '10px' }}>
+                                    <button
+                                        style={{
+                                            backgroundColor: '#48bb78',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            padding: '4px 8px',
+                                            cursor: 'pointer',
+                                            fontSize: '14px'
+                                        }}
+                                        leftIcon={<TbRestore />}
                                         onClick={() => handleRestoreClick(task)}
                                     >
                                         Restore
-                                    </Button>
-                                </Td>
-                            </Tr>
+                                    </button>
+                                </td>
+                            </tr>
                         ))
                     ) : (
-                        <Tr>
-                            <Td colSpan={4} textAlign="center" color="gray.500">
+                        <tr>
+                            <td colSpan={4} style={{ textAlign: 'center', color: '#a0aec0', padding: '10px' }}>
                                 No tasks available
-                            </Td>
-                        </Tr>
+                            </td>
+                        </tr>
                     )}
-                </Tbody>
-            </Table>
+                </tbody>
+            </table>
+
 
             {/* Restore Confirmation Modal */}
             <ConfirmRestoreModal

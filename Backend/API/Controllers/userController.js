@@ -84,28 +84,25 @@ const updateUserById = async (req, res) => {
         const { id } = req.params;
         const { userName, email, password, userType } = req.body;
 
-        if (!userName || !email || !password) {
-            return res.status(400).json({ message: 'User name, email, and password are required for update.' });
-        }
-
         // Check if the user exists
         const user = await User.findOne({ where: { id } });
-
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
 
-        // Check if the new email already exists (and ensure it's not the same user's current email)
-        const existingUser = await User.findOne({ where: { email } });
-
-        if (existingUser && existingUser.id !== id) {
-            return res.status(409).json({ message: 'Email already exists.' });
+        // Check if the email is provided and validate it
+        if (email) {
+            // Check if the new email already exists (and ensure it's not the same user's current email)
+            const existingUser = await User.findOne({ where: { email } });
+            if (existingUser && existingUser.id !== id) {
+                return res.status(409).json({ message: 'Email already exists.' });
+            }
+            user.email = email; // Update the email only if provided
         }
 
-        // Update the user details
-        user.userName = userName;
-        user.email = email;
-        user.userType = userType;
+        // Update fields only if they are provided
+        if (userName) user.userName = userName;
+        if (userType) user.userType = userType;
 
         // Hash the password if it has been updated
         if (password) {
@@ -130,6 +127,7 @@ const updateUserById = async (req, res) => {
         return res.status(500).json({ message: 'Error updating user.', error });
     }
 };
+
 
 
 // Delete user by ID

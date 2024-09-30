@@ -19,6 +19,9 @@ import { getTags } from '../Services/TagService';
 import { getSections } from '../Services/SectionService';
 import ViewTaskDrawer from './ViewTaskDrawer'; // Import the ViewTaskDrawer component
 import { getUsers } from '../Services/UserService'; // Import a service to fetch users
+// import { FaSearch } from "react-icons/fa";
+import { Search2Icon } from '@chakra-ui/icons';
+
 
 function SearchBar({ onApplyFilter, onSectionSelected }) {
     const [query, setQuery] = useState('');
@@ -141,14 +144,14 @@ function SearchBar({ onApplyFilter, onSectionSelected }) {
 
     return (
         <>
-            <Flex mb={3} w="full">
+            <Flex alignContent="end" justifyContent="flex-end" mb={5}>
                 <FormControl w="500">
-                    <HStack>
+                    <HStack spacing={0}>
                         <AutoComplete openOnFocus>
                             <AutoCompleteInput
                                 width={400}
                                 placeholder="Search Tasks, Tags or Sections"
-                                variant="filled"
+                                variant="outline"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                             />
@@ -172,32 +175,32 @@ function SearchBar({ onApplyFilter, onSectionSelected }) {
                         </AutoComplete>
 
                         <Button
-                            p="0 20"
                             onClick={handleApply}
                             disabled={selectedItems.length === 0}
-                            colorScheme='teal'
                             textColor='Orange.500'
-                            border={2}
-                            variant='outline'
-                            sx={{ borderStyle: 'dotted' }}
+                            variant="outline"
+                            leftIcon={<Search2Icon />}
+
                         >
-                            Apply Filter
+                            Search
+                           
                         </Button>
                     </HStack>
 
                     {/* <Box mt={2}>
-                        {selectedItems.map(item => (
-                            <HStack key={`${item.type}-${item.id}`} spacing={2} mb={2} alignItems="center">
-                                <Box>{item.name}</Box>
-                                <Tag colorScheme={getTagColor(item.type)}>
-                                    <TagLabel>{item.type.charAt(0).toUpperCase() + item.type.slice(1)}</TagLabel>
-                                </Tag>
-                                <Button size="xs" onClick={() => handleRemoveItem(item.id)}>Remove</Button>
-                            </HStack>
-                        ))}
-                    </Box> */}
+            {selectedItems.map(item => (
+                <HStack key={`${item.type}-${item.id}`} spacing={2} mb={2} alignItems="center">
+                    <Box>{item.name}</Box>
+                    <Tag colorScheme={getTagColor(item.type)}>
+                        <TagLabel>{item.type.charAt(0).toUpperCase() + item.type.slice(1)}</TagLabel>
+                    </Tag>
+                    <Button size="xs" onClick={() => handleRemoveItem(item.id)}>Remove</Button>
+                </HStack>
+            ))}
+        </Box> */}
                 </FormControl>
             </Flex>
+
 
             {/* Integrate ViewTaskDrawer */}
             <ViewTaskDrawer

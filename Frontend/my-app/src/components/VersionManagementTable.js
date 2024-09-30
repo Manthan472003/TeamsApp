@@ -1,5 +1,4 @@
 import React from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td } from '@chakra-ui/react';
 
 const VersionManagementTable = ({ entries, users }) => {
 
@@ -8,49 +7,51 @@ const VersionManagementTable = ({ entries, users }) => {
         return user ? user.userName : 'Unknown';
     };
 
-    const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString(undefined, options);
-    };
-
     const sortedEntries = [...entries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     return (
-        <Table variant='striped' mt={4} style={{ tableLayout: 'fixed' }}>
-            <Thead>
-                <Tr>
-                    <Th width='20%'>Technology Used</Th>
-                    <Th width='20%'>Created By</Th>
-                    <Th width='20%'>Current Version</Th>
-                    <Th width='20%'>Latest Version</Th>
-                    <Th width='20%'>Created At</Th>
-                </Tr>
-            </Thead>
-            <Tbody>
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderRadius: '10px', overflow: 'hidden', marginTop: '16px', tableLayout: 'fixed' }}>
+            <thead style={{ backgroundColor: '#f7fafc' }}>
+                <tr>
+                    <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Technology Used</th>
+                    <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Created By</th>
+                    <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Current Version</th>
+                    <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Latest Version</th>
+                    <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
                 {sortedEntries.length > 0 ? (
                     sortedEntries.map((entry, index) => (
-                        <Tr
+                        <tr
                             key={entry.id}
                             style={{
-                                backgroundColor: index % 2 === 0 ? '#f9e79f' : '#d7f2ff'
+                                backgroundColor: index % 2 === 0 ? '#ebfff0' : '#d7f2ff'
                             }}
                         >
-                            <Td>{entry.technologyUsed}</Td>
-                            <Td>{getUserNameById(entry.userId)}</Td>
-                            <Td>{entry.currentVersion}</Td>
-                            <Td>{entry.latestVersion}</Td>
-                            <Td>{formatDate(entry.createdAt)}</Td>
-                        </Tr>
+                            <td style={{ padding: '10px' }}>{entry.technologyUsed}</td>
+                            <td style={{ padding: '10px' }}>{getUserNameById(entry.userId)}</td>
+                            <td style={{ padding: '10px' }}>{entry.currentVersion}</td>
+                            <td style={{ padding: '10px' }}>{entry.latestVersion}</td>
+                            <td style={{ padding: '10px' }}>
+                                {new Intl.DateTimeFormat('en-GB', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric'
+                                }).format(new Date(entry.createdAt))}
+                            </td>
+                        </tr>
                     ))
                 ) : (
-                    <Tr>
-                        <Td colSpan={5} textAlign="center" color="gray.500">
+                    <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', color: '#a0aec0', padding: '10px' }}>
                             No tasks available
-                        </Td>
-                    </Tr>
+                        </td>
+                    </tr>
                 )}
-            </Tbody>
-        </Table>
+            </tbody>
+        </table>
+
     );
 };
 
