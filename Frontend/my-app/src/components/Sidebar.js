@@ -4,7 +4,7 @@ import {
   SimpleGrid, IconButton
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircleIcon, } from '@chakra-ui/icons';
+import { CheckCircleIcon, DeleteIcon } from '@chakra-ui/icons';
 import { MdAddTask, MdDashboard } from "react-icons/md";
 import { FaTasks } from "react-icons/fa";
 import { HiOutlineFolderAdd } from "react-icons/hi";
@@ -16,7 +16,7 @@ import AddTaskModal from './AddTaskModal';
 import { getSections } from '../Services/SectionService';
 import ConfirmLogoutModal from './ConfirmLogoutModal';
 import jwt_decode from 'jwt-decode'; // Import jwt-decode
-import { FaBell, FaAngleUp, FaList ,FaUserCheck} from "react-icons/fa"; // Import the notification icon
+import { FaBell, FaAngleUp, FaList, FaUserCheck } from "react-icons/fa"; // Import the notification icon
 
 
 const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
@@ -167,7 +167,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
       </Flex>
 
       <VStack
-        spacing={4}
+        spacing={2}
         align="start"
         background="#FFFFFF"
         padding={4}
@@ -228,40 +228,16 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
           Dashboard
         </Button>
 
+        <Button
+          leftIcon={<FaTasks />}
+          {...buttonStyles.base}
+          {...(activeButton === '/my-tasks' && buttonStyles.active)}
+          _hover={{ ...buttonStyles.hover }}
+          onClick={() => handleNavigation('/my-tasks')}
+        >
+          My Tasks
+        </Button>
 
-        {/* <Collapse in={isOpen}>
-          <VStack align="start" spacing={0} paddingLeft={4} paddingBottom={2}>
-            <Button
-              leftIcon={<HiOutlineFolderAdd size={20} />}
-              {...buttonStyles.base}
-              onClick={onSectionOpen}
-              width="200px"
-            >
-              Add Section
-            </Button>
-            <AddSectionModal
-              isOpen={isSectionOpen}
-              onClose={onSectionClose}
-              onSectionAdded={handleSectionAdded}
-            />
-
-            <Button
-              leftIcon={<MdAddTask size={20} />}
-              {...buttonStyles.base}
-              onClick={onTaskOpen}
-              width="200px"
-            >
-              Add Task
-            </Button>
-            <AddTaskModal
-              isOpen={isTaskOpen}
-              onClose={onTaskClose}
-              onSubmit={handleTaskAdded}  // Call handleTaskAdded after adding a task
-              userId={userName}
-              sectionID={null}
-            />
-          </VStack>
-        </Collapse> */}
 
         <Button
           leftIcon={<CheckCircleIcon size={25} />}
@@ -273,34 +249,6 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
           Completed Tasks
         </Button>
 
-        {/* <Button
-          leftIcon={<DeleteIcon />}
-          {...buttonStyles.base}
-          {...(activeButton === '/bin' && buttonStyles.active)}
-          _hover={{ ...buttonStyles.hover }}
-          onClick={() => handleNavigation('/bin')}
-        >
-          Bin
-        </Button> */}
-
-        <Button
-          leftIcon={<RiInformationFill size={18} />}
-          {...buttonStyles.base}
-          {...(activeButton === '/tech-used' && buttonStyles.active)}
-          _hover={{ ...buttonStyles.hover }}
-          onClick={() => handleNavigation('/tech-used')}
-        >
-          Version Management
-        </Button>
-        <Button
-          leftIcon={<FaTasks />}
-          {...buttonStyles.base}
-          {...(activeButton === '/my-tasks' && buttonStyles.active)}
-          _hover={{ ...buttonStyles.hover }}
-          onClick={() => handleNavigation('/my-tasks')}
-        >
-          My Tasks
-        </Button>
         <Button
           leftIcon={<TbReport size={20} />}
           {...buttonStyles.base}
@@ -330,6 +278,28 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         >
           Users
         </Button>
+
+        <Button
+          leftIcon={<RiInformationFill size={18} />}
+          {...buttonStyles.base}
+          {...(activeButton === '/tech-used' && buttonStyles.active)}
+          _hover={{ ...buttonStyles.hover }}
+          onClick={() => handleNavigation('/tech-used')}
+        >
+          Version Management
+        </Button>
+
+        <Button
+          leftIcon={<DeleteIcon />}
+          {...buttonStyles.base}
+          {...(activeButton === '/bin' && buttonStyles.active)}
+          _hover={{ ...buttonStyles.hover }}
+          onClick={() => handleNavigation('/bin')}
+        >
+          Bin
+        </Button>
+
+
       </VStack>
 
       <Flex

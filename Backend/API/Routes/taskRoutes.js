@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const taskController = require('../Controllers/taskController');
+const { deleteTaskById, getDeletedTasks, restoreTaskById } = require('../Controllers/taskController');
 
 // Route for creating a new task
 router.post('/', taskController.createTask);
@@ -32,5 +33,13 @@ router.get('/assignedTasks/:userId', taskController.getAssignedTasksToUserByUser
 // Get Tasks by Taskname (Search)
 router.get('/search/task', taskController.getTasksByTaskName);
 
+// Delete task (soft delete)    
+router.delete('/tasks/:id', deleteTaskById);
+
+// Get deleted tasks
+router.get('/tasks/bin', getDeletedTasks);
+
+// Restore task
+router.post('/tasks/bin/:id/restore', restoreTaskById);
 
 module.exports = router;

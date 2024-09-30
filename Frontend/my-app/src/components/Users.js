@@ -43,7 +43,7 @@ const Users = () => {
     };
 
     return (
-        <Box>
+        <Box p={5}>
             <Heading as='h2' size='xl' paddingLeft={3} mb={4}
                 sx={{
                     background: 'linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)',

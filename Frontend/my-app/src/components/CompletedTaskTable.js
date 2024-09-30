@@ -1,27 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import { useDisclosure } from '@chakra-ui/react';
-import { TbRestore } from "react-icons/tb";
-import { getTags } from '../Services/TagService'; // Adjust import according to your file structure
-import ConfirmRestoreModal from './ConfirmRestoreModal'; // Import ConfirmRestoreModal
+import React, { useEffect, useState } from 'react';
+import { getDeletedTasks, restoreTask } from '../Services/TaskService';
+import { Button, useToast, Heading } from '@chakra-ui/react';
+import { TbRestore } from 'react-icons/tb';
+import { getTags } from '../Services/TagService'; 
 
-const CompletedTaskTable = ({ tasks, onStatusChange, users }) => {
-    const { isOpen: isRestoreOpen, onOpen: onRestoreOpen, onClose: onRestoreClose } = useDisclosure();
-
-    const [taskToRestore, setTaskToRestore] = useState(null);
+const Bin = ({ users }) => {
+    const [deletedTasks, setDeletedTasks] = useState([]);
+    const [error, setError] = useState(null);
+    const toast = useToast();
     const [tags, setTags] = useState([]);
 
     useEffect(() => {
+        const fetchDeletedTasks = async () => {
+            try {
+                const response = await getDeletedTasks();
+                setDeletedTasks(response.data);
+            } catch (err) {
+                setError('Failed to fetch deleted tasks.');
+                console.error(err);
+            }
+        };
+
         const fetchTags = async () => {
             try {
                 const response = await getTags();
-                setTags(response.data); // Assuming response.data contains the array of tags
+                setTags(response.data); 
             } catch (error) {
                 console.error('Error fetching tags:', error);
             }
         };
 
+        fetchDeletedTasks();
         fetchTags();
     }, []);
+
+    const handleRestore = async (taskId) => {
+        try {
+            await restoreTask(taskId);
+            setDeletedTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+            toast({
+                title: "Task Restored",
+                description: "The task has been restored successfully!",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (err) {
+            setError('Failed to restore task.');
+            console.error(err);
+        }
+    };
 
     const getTagNamesByIds = (tagIds) => {
         const tagMap = new Map(tags.map(tag => [tag.id, tag.tagName]));
@@ -34,22 +62,6 @@ const CompletedTaskTable = ({ tasks, onStatusChange, users }) => {
             }
             return tagName;
         });
-    };
-
-    const handleRestoreClick = (task) => {
-        setTaskToRestore(task);
-        onRestoreOpen();
-    };
-
-    const confirmRestore = () => {
-        if (onStatusChange && taskToRestore) {
-            console.log('Attempting to restore task:', taskToRestore); // Debugging output
-            onStatusChange(taskToRestore.id, 'Not Started');
-            setTaskToRestore(null);
-            onRestoreClose();
-        } else {
-            console.error('onStatusChange function is not defined or taskToRestore is missing');
-        }
     };
 
     const getUserNameById = (userId) => {
@@ -66,31 +78,32 @@ const CompletedTaskTable = ({ tasks, onStatusChange, users }) => {
         return user.userName;
     };
 
-    // No need to sort by dueDate since the column is removed
-    const sortedTasks = tasks;
-
     return (
-        <>
-            <table style={{ width: '100%', borderCollapse: 'collapse', borderRadius: '10px', overflow: 'hidden', marginTop: '16px', tableLayout: 'fixed' }}>
-                <thead style={{ backgroundColor: '#f7fafc' }}>
+        <div>
+            <Heading as='h2' size='xl' paddingLeft={3} mb={3} sx={{
+                background: 'linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)',
+                backgroundClip: 'text',
+                color: 'transparent',
+                display: 'inline-block',
+            }}>
+                Deleted Tasks
+            </Heading>
+            {error && <p className="error">{error}</p>}
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
+                <thead>
                     <tr>
-                        <th style={{ width: '40%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Task Name</th>
-                        <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left', whiteSpace: 'normal' }}>Tags</th>
-                        <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Assigned To</th>
-                        <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Action</th>
+                        <th style={{ width: '40%', padding: '10px', textAlign: 'left', backgroundColor: '#f7fafc' }}>Task Name</th>
+                        <th style={{ width: '20%', padding: '10px', textAlign: 'left', backgroundColor: '#f7fafc' }}>Tags</th>
+                        <th style={{ width: '20%', padding: '10px', textAlign: 'left', backgroundColor: '#f7fafc' }}>Assigned To</th>
+                        <th style={{ width: '20%', padding: '10px', textAlign: 'left', backgroundColor: '#f7fafc' }}>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {sortedTasks.length > 0 ? (
-                        sortedTasks.map((task, index) => (
-                            <tr
-                                key={task.id}
-                                style={{
-                                    backgroundColor: index % 2 === 0 ? '#ebfff0' : '#d7f2ff'
-                                }}
-                            >
+                    {deletedTasks.length > 0 ? (
+                        deletedTasks.map((task, index) => (
+                            <tr key={task.id} style={{ backgroundColor: index % 2 === 0 ? '#ebfff0' : '#d7f2ff' }}>
                                 <td style={{ padding: '10px' }}>{task.taskName}</td>
-                                <td style={{ padding: '10px', whiteSpace: 'normal', overflow: 'hidden' }}>
+                                <td style={{ padding: '10px' }}>
                                     <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                                         {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (
                                             <span key={idx} style={{
@@ -108,21 +121,13 @@ const CompletedTaskTable = ({ tasks, onStatusChange, users }) => {
                                 </td>
                                 <td style={{ padding: '10px' }}>{getUserNameById(task.taskAssignedToID)}</td>
                                 <td style={{ padding: '10px' }}>
-                                    <button
-                                        style={{
-                                            backgroundColor: '#48bb78',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            padding: '4px 8px',
-                                            cursor: 'pointer',
-                                            fontSize: '14px'
-                                        }}
+                                    <Button
+                                        colorScheme="teal"
+                                        onClick={() => handleRestore(task.id)}
                                         leftIcon={<TbRestore />}
-                                        onClick={() => handleRestoreClick(task)}
                                     >
                                         Restore
-                                    </button>
+                                    </Button>
                                 </td>
                             </tr>
                         ))
@@ -135,17 +140,8 @@ const CompletedTaskTable = ({ tasks, onStatusChange, users }) => {
                     )}
                 </tbody>
             </table>
-
-
-            {/* Restore Confirmation Modal */}
-            <ConfirmRestoreModal
-                isOpen={isRestoreOpen}
-                onClose={onRestoreClose}
-                onConfirm={confirmRestore}
-                itemName={taskToRestore ? taskToRestore.taskName : ''}
-            />
-        </>
+        </div>
     );
 };
 
-export default CompletedTaskTable;
+export default Bin;

@@ -86,9 +86,6 @@ const createTask = async (req, res) => {
     }
 };
 
-
-
-
 // Get all tasks
 const getAllTasks = async (req, res) => {
     try {
@@ -126,120 +123,105 @@ const getTaskById = async (req, res) => {
 // Update task by ID (with user and section existence check)
 const updateTaskById = async (req, res) => {
     const { id } = req.params;
-    const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, platformType, tagIDs } = req.body;
+    const {
+        taskName,
+        description,
+        dueDate,
+        subTask,
+        taskAssignedToID,
+        taskCreatedByID,
+        status,
+        sectionID,
+        platformType,
+        tagIDs
+    } = req.body;
 
     if (!id) {
-        return res.status(400).json({ message: 'ID parameter is required for update.' });
+        return res.status(400).json({ message: 'ID parameter is required.' });
     }
 
     try {
-        // Find the task to update
+
+        // Find the existing task
         const task = await Task.findOne({ where: { id } });
         if (!task) {
             return res.status(404).json({ message: 'Task not found.' });
         }
 
-        // Check for assigned user and creator if IDs are provided
-        const userChecks = [];
-        if (taskAssignedToID) {
-            userChecks.push(User.findOne({ where: { id: taskAssignedToID } }));
-        }
-        if (taskCreatedByID) {
-            userChecks.push(User.findOne({ where: { id: taskCreatedByID } }));
-        }
-        const [assignedUser, createdByUser] = await Promise.all(userChecks);
+        // Prepare an object for the fields to update
+        const updateFields = {};
+        if (taskName !== undefined) updateFields.taskName = taskName;
+        if (description !== undefined) updateFields.description = description;
+        if (dueDate !== undefined) updateFields.dueDate = dueDate;
+        if (subTask !== undefined) updateFields.subTask = subTask;
+        if (status !== undefined) updateFields.status = status;
+        if (platformType !== undefined) updateFields.platformType = platformType;
+        if (sectionID !== undefined) updateFields.sectionID = sectionID;
+        if (tagIDs !== undefined) updateFields.tagIDs = tagIDs;
 
-        if (taskAssignedToID && !assignedUser) {
-            return res.status(404).json({ message: 'Assigned user does not exist.' });
-        }
-        if (taskCreatedByID && !createdByUser) {
-            return res.status(404).json({ message: 'Task creator does not exist.' });
-        }
 
-        // Check if the section exists if sectionID is provided
-        if (sectionID) {
-            const section = await Section.findOne({ where: { id: sectionID } });
-            if (!section) {
-                return res.status(404).json({ message: 'Section does not exist.' });
+        // Use existing user IDs if new ones are not provided
+        const finalAssignedToID = taskAssignedToID !== undefined ? taskAssignedToID : task.taskAssignedToID;
+        const finalCreatedByID = taskCreatedByID !== undefined ? taskCreatedByID : task.taskCreatedByID;
+
+
+        // Validate user existence
+        if (finalAssignedToID) {
+            const assignedUser = await User.findOne({ where: { id: finalAssignedToID } });
+            if (!assignedUser) {
+                return res.status(404).json({ message: 'Assigned user does not exist.' });
+            }
+        }
+        if (finalCreatedByID) {
+            const createdByUser = await User.findOne({ where: { id: finalCreatedByID } });
+            if (!createdByUser) {
+                return res.status(404).json({ message: 'Task creator does not exist.' });
             }
         }
 
-        // Validate tagIDs if provided
-        if (tagIDs && Array.isArray(tagIDs)) {
-            const tags = await Tag.findAll({ where: { id: tagIDs } });
-            const tagIdsInDb = tags.map(tag => tag.id);
-            const invalidTagIds = tagIDs.filter(tagId => !tagIdsInDb.includes(tagId));
-
-            if (invalidTagIds.length > 0) {
-                return res.status(404).json({ message: `Tags with IDs ${invalidTagIds.join(', ')} do not exist.` });
-            }
-        }
-
-        // Prepare update fields
-        const updateFields = {
-            ...(taskName && { taskName }),
-            ...(description && { description }),
-            ...(dueDate && { dueDate }),
-            ...(subTask && { subTask }),
-            ...(taskAssignedToID && { taskAssignedToID }),
-            ...(taskCreatedByID && { taskCreatedByID }),
-            ...(status && { status }),
-            ...(sectionID && { sectionID }),
-            ...(platformType && { platformType }),
-            ...(tagIDs && { tagIDs }), // Handle this as JSON array
-        };
-
-        // Update the task
-        await task.update(updateFields);
-
-        // Create a notification for the task update
-        const notificationText = `Task updated: ${taskName || 'Task details changed.'}`;
-        const userIds = new Set(); // Use a Set to avoid duplicate user IDs
-
-        if (taskAssignedToID) userIds.add(taskAssignedToID);
-        if (taskCreatedByID) userIds.add(taskCreatedByID);
-
-        // Notify previous assignee if the assigned user has changed
-        if (taskAssignedToID && taskAssignedToID !== task.taskAssignedToID) {
-            userIds.add(task.taskAssignedToID); // Notify previous assignee if changed
-        }
-
-        // Create the notification if there are users to notify
+        // Create a notification for the task update if any field is updated
         let notificationId;
-        if (userIds.size > 0) {
-            const notification = await Notification.create({
-                notificationText,
-                userIds: Array.from(userIds),
-            });
+        const isUpdated = Object.keys(updateFields).length > 0 ||
+            finalAssignedToID !== task.taskAssignedToID ||
+            finalCreatedByID !== task.taskCreatedByID;
 
-            // Check if the notification was created successfully
-            if (notification) {
+        if (isUpdated) {
+            const notificationText = `Task updated: ${task.taskName}`;
+            const userIds = [];
+            if (finalAssignedToID) userIds.push(finalAssignedToID);
+            if (finalCreatedByID) userIds.push(finalCreatedByID);
+
+            if (userIds.length > 0) {
+                const notification = await Notification.create({ notificationText, userIds });
                 notificationId = notification.id;
             } else {
-                console.error('Notification creation failed.');
-                return res.status(500).json({ message: 'Failed to create notification.' });
+                console.warn('No user IDs to create notification. Task will be updated without notification.');
             }
+        } else {
+            console.log('No updates detected; no notification will be created.');
         }
 
-        // Update the task's notificationIDs by pushing the new notification ID
-        if (notificationId) {
-            task.notificationIDs.push(notificationId); // Use push to add the new notification ID
-            await task.update({ notificationIDs: task.notificationIDs }); // Save the updated notification IDs
-        }
 
-        return res.status(200).json({ message: 'Task updated successfully.', task });
+        // Update the task with the collected fields, including notificationIDs
+        await task.update({
+            ...updateFields,
+            taskAssignedToID: finalAssignedToID,
+            taskCreatedByID: finalCreatedByID,
+            notificationIDs: task.notificationIDs ? [...task.notificationIDs, notificationId] : [notificationId]
+        });
+
+        // Fetch the updated task from the database
+        const updatedTask = await Task.findOne({ where: { id } });
+
+        return res.status(200).json({ message: 'Task updated successfully.', task: updatedTask });
+
     } catch (error) {
         console.error('Error updating task:', error);
         return res.status(500).json({ message: 'Error updating task.' });
     }
 };
 
-
-
-
-
-
-// Delete task by ID
+//Delete task by task ID
 const deleteTaskById = async (req, res) => {
     const { id } = req.params;
 
@@ -255,11 +237,54 @@ const deleteTaskById = async (req, res) => {
             return res.status(404).json({ message: 'Task not found.' });
         }
 
-        await task.destroy();
+        // Perform a soft delete
+        task.isDelete = 'Yes';
+        await task.save();
+
         return res.status(200).json({ message: 'Task deleted successfully.' });
     } catch (error) {
         console.error('Error deleting task:', error);
         return res.status(500).json({ message: 'Error deleting task.' });
+    }
+};
+
+//Get all soft deleted Task
+const getDeletedTasks = async (req, res) => {
+    try {
+        const deletedTasks = await Task.findAll({
+            where: { isDelete: 'Yes' }
+        });
+        return res.status(200).json(deletedTasks);
+    } catch (error) {
+        console.error('Error fetching deleted tasks:', error);
+        return res.status(500).json({ message: 'Error fetching deleted tasks.' });
+    }
+};
+
+//restore taskas By ID
+const restoreTaskById = async (req, res) => {
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ message: 'ID parameter is required.' });
+    }
+
+    try {
+        const task = await Task.findOne({
+            where: { id, isDelete: 'Yes' }
+        });
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found in bin.' });
+        }
+
+        // Restore the task
+        task.isDelete = 'No';
+        await task.save();
+
+        return res.status(200).json({ message: 'Task restored successfully.' });
+    } catch (error) {
+        console.error('Error restoring task:', error);
+        return res.status(500).json({ message: 'Error restoring task.' });
     }
 };
 
@@ -378,5 +403,7 @@ module.exports = {
     getTasksWithNullSection,
     getCompletedTasks,
     getAssignedTasksToUserByUserId,
-    getTasksByTaskName
+    getTasksByTaskName,
+    getDeletedTasks,
+    restoreTaskById
 };

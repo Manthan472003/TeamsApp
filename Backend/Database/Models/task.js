@@ -48,6 +48,10 @@ const Task = sequelize.define('Task', {
         type: DataTypes.JSON,
         allowNull: true
     },
+    isDelete:{
+       type:DataTypes.BOOLEAN,
+       defaultValue : false
+    },
     createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,

@@ -5,8 +5,9 @@ import { getTags } from '../Services/TagService';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmCompleteModal from './ConfirmCompleteModal';
 import ViewTaskDrawer from './ViewTaskDrawer';
+import { deleteTask } from '../Services/TaskService';
 
-const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
+const TaskTable = ({ tasks, onEdit, onStatusChange, users }) => {
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
     const { isOpen: isCompleteOpen, onClose: onCompleteClose } = useDisclosure();
     const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
@@ -16,6 +17,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     const [tags, setTags] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
     const [columnWidths, setColumnWidths] = useState([200, 200, 150, 100, 100, '5%']); // Set Action column width to 5%
+    const [filteredTasks, setFilteredTasks] = useState(tasks); // State for tasks to display
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -29,6 +31,10 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
 
         fetchTags();
     }, []);
+
+    useEffect(() => {
+        setFilteredTasks(tasks); // Reset filtered tasks when the original tasks prop changes
+    }, [tasks]);
 
     const formatDate = (dateString) => {
         const d = new Date(dateString);
@@ -54,11 +60,16 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
         onDeleteOpen();
     };
 
-    const confirmDelete = () => {
-        if (onDelete && taskToDelete) {
-            onDelete(taskToDelete);
-            setTaskToDelete(null);
-            onDeleteClose();
+    const confirmDelete = async () => {
+        if (taskToDelete) {
+            try {
+                await deleteTask(taskToDelete.id); // Call deleteTask API
+                setFilteredTasks(filteredTasks.filter(task => task.id !== taskToDelete.id)); // Update displayed tasks
+                setTaskToDelete(null);
+                onDeleteClose();
+            } catch (error) {
+                console.error('Error deleting task:', error);
+            }
         }
     };
 
@@ -75,7 +86,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
         return user ? user.userName : 'Unknown';
     };
 
-    const sortedTasks = tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    const sortedTasks = filteredTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
     const handleTaskClick = (task) => {
         setSelectedTask(task);
@@ -85,13 +96,13 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
     const startResize = (index, e) => {
         e.preventDefault();
         const startX = e.clientX;
-        const startWidth = columnWidths[index] === '5%' ? 40 : columnWidths[index]; // Adjust for the Action column
+        const startWidth = columnWidths[index] === '5%' ? 40 : columnWidths[index];
 
         const onMouseMove = (moveEvent) => {
             const newWidth = startWidth + (moveEvent.clientX - startX);
             setColumnWidths((prevWidths) => {
                 const updatedWidths = [...prevWidths];
-                updatedWidths[index] = Math.max(newWidth, 50); // Minimum width
+                updatedWidths[index] = Math.max(newWidth, 50);
                 return updatedWidths;
             });
         };
@@ -107,7 +118,7 @@ const TaskTable = ({ tasks, onEdit, onDelete, onStatusChange, users }) => {
 
     return (
         <>
-           <style>
+            <style>
                 {`
                     .table-container {
                         overflow-x: auto;

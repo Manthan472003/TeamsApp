@@ -29,8 +29,30 @@ export const updateTask = async (task) => {
     }
 };
 
-// Delete a task
-export const deleteTask = (taskId) => axios.delete(`${API_URL}/${taskId}`);
+// Delete a task (soft delete)
+export const deleteTask = async (taskId) => {
+    try {
+        const response = await axios.delete(`${API_URL}/tasks/${taskId}`);
+        return response.data; // Return the success message
+    } catch (error) {
+        console.error('Failed to delete task:', error.response ? error.response.data : error.message);
+        throw error; // Rethrow error to be handled by the caller
+    }
+};
 
-//Fetch Assigned tasks to users
+// Fetch tasks assigned to a user
 export const getAssignedTasks = (userId) => axios.get(`${API_URL}/assignedTasks/${userId}`);
+
+// Fetch deleted tasks
+export const getDeletedTasks = () => axios.get(`${API_URL}/tasks/bin`);
+
+// Restore a deleted task
+export const restoreTask = async (taskId) => {
+    try {
+        const response = await axios.post(`${API_URL}/tasks/bin/${taskId}/restore`);
+        return response.data; // Return the success message
+    } catch (error) {
+        console.error('Failed to restore task:', error.response ? error.response.data : error.message);
+        throw error; // Rethrow error to be handled by the caller
+    }
+};
