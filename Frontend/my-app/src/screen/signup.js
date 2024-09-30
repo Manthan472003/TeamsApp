@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, chakra, Box, Link, Image, FormControl, FormHelperText, InputRightElement, Text } from '@chakra-ui/react';
+import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, chakra, Box, Image, FormControl,  InputRightElement, Text } from '@chakra-ui/react';
 import { FaUserAlt, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { saveUser } from '../Services/UserService';
 import { sendEmail } from '../Services/MailService';

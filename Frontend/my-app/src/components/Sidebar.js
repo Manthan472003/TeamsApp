@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, VStack, Button, Flex, Image, Text, useDisclosure, useToast, Menu, MenuButton, MenuList, MenuItem,
-  SimpleGrid
+  SimpleGrid, IconButton
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircleIcon, HamburgerIcon } from '@chakra-ui/icons';
+import { CheckCircleIcon, } from '@chakra-ui/icons';
 import { MdAddTask, MdDashboard } from "react-icons/md";
 import { FaTasks } from "react-icons/fa";
 import { HiOutlineFolderAdd } from "react-icons/hi";
@@ -16,6 +16,8 @@ import AddTaskModal from './AddTaskModal';
 import { getSections } from '../Services/SectionService';
 import ConfirmLogoutModal from './ConfirmLogoutModal';
 import jwt_decode from 'jwt-decode'; // Import jwt-decode
+import { FaBell, FaAngleUp, FaList ,FaUserCheck} from "react-icons/fa"; // Import the notification icon
+
 
 const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
   const navigate = useNavigate();
@@ -308,6 +310,26 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         >
           Daily Reports
         </Button>
+
+        <Button
+          leftIcon={<FaList size={15} />}
+          {...buttonStyles.base}
+          {...(activeButton === '/sections' && buttonStyles.active)}
+          _hover={{ ...buttonStyles.hover }}
+          onClick={() => handleNavigation('/sections')}
+        >
+          Sections
+        </Button>
+
+        <Button
+          leftIcon={<FaUserCheck size={20} />}
+          {...buttonStyles.base}
+          {...(activeButton === '/users' && buttonStyles.active)}
+          _hover={{ ...buttonStyles.hover }}
+          onClick={() => handleNavigation('/users')}
+        >
+          Users
+        </Button>
       </VStack>
 
       <Flex
@@ -317,22 +339,33 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         padding="16px"
         backgroundColor="#ecf2f7"
       >
-        <Menu>
-          <MenuButton
-            as={Button}
-            rightIcon={<HamburgerIcon />}
-            colorScheme="#086F83"
-            width="100%"
-            backgroundImage="linear-gradient(288deg, rgba(0,85,255,1) 1.5%, rgba(4,56,115,1) 91.6%)"
-            color="white"
-          >
-            Hi, {userName || 'User'}
-          </MenuButton>
-          <MenuList>
-            <MenuItem onClick={() => navigate('/profile')}>Profile Settings</MenuItem>
-            <MenuItem onClick={handleLogout} colorScheme="red">Logout</MenuItem>
-          </MenuList>
-        </Menu>
+        <Flex align="center">
+          <Menu>
+            <MenuButton
+              as={Button}
+              rightIcon={<FaAngleUp size={20} />}
+              colorScheme="#086F83"
+              width="100%"
+              backgroundImage="linear-gradient(288deg, rgba(0,85,255,1) 1.5%, rgba(4,56,115,1) 91.6%)"
+              color="white"
+            >
+              Hi, {userName || 'User'}
+            </MenuButton>
+            <MenuList>
+              <MenuItem onClick={() => navigate('/profile')}>Profile Settings</MenuItem>
+              <MenuItem onClick={handleLogout} colorScheme="red">Logout</MenuItem>
+            </MenuList>
+          </Menu>
+
+          <IconButton
+            icon={<FaBell size={20} />}
+            aria-label="Notifications"
+            variant="outline"
+            colorScheme="gray.500"
+            ml={2}
+          />
+        </Flex>
+
         <ConfirmLogoutModal
           isOpen={isLogoutOpen}
           onClose={onLogoutClose}

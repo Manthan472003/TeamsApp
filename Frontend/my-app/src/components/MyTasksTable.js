@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, HStack, Tag, TagLabel } from '@chakra-ui/react';
 import { getTags } from '../Services/TagService'; // Adjust import according to your file structure
 import { getSections } from '../Services/SectionService'; // Assuming you have a service to fetch sections
 
@@ -58,53 +57,55 @@ const MyTasksTable = ({ tasks, users }) => {
 
     return (
         <>
-            <Table variant='striped' mt={4} style={{ tableLayout: 'fixed' }}>
-                <Thead>
-                    <Tr>
-                        <Th width='48%'>Task Name</Th>
-                        <Th width='17%' style={{ whiteSpace: 'normal' }}>Tags</Th>
-                        <Th width='15%'>Due Date</Th>
-                        <Th width='20%'>Section</Th>
-                    </Tr>
-                </Thead>
-                <Tbody>
+            <table style={{ width: '100%', borderCollapse: 'collapse', borderRadius: '10px', overflow: 'hidden', marginTop: '16px', tableLayout: 'fixed' }}>
+                <thead style={{ backgroundColor: '#f7fafc' }}>
+                    <tr>
+                        <th style={{ width: '48%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Task Name</th>
+                        <th style={{ width: '17%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left', whiteSpace: 'normal' }}>Tags</th>
+                        <th style={{ width: '15%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Due Date</th>
+                        <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Section</th>
+                    </tr>
+                </thead>
+                <tbody>
                     {sortedTasks.length > 0 ? (
                         sortedTasks.map((task, index) => (
-                            <Tr
+                            <tr
                                 key={task.id}
                                 style={{
-                                    backgroundColor: index % 2 === 0 ? '#f9e79f' : '#d7f2ff'
+                                    backgroundColor: index % 2 === 0 ? '#ebfff0' : '#d7f2ff'
                                 }}
                             >
-                                <Td>{task.taskName}</Td>
-                                <Td style={{ whiteSpace: 'normal', overflow: 'hidden' }}>
-                                    <HStack spacing={2} style={{ flexWrap: 'wrap' }}>
+                                <td style={{ padding: '10px' }}>{task.taskName}</td>
+                                <td style={{ padding: '10px', whiteSpace: 'normal', overflow: 'hidden' }}>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                                         {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (
-                                            <Tag
-                                                size='md'
-                                                key={idx}
-                                                borderRadius='6px'
-                                                variant='solid'
-                                                colorScheme='green'
-                                            >
-                                                <TagLabel>{tagName}</TagLabel>
-                                            </Tag>
+                                            <span key={idx} style={{
+                                                display: 'inline-block',
+                                                backgroundColor: '#48bb78',
+                                                color: 'white',
+                                                borderRadius: '6px',
+                                                padding: '4px 8px',
+                                                margin: '2px'
+                                            }}>
+                                                {tagName}
+                                            </span>
                                         ))}
-                                    </HStack>
-                                </Td>
-                                <Td>{formatDate(task.dueDate)}</Td>
-                                <Td>{task.sectionID ? getSectionNameById(task.sectionID) : 'No Section'}</Td>
-                            </Tr>
+                                    </div>
+                                </td>
+                                <td style={{ padding: '10px' }}>{formatDate(task.dueDate)}</td>
+                                <td style={{ padding: '10px' }}>{task.sectionID ? getSectionNameById(task.sectionID) : 'No Section'}</td>
+                            </tr>
                         ))
                     ) : (
-                        <Tr>
-                            <Td colSpan={6} textAlign="center" color="gray.500">
+                        <tr>
+                            <td colSpan={4} style={{ textAlign: 'center', color: '#a0aec0', padding: '10px' }}>
                                 No tasks available
-                            </Td>
-                        </Tr>
+                            </td>
+                        </tr>
                     )}
-                </Tbody>
-            </Table>
+                </tbody>
+            </table>
+
         </>
     );
 }
