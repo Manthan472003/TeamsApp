@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, InputRightElement, chakra, Box, Image, FormControl, Text } from '@chakra-ui/react';
-import { FaUserAlt, FaLock } from 'react-icons/fa';
+import { FaUserAlt, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { loginUser } from '../Services/UserService'; // Import the loginUser function
 import logo from '../assets/logo.png';
 
@@ -71,7 +71,7 @@ const Login = () => {
       flexDirection="column"
       width="100%"
       height="100vh"
-      backgroundColor="#E6FFFA"
+      backgroundColor="#e8f0fd"
       justifyContent="center"
       alignItems="center"
       p={{ base: 4, md: 8 }}
@@ -83,7 +83,7 @@ const Login = () => {
           width="50%"
           height="130px"
         />
-        <Heading color="teal.400">Copious !!</Heading>
+        <Heading color="blue.400">Copious-Teams !!!</Heading>
         <Box minW={{ base: '90%', md: '468px' }}>
           <form onSubmit={handleLogin}>
             <Stack spacing={4} p="1rem" backgroundColor="whiteAlpha.900" boxShadow="md">
@@ -110,14 +110,14 @@ const Login = () => {
                     isRequired
                   />
                   <InputRightElement width="4.5rem">
-                    <Button h="1.75rem" size="sm" onClick={handleShowClick}>
-                      {showPassword ? 'Hide' : 'Show'}
+                    <Button h="1.75rem" size="sm" onClick={handleShowClick} backgroundColor={'#ffffff'}>
+                      {showPassword ? <FaEyeSlash size={22}/> : <FaEye size={22}/>}
                     </Button>
                   </InputRightElement>
                 </InputGroup>
               </FormControl>
               {error && <Text color="red.500">{error}</Text>}
-              <Button borderRadius={0} type="submit" variant="solid" colorScheme="teal" width="full">
+              <Button borderRadius={0} type="submit" variant="solid" colorScheme="blue" width="full">
                 Login
               </Button>
             </Stack>
@@ -126,7 +126,7 @@ const Login = () => {
       </Stack>
       <Box>
         New to us?{' '}
-        <Button colorScheme="teal" variant="link" onClick={handleToggle}>
+        <Button colorScheme="blue" variant="link" onClick={handleToggle}>
           SIGNUP
         </Button>
       </Box>

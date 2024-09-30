@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flex, Heading, Input, Button, InputGroup, Stack, InputLeftElement, chakra, Box, Link, Image, FormControl, FormHelperText, InputRightElement, Text } from '@chakra-ui/react';
-import { FaUserAlt, FaLock } from 'react-icons/fa';
+import { FaUserAlt, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { saveUser } from '../Services/UserService';
 import { sendEmail } from '../Services/MailService';
 import { PacmanLoader } from 'react-spinners';
@@ -52,7 +52,7 @@ const Signup = () => {
       flexDirection="column"
       width="100vw"
       height="100vh"
-      backgroundColor="#E6FFFA"
+      backgroundColor="#e8f0fd"
       justifyContent="center"
       alignItems="center"
     >
@@ -60,7 +60,7 @@ const Signup = () => {
         <Flex direction="column" align="center">
           <PacmanLoader size={40} color="#319795" /> {/* Increased size */}
           <br />
-          <Text mt={4} fontSize="xl" color="teal.500">Hang tight! We're getting things ready for you...</Text> {/* Wait message */}
+          <Text mt={4} fontSize="xl" color="blue.500">Hang tight! We're getting things ready for you...</Text> {/* Wait message */}
         </Flex>
       ) : (
         <Stack flexDir="column" mb="2" justifyContent="center" alignItems="center">
@@ -70,7 +70,7 @@ const Signup = () => {
             width="50%"
             height="130px"
           />
-          <Heading color="teal.400">Copious !!</Heading>
+          <Heading color="blue.400">Copious-Teams !!!</Heading>
           <Box minW={{ base: '90%', md: '468px' }}>
             <form onSubmit={handleSubmit}>
               <Stack spacing={4} p="1rem" backgroundColor="whiteAlpha.900" boxShadow="md">
@@ -91,16 +91,16 @@ const Signup = () => {
                     <InputLeftElement pointerEvents="none" color="gray.300" children={<CFaLock color="gray.300" />} />
                     <Input type={showPassword ? 'text' : 'password'} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
                     <InputRightElement width="4.5rem">
-                      <Button h="1.75rem" size="sm" onClick={handleShowClick}>
-                        {showPassword ? 'Hide' : 'Show'}
+                      <Button h="1.75rem" size="sm" onClick={handleShowClick} backgroundColor={'#ffffff'}>
+                      {showPassword ? <FaEyeSlash size={22}/> : <FaEye size={22}/>}
                       </Button>
                     </InputRightElement>
                   </InputGroup>
-                  <FormHelperText textAlign="right">
+                  {/* <FormHelperText textAlign="right">
                     <Link>Forgot password?</Link>
-                  </FormHelperText>
+                  </FormHelperText> */}
                 </FormControl>
-                <Button borderRadius={0} type="submit" variant="solid" colorScheme="teal" width="full">
+                <Button borderRadius={0} type="submit" variant="solid" colorScheme="blue" width="full">
                   Signup
                 </Button>
               </Stack>
@@ -108,7 +108,7 @@ const Signup = () => {
           </Box>
           <Box>
             Already have an account?{' '}
-            <Button colorScheme="teal" variant="link" onClick={handleToggle}>
+            <Button colorScheme="blue" variant="link" onClick={handleToggle}>
               LOGIN
             </Button>
           </Box>
