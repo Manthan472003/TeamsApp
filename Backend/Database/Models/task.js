@@ -8,7 +8,7 @@ const Task = sequelize.define('Task', {
         primaryKey: true
     },
     taskName: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.TEXT,
         allowNull: false
     },
     description: {
@@ -59,6 +59,11 @@ const Task = sequelize.define('Task', {
     updatedAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
+        onUpdate: DataTypes.NOW,
+    },
+    deletedAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
         onUpdate: DataTypes.NOW,
     }
 }, {

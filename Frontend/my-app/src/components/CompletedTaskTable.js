@@ -86,7 +86,6 @@ const Bin = ({ users }) => {
                 color: 'transparent',
                 display: 'inline-block',
             }}>
-                Deleted Tasks
             </Heading>
             {error && <p className="error">{error}</p>}
             <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>

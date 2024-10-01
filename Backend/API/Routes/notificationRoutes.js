@@ -14,4 +14,7 @@ router.get('/:id', notificationController.getNotificationById);
 // Route for deleting a notification by ID
 router.delete('/:id', notificationController.deleteNotificationById);
 
+//Route for getting notifications for a user by User ID
+router.get('/users/:userId', notificationController.getNotificationsByUserId);
+
 module.exports = router;

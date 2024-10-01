@@ -13,6 +13,9 @@ const notificationRoutes = require('./Routes/notificationRoutes');
 const commentRoutes = require('./Routes/commentRoutes');
 const sendMailRoute = require('./Routes/sendMailRoute');
 
+require('./Controllers/deletePermanentlyController'); 
+
+
 const app = express();
 const PORT = process.env.PORT || 8080;
 

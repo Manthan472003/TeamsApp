@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, VStack, Button, Flex, Image, Text, useDisclosure, useToast, Menu, MenuButton, MenuList, MenuItem,
-  SimpleGrid, IconButton
+  SimpleGrid
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircleIcon, DeleteIcon } from '@chakra-ui/icons';
@@ -16,7 +16,8 @@ import AddTaskModal from './AddTaskModal';
 import { getSections } from '../Services/SectionService';
 import ConfirmLogoutModal from './ConfirmLogoutModal';
 import jwt_decode from 'jwt-decode'; // Import jwt-decode
-import { FaBell, FaAngleUp, FaList, FaUserCheck } from "react-icons/fa"; // Import the notification icon
+import NotificationPopover from './NotificationPopover';
+import { FaAngleUp, FaList, FaUserCheck } from "react-icons/fa"; // Import the notification icon
 
 
 const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
@@ -24,6 +25,8 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
   const location = useLocation();
   const [activeButton, setActiveButton] = useState(location.pathname);
   const [userName, setUserName] = useState('');
+  const [userId, setUserId] = useState('');
+  const [isNotificationOpen, setNotificationOpen] = useState(false);
   const [, setIsOpen] = useState(location.pathname === '/Home'); // Manage Collapse state
   const { isOpen: isSectionOpen, onOpen: onSectionOpen, onClose: onSectionClose } = useDisclosure();
   const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
@@ -50,6 +53,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
     if (token) {
       const decoded = jwt_decode(token); // Decode the JWT token
       setUserName(decoded.userName); // Set the user information state
+      setUserId(decoded.id);
     }
   }, [fetchSections]);
 
@@ -327,12 +331,10 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
             </MenuList>
           </Menu>
 
-          <IconButton
-            icon={<FaBell size={20} />}
-            aria-label="Notifications"
-            variant="outline"
-            colorScheme="gray.500"
-            ml={2}
+          <NotificationPopover
+            isOpen={isNotificationOpen}
+            onToggle={() => setNotificationOpen(!isNotificationOpen)}
+            userId={userId} // Pass userId to the NotificationPopover
           />
         </Flex>
 

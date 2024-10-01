@@ -4,6 +4,8 @@ const User = require('../../Database/Models/user');
 const Tag = require('../../Database/Models/tag');
 const { Op } = require('sequelize');
 const Notification = require('../../Database/Models/notifications');
+const { DataTypes } = require('sequelize');
+
 
 
 
@@ -17,33 +19,39 @@ const createTask = async (req, res) => {
     }
 
     try {
+        // Convert IDs to appropriate types (e.g., integers)
+        const assignedUserId = taskAssignedToID ? parseInt(taskAssignedToID, 10) : null;
+        const createdByUserId = taskCreatedByID ? parseInt(taskCreatedByID, 10) : null;
+        const sectionId = parseInt(sectionID, 10);
+        const tagsIds = tagIDs && Array.isArray(tagIDs) ? tagIDs.map(id => parseInt(id, 10)) : [];
+
         // Check if the assigned user exists (if provided)
-        if (taskAssignedToID) {
-            const assignedUser = await User.findOne({ where: { id: taskAssignedToID } });
+        if (assignedUserId) {
+            const assignedUser = await User.findOne({ where: { id: assignedUserId } });
             if (!assignedUser) {
                 return res.status(404).json({ message: 'Assigned user does not exist.' });
             }
         }
 
         // Check if the task creator exists (if provided)
-        if (taskCreatedByID) {
-            const createdByUser = await User.findOne({ where: { id: taskCreatedByID } });
+        if (createdByUserId) {
+            const createdByUser = await User.findOne({ where: { id: createdByUserId } });
             if (!createdByUser) {
                 return res.status(404).json({ message: 'Task creator does not exist.' });
             }
         }
 
         // Check if the section exists
-        const section = await Section.findOne({ where: { id: sectionID } });
+        const section = await Section.findOne({ where: { id: sectionId } });
         if (!section) {
             return res.status(404).json({ message: 'Section does not exist.' });
         }
 
         // Validate tagIDs if provided
-        if (tagIDs && Array.isArray(tagIDs)) {
-            const tags = await Tag.findAll({ where: { id: tagIDs } });
+        if (tagsIds.length > 0) {
+            const tags = await Tag.findAll({ where: { id: tagsIds } });
             const tagIdsInDb = tags.map(tag => tag.id);
-            const invalidTagIds = tagIDs.filter(tagId => !tagIdsInDb.includes(tagId));
+            const invalidTagIds = tagsIds.filter(tagId => !tagIdsInDb.includes(tagId));
 
             if (invalidTagIds.length > 0) {
                 return res.status(404).json({ message: `Tags with IDs ${invalidTagIds.join(', ')} do not exist.` });
@@ -56,19 +64,19 @@ const createTask = async (req, res) => {
             description,
             dueDate,
             subTask,
-            taskAssignedToID,
-            taskCreatedByID,
+            taskAssignedToID: assignedUserId,
+            taskCreatedByID: createdByUserId,
             status,
-            sectionID,
+            sectionID: sectionId,
             platformType,
-            tagIDs // Handle this as JSON array
+            tagIDs: tagsIds // Handle this as JSON array
         });
 
         // Create a notification for the task
-        const notificationText = `New task created: ${taskName}`;
+        const notificationText = `New task created:\n${taskName}`; // Updated format
         const userIds = [];
-        if (taskAssignedToID) userIds.push(taskAssignedToID);
-        if (taskCreatedByID) userIds.push(taskCreatedByID);
+        if (assignedUserId) userIds.push(assignedUserId);
+        if (createdByUserId) userIds.push(createdByUserId);
 
         let notificationId;
         if (userIds.length > 0) {
@@ -85,6 +93,8 @@ const createTask = async (req, res) => {
         return res.status(500).json({ message: 'Error creating task.' });
     }
 };
+
+
 
 // Get all tasks
 const getAllTasks = async (req, res) => {
@@ -141,7 +151,6 @@ const updateTaskById = async (req, res) => {
     }
 
     try {
-
         // Find the existing task
         const task = await Task.findOne({ where: { id } });
         if (!task) {
@@ -159,11 +168,9 @@ const updateTaskById = async (req, res) => {
         if (sectionID !== undefined) updateFields.sectionID = sectionID;
         if (tagIDs !== undefined) updateFields.tagIDs = tagIDs;
 
-
-        // Use existing user IDs if new ones are not provided
+        // Determine assigned user IDs
         const finalAssignedToID = taskAssignedToID !== undefined ? taskAssignedToID : task.taskAssignedToID;
         const finalCreatedByID = taskCreatedByID !== undefined ? taskCreatedByID : task.taskCreatedByID;
-
 
         // Validate user existence
         if (finalAssignedToID) {
@@ -179,35 +186,53 @@ const updateTaskById = async (req, res) => {
             }
         }
 
+        // Determine if the assigned user has changed
+        const assignedUserChanged = finalAssignedToID !== task.taskAssignedToID;
+
         // Create a notification for the task update if any field is updated
-        let notificationId;
-        const isUpdated = Object.keys(updateFields).length > 0 ||
-            finalAssignedToID !== task.taskAssignedToID ||
-            finalCreatedByID !== task.taskCreatedByID;
+        let notificationIds = [];
+        const isUpdated = Object.keys(updateFields).length > 0 || assignedUserChanged;
 
         if (isUpdated) {
             const notificationText = `Task updated: ${task.taskName}`;
-            const userIds = [];
-            if (finalAssignedToID) userIds.push(finalAssignedToID);
-            if (finalCreatedByID) userIds.push(finalCreatedByID);
+            const userIds = new Set();
 
-            if (userIds.length > 0) {
-                const notification = await Notification.create({ notificationText, userIds });
-                notificationId = notification.id;
+            // Add new and old assigned user IDs if changed
+            if (assignedUserChanged) {
+                userIds.add(finalAssignedToID); // New user
+                userIds.add(task.taskAssignedToID); // Old user
             } else {
-                console.warn('No user IDs to create notification. Task will be updated without notification.');
+                userIds.add(finalAssignedToID); // Only the current assigned user
             }
-        } else {
-            console.log('No updates detected; no notification will be created.');
-        }
 
+            // Check existing notifications
+            const existingNotifications = await Notification.findAll({
+                where: {
+                    notificationText,
+                    userIds: {
+                        [Op.like]: `%${Array.from(userIds).join('%')}%` // Check if any of these users are already notified
+                    }
+                }
+            });
+
+            const existingUserIds = new Set(existingNotifications.map(n => n.userIds[0])); // Assuming userIds is an array
+
+            // Create notifications for new users
+            for (const userId of userIds) {
+                const intUserId = parseInt(userId, 10);
+                if (!isNaN(intUserId) && !existingUserIds.has(intUserId)) {
+                    const notification = await Notification.create({ notificationText, userIds: [intUserId] });
+                    notificationIds.push(notification.id);
+                }
+            }
+        }
 
         // Update the task with the collected fields, including notificationIDs
         await task.update({
             ...updateFields,
             taskAssignedToID: finalAssignedToID,
             taskCreatedByID: finalCreatedByID,
-            notificationIDs: task.notificationIDs ? [...task.notificationIDs, notificationId] : [notificationId]
+            notificationIDs: task.notificationIDs ? [...new Set([...task.notificationIDs, ...notificationIds])] : notificationIds
         });
 
         // Fetch the updated task from the database
@@ -239,6 +264,7 @@ const deleteTaskById = async (req, res) => {
 
         // Perform a soft delete
         task.isDelete = true;
+        task.deletedAt = new Date(); // Set the current time
         await task.save();
 
         return res.status(200).json({ message: 'Task deleted successfully.' });
@@ -279,6 +305,7 @@ const restoreTaskById = async (req, res) => {
 
         // Restore the task
         task.isDelete = false;
+        task.deletedAt = null;
         await task.save();
 
         return res.status(200).json({ message: 'Task restored successfully.' });

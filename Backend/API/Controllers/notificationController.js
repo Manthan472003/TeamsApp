@@ -1,5 +1,8 @@
 const Notification = require('../../Database/Models/notifications');
 const User = require('../../Database/Models/user');
+const Op = require('sequelize');
+const sequelize = require('../../Database/Config/config'); // Adjust the path according to your project structure
+
 
 // Create a new notification
 const createNotification = async (req, res) => {
@@ -76,9 +79,38 @@ const deleteNotificationById = async (req, res) => {
     }
 };
 
+// Get all Notifications by UserID
+const getNotificationsByUserId = async (req, res) => {
+    try {
+        const userId = parseInt(req.params.userId, 10); // Convert to number
+
+        // Use a raw SQL query to search within userIds
+        const notifications = await sequelize.query(
+            `SELECT * FROM notifications_table WHERE JSON_CONTAINS(userIds, ?)`,
+            {
+                replacements: [JSON.stringify(userId)], // Wrap userId in JSON.stringify
+                type: sequelize.QueryTypes.SELECT,
+            }
+        );
+
+        if (notifications.length === 0) {
+            return res.status(404).json({ message: 'No notifications found.' });
+        }
+
+        return res.status(200).json(notifications);
+    } catch (error) {
+        console.error(error); // Log the error for debugging
+        return res.status(500).json({ message: 'Error retrieving notifications for user.', error });
+    }
+};
+
+
+
+
 module.exports = {
     createNotification,
     getNotificationById,
     getAllNotifications,
-    deleteNotificationById
+    deleteNotificationById,
+    getNotificationsByUserId
 }

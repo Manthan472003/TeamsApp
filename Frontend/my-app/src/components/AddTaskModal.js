@@ -24,10 +24,10 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     const [platformType, setPlatformType] = useState('Platform-Independent');
     const [selectedTags, setSelectedTags] = useState([]);
     const [sections, setSections] = useState([]);
-    const [tags, setTags] = useState([]); // State to hold tags
+    const [tags, setTags] = useState([]);
     const [selectedSection, setSelectedSection] = useState(sectionID || '');
     const [userId, setUserId] = useState(propUserId || '');
-    const [ setAssignedUserName] = useState('');
+    const [setAssignedUserName] = useState('');
     const toast = useToast();
 
     useEffect(() => {
@@ -36,6 +36,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                 const response = await getSections();
                 if (response && response.data) {
                     setSections(response.data);
+                    console.log("Fetched sections:", response.data); // Debugging log
                 } else {
                     throw new Error('Unexpected response format');
                 }
@@ -43,6 +44,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                 console.error('Error fetching sections:', error);
             }
         };
+
 
         const fetchTags = async () => {
             try {
@@ -218,6 +220,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                         </option>
                                     ))}
                                 </Select>
+
                             </FormControl>
 
                             <FormControl mb={4}>
@@ -253,10 +256,11 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                 <Input
                                     value={dueDate}
                                     type='date'
-                                    onChange={(e) => setDueDate(e.target.value)}
+                                    onChange={(e) => setDueDate(e.target.value)} // Ensure this is correct
                                     required
                                 />
                             </FormControl>
+
                             <FormControl mb={4}>
                                 <FormLabel>Assigned To</FormLabel>
                                 <UserDropdown

@@ -4,4 +4,10 @@ import axios from 'axios';
 const API_URL = 'http://localhost:8080/notifications';
 
 // Fetch all notifications
-export const getNotification = () => axios.get(API_URL);
+export const getNotifications = () => axios.get(API_URL);
+
+//Get Notification By ID
+export const getNotificationById = (notificationId) => axios.get(`${API_URL}/${notificationId}`)
+
+//Get Notifications By User ID
+export const getNotificationsByUserId = (userId) => axios.get(`${API_URL}/users/${userId}`)

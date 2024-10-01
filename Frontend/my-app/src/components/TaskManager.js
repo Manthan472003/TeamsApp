@@ -11,7 +11,6 @@ import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import TaskTable from './TaskTable';
 import EditSectionModal from './EditSectionModal';
-// import ConfirmDeleteModal from './ConfirmDeleteModal';
 import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
 
@@ -234,18 +233,16 @@ const TaskManager = () => {
         refreshTasks();
     };
 
-
-
     const handleStatusChange = async (taskId, newStatus) => {
         try {
             const taskToUpdate = Object.values(tasksBySection).flat().find(task => task.id === taskId);
             if (taskToUpdate) {
                 taskToUpdate.status = newStatus;
-                await updateTask(taskToUpdate); // Update task status in the backend
+                await updateTask(taskToUpdate); 
                 if (taskToUpdate.sectionID !== null) {
-                    await fetchTasksBySection(taskToUpdate.sectionID); // Refresh tasks for the specific section
+                    await fetchTasksBySection(taskToUpdate.sectionID); 
                 } else {
-                    await fetchTasksWithoutSection(); // Refresh tasks without section
+                    await fetchTasksWithoutSection();
                 }
                 toast({
                     title: "Task status updated.",
@@ -283,11 +280,11 @@ const TaskManager = () => {
 
     const handleDelete = async (task) => {
         try {
-            await deleteTask(task.id); // Delete task
+            await deleteTask(task.id); 
             if (task.sectionID !== null) {
-                await fetchTasksBySection(task.sectionID); // Refresh tasks for the specific section
+                await fetchTasksBySection(task.sectionID); 
             } else {
-                await fetchTasksWithoutSection(); // Refresh tasks without section
+                await fetchTasksWithoutSection();
             }
             toast({
                 title: "Task deleted.",
@@ -308,52 +305,9 @@ const TaskManager = () => {
         }
     };
 
-    // const handleDeleteSection = (section) => {
-    //     setSectionToDelete(section);
-    //     onConfirmDeleteOpen();
-    // };
-
-    // const handleConfirmDelete = async () => {
-    //     if (!sectionToDelete) return;
-    //     try {
-    //         const response = await deleteSection(sectionToDelete.id); // Delete section
-    //         if (response.status === 200) {
-    //             setSections(prevSections =>
-    //                 prevSections.filter(sec => sec.id !== sectionToDelete.id)
-    //             );
-    //             setTasksBySection(prevTasks => {
-    //                 const newTasks = { ...prevTasks };
-    //                 delete newTasks[sectionToDelete.id];
-    //                 return newTasks;
-    //             });
-    //             await fetchTasksWithoutSection(); // Refresh tasks without section
-    //             toast({
-    //                 title: "Section deleted.",
-    //                 description: "The section was successfully deleted.",
-    //                 status: "success",
-    //                 duration: 5000,
-    //                 isClosable: true,
-    //             });
-    //         } else {
-    //             throw new Error(response.data.message);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error deleting section:', error.response || error);
-    //         toast({
-    //             title: "Error deleting section.",
-    //             description: error.message,
-    //             status: "error",
-    //             duration: 5000,
-    //             isClosable: true,
-    //         });
-    //     } finally {
-    //         onConfirmDeleteClose();
-    //     }
-    // };
-
     const handleUpdateSection = async (section) => {
         try {
-            const response = await updateSection(section); // Update section via API
+            const response = await updateSection(section); 
             if (response.status === 200) {
                 setSections(prevSections =>
                     prevSections.map(sec =>
@@ -406,7 +360,7 @@ const TaskManager = () => {
 
             <SearchBar
                 onSectionSelected={handleSectionSelected}
-                onApplyFilter={applyFilter} 
+                onApplyFilter={applyFilter}
             />
 
             <Accordion allowToggle>
@@ -429,14 +383,7 @@ const TaskManager = () => {
                                     leftIcon={<EditIcon />}
                                     onClick={() => handleEditSection(section)}
                                 />
-                                {/* <Button
-                                    variant='solid'
-                                    colorScheme='red'
-                                    size='sm'
-                                    ml={2}
-                                    leftIcon={<DeleteIcon />}
-                                    onClick={(e) => { e.stopPropagation(); handleDeleteSection(section); }}
-                                /> */}
+
                                 <AccordionIcon />
                             </AccordionButton>
                             <AccordionPanel pb={4}>
@@ -462,30 +409,7 @@ const TaskManager = () => {
                         </AccordionItem>
                     );
                 })}
-
-                {/* "Others" Section */}
-                {/* <AccordionItem borderWidth={1} borderRadius="md" mb={4}>
-                    <AccordionButton>
-                        <Box flex='1' textAlign='left'>
-                            <Text fontSize='xl' fontWeight='bold' color='#149edf'>Others</Text>
-                            <Text fontSize='md' color='gray.500'>Tasks without a specific section</Text>
-                        </Box>
-                        <Spacer />
-                        <AccordionIcon />
-                    </AccordionButton>
-                    <AccordionPanel pb={4}>
-                        <TaskTable
-                            tasks={filterTasks(tasksWithoutSection)}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                            onStatusChange={handleStatusChange}
-                            users={users}
-                        />
-                    </AccordionPanel>
-                </AccordionItem> */}
             </Accordion>
-
-
 
             <AddTaskModal
                 isOpen={isTaskOpen}
@@ -511,13 +435,6 @@ const TaskManager = () => {
                     onSectionUpdated={handleUpdateSection}
                 />
             )}
-
-            {/* <ConfirmDeleteModal
-                isOpen={isConfirmDeleteOpen}
-                onClose={onConfirmDeleteClose}
-                onConfirm={handleConfirmDelete}
-                itemName={sectionToDelete ? sectionToDelete.sectionName : ''}
-            /> */}
         </Box>
     );
 };
