@@ -6,9 +6,6 @@ const { Op } = require('sequelize');
 const Notification = require('../../Database/Models/notifications');
 const { DataTypes } = require('sequelize');
 
-
-
-
 // Create a new task (with user, section, and tag existence checks)
 const createTask = async (req, res) => {
     const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, platformType, tagIDs } = req.body;
@@ -93,8 +90,6 @@ const createTask = async (req, res) => {
         return res.status(500).json({ message: 'Error creating task.' });
     }
 };
-
-
 
 // Get all tasks
 const getAllTasks = async (req, res) => {
@@ -186,53 +181,11 @@ const updateTaskById = async (req, res) => {
             }
         }
 
-        // Determine if the assigned user has changed
-        const assignedUserChanged = finalAssignedToID !== task.taskAssignedToID;
-
-        // Create a notification for the task update if any field is updated
-        let notificationIds = [];
-        const isUpdated = Object.keys(updateFields).length > 0 || assignedUserChanged;
-
-        if (isUpdated) {
-            const notificationText = `Task updated: ${task.taskName}`;
-            const userIds = new Set();
-
-            // Add new and old assigned user IDs if changed
-            if (assignedUserChanged) {
-                userIds.add(finalAssignedToID); // New user
-                userIds.add(task.taskAssignedToID); // Old user
-            } else {
-                userIds.add(finalAssignedToID); // Only the current assigned user
-            }
-
-            // Check existing notifications
-            const existingNotifications = await Notification.findAll({
-                where: {
-                    notificationText,
-                    userIds: {
-                        [Op.like]: `%${Array.from(userIds).join('%')}%` // Check if any of these users are already notified
-                    }
-                }
-            });
-
-            const existingUserIds = new Set(existingNotifications.map(n => n.userIds[0])); // Assuming userIds is an array
-
-            // Create notifications for new users
-            for (const userId of userIds) {
-                const intUserId = parseInt(userId, 10);
-                if (!isNaN(intUserId) && !existingUserIds.has(intUserId)) {
-                    const notification = await Notification.create({ notificationText, userIds: [intUserId] });
-                    notificationIds.push(notification.id);
-                }
-            }
-        }
-
-        // Update the task with the collected fields, including notificationIDs
+        // Update the task with the collected fields
         await task.update({
             ...updateFields,
             taskAssignedToID: finalAssignedToID,
             taskCreatedByID: finalCreatedByID,
-            notificationIDs: task.notificationIDs ? [...new Set([...task.notificationIDs, ...notificationIds])] : notificationIds
         });
 
         // Fetch the updated task from the database
@@ -245,6 +198,7 @@ const updateTaskById = async (req, res) => {
         return res.status(500).json({ message: 'Error updating task.' });
     }
 };
+
 
 //Delete task by task ID
 const deleteTaskById = async (req, res) => {
@@ -392,6 +346,7 @@ const getAssignedTasksToUserByUserId = async (req, res) => {
 
 }
 
+//get task by taskname
 const getTasksByTaskName = async (req, res) => {
     const { taskName } = req.query;
     console.log('Searching for tasks with name:', taskName); // Log the search term

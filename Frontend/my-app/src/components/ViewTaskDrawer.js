@@ -31,6 +31,7 @@ import { getUsers, getUser } from '../Services/UserService';
 import { getSections } from '../Services/SectionService';
 import { sendEmail } from '../Services/MailService';
 import ConfirmCompleteModal from './ConfirmCompleteModal';
+import { createNotification } from '../Services/NotificationService';
 
 const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onStatusChange }) => {
   const [size] = useState('xl');
@@ -167,36 +168,84 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
   const handleSaveAndClose = async () => {
     if (localTask) {
       try {
-        await updateTask(localTask);  // Update task first
-        onUpdate(localTask);  // Trigger any onUpdate callback
+        // Update the task first
+        await updateTask(localTask);
+        onUpdate(localTask); // Trigger any onUpdate callback
 
         const assignedUserID = localTask.taskAssignedToID;
 
+        // Prepare to send notifications
+        const notificationPromises = [];
+
         // Check if assigned user has changed and send email notification
         if (previousAssignedUser !== assignedUserID) {
-          await sendEmailNotification('assignedUserChange', previousAssignedUser, assignedUserID);
-          setPreviousAssignedUser(assignedUserID);  // Update the state to reflect the new assigned user
+          notificationPromises.push(sendEmailNotification('assignedUserChange', previousAssignedUser, assignedUserID));
+
+          // Prepare notification for user assignment change
+          try {
+            await createNotification({
+              notificationText: `Task "${localTask.taskName}" has been reassigned from User ID ${previousAssignedUser} to User ID ${assignedUserID}.`,
+              userIds: [previousAssignedUser, assignedUserID],
+            });
+          } catch (error) {
+            console.error('Error creating notification for assigned user change:', error.response ? error.response.data : error);
+          }
+
+          setPreviousAssignedUser(assignedUserID); // Update the state to reflect the new assigned user
         }
 
         // Check if the due date has changed and send email notification
         if (previousDueDate !== localTask.dueDate) {
           if (assignedUserEmail) {
-            sendEmailNotification('dueDateChange', null, null, localTask.dueDate);
-            setPreviousDueDate(localTask.dueDate);  // Update previousDueDate after successful save
+            notificationPromises.push(sendEmailNotification('dueDateChange', null, null, localTask.dueDate));
+
+            // Prepare notification for due date change
+            try {
+              await createNotification({
+                notificationText: `The due date for task "${localTask.taskName}" has been updated to ${localTask.dueDate}.`,
+                userIds: [assignedUserID], // Notify the current assigned user
+              });
+              setPreviousDueDate(localTask.dueDate); // Update previousDueDate after successful save
+            } catch (error) {
+              console.error('Error creating notification for due date change:', error.response ? error.response.data : error);
+            }
           } else {
             await fetchUserById(localTask.taskAssignedToID);
             if (assignedUserEmail) {
-              sendEmailNotification('dueDateChange', null, null, localTask.dueDate);
-              setPreviousDueDate(localTask.dueDate);  // Update previousDueDate after successful save
+              notificationPromises.push(sendEmailNotification('dueDateChange', null, null, localTask.dueDate));
+
+              // Prepare notification for due date change
+              try {
+                await createNotification({
+                  notificationText: `The due date for task "${localTask.taskName}" has been updated to ${localTask.dueDate}.`,
+                  userIds: [assignedUserID], // Notify the current assigned user
+                });
+                setPreviousDueDate(localTask.dueDate); // Update previousDueDate after successful save
+              } catch (error) {
+                console.error('Error creating notification for due date change after fetching user:', error.response ? error.response.data : error);
+              }
             }
           }
         }
 
         // Check if the task status has changed to 'Completed' and send email notification
         if (localTask.status === 'Completed' && previousStatus !== 'Completed') {
-          await sendEmailNotification('taskCompleted');
-          setPreviousStatus('Completed');  // Update previousStatus after successful save
+          notificationPromises.push(sendEmailNotification('taskCompleted'));
+
+          // Prepare notification for task completion
+          try {
+            await createNotification({
+              notificationText: `Congratulations! The task "${localTask.taskName}" has been successfully completed!`,
+              userIds: [assignedUserID], // Notify the current assigned user
+            });
+            setPreviousStatus('Completed'); // Update previousStatus after successful save
+          } catch (error) {
+            console.error('Error creating notification for task completion:', error.response ? error.response.data : error);
+          }
         }
+
+        // Await all notification promises to ensure they are sent
+        await Promise.all(notificationPromises);
 
         // Display success toast
         toast({
@@ -221,6 +270,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
       }
     }
   };
+
 
   // Function to send email notification
   const sendEmailNotification = async (type, oldUserId = null, newUserId = null, changedDate = null) => {

@@ -1,8 +1,7 @@
 const Notification = require('../../Database/Models/notifications');
 const User = require('../../Database/Models/user');
-const Op = require('sequelize');
-const sequelize = require('../../Database/Config/config'); // Adjust the path according to your project structure
-
+const { Op } = require('sequelize');
+const sequelize = require('../../Database/Config/config'); 
 
 // Create a new notification
 const createNotification = async (req, res) => {
@@ -16,7 +15,9 @@ const createNotification = async (req, res) => {
         if (userIds && Array.isArray(userIds)) {
             const users = await User.findAll({
                 where: {
-                    id: userIds
+                    id: {
+                        [Op.in]: userIds
+                    }
                 }
             });
 
@@ -32,21 +33,23 @@ const createNotification = async (req, res) => {
         const newNotification = await Notification.create({ notificationText, userIds });
         return res.status(201).json({ message: 'Notification created successfully.', newNotification });
     } catch (error) {
-        return res.status(500).json({ message: 'Error creating tag.', error });
+        console.error('Error creating notification:', error);
+        return res.status(500).json({ message: 'Error creating notification.', error });
     }
 };
 
-// Get all tags
+// Get all notifications
 const getAllNotifications = async (req, res) => {
     try {
         const notifications = await Notification.findAll();
         return res.status(200).json(notifications);
     } catch (error) {
+        console.error('Error retrieving notifications:', error);
         return res.status(500).json({ message: 'Error retrieving notifications.', error });
     }
 };
 
-// Get tag by ID 
+// Get notification by ID 
 const getNotificationById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -58,11 +61,12 @@ const getNotificationById = async (req, res) => {
         }
         return res.status(200).json(notification);
     } catch (error) {
+        console.error('Error retrieving notification:', error);
         return res.status(500).json({ message: 'Error retrieving notification.', error });
     }
 };
 
-// Delete tag by ID
+// Delete notification by ID
 const deleteNotificationById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -75,18 +79,19 @@ const deleteNotificationById = async (req, res) => {
         await notification.destroy();
         return res.status(200).json({ message: 'Notification deleted successfully.' });
     } catch (error) {
-        return res.status(500).json({ message: 'Error deleting Notification.', error });
+        console.error('Error deleting notification:', error);
+        return res.status(500).json({ message: 'Error deleting notification.', error });
     }
 };
 
-// Get all Notifications by UserID
+// Get all notifications by UserID
 const getNotificationsByUserId = async (req, res) => {
     try {
         const userId = parseInt(req.params.userId, 10); // Convert to number
 
         // Use a raw SQL query to search within userIds
         const notifications = await sequelize.query(
-            `SELECT * FROM notifications_table WHERE JSON_CONTAINS(userIds, ?)`,
+            'SELECT * FROM notifications_table WHERE JSON_CONTAINS(userIds, ?)',
             {
                 replacements: [JSON.stringify(userId)], // Wrap userId in JSON.stringify
                 type: sequelize.QueryTypes.SELECT,
@@ -99,13 +104,10 @@ const getNotificationsByUserId = async (req, res) => {
 
         return res.status(200).json(notifications);
     } catch (error) {
-        console.error(error); // Log the error for debugging
+        console.error('Error retrieving notifications for user:', error);
         return res.status(500).json({ message: 'Error retrieving notifications for user.', error });
     }
 };
-
-
-
 
 module.exports = {
     createNotification,
@@ -113,4 +115,4 @@ module.exports = {
     getAllNotifications,
     deleteNotificationById,
     getNotificationsByUserId
-}
+};
