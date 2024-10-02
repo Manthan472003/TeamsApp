@@ -173,8 +173,6 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
         onUpdate(localTask); // Trigger any onUpdate callback
 
         const assignedUserID = localTask.taskAssignedToID;
-
-        // Prepare to send notifications
         const notificationPromises = [];
 
         // Check if assigned user has changed and send email notification
@@ -191,7 +189,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
             console.error('Error creating notification for assigned user change:', error.response ? error.response.data : error);
           }
 
-          setPreviousAssignedUser(assignedUserID); // Update the state to reflect the new assigned user
+          setPreviousAssignedUser(assignedUserID);
         }
 
         // Check if the due date has changed and send email notification
@@ -203,9 +201,9 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
             try {
               await createNotification({
                 notificationText: `The due date for task "${localTask.taskName}" has been updated to ${localTask.dueDate}.`,
-                userIds: [assignedUserID], // Notify the current assigned user
+                userIds: [assignedUserID],
               });
-              setPreviousDueDate(localTask.dueDate); // Update previousDueDate after successful save
+              setPreviousDueDate(localTask.dueDate);
             } catch (error) {
               console.error('Error creating notification for due date change:', error.response ? error.response.data : error);
             }
@@ -218,9 +216,9 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
               try {
                 await createNotification({
                   notificationText: `The due date for task "${localTask.taskName}" has been updated to ${localTask.dueDate}.`,
-                  userIds: [assignedUserID], // Notify the current assigned user
+                  userIds: [assignedUserID],
                 });
-                setPreviousDueDate(localTask.dueDate); // Update previousDueDate after successful save
+                setPreviousDueDate(localTask.dueDate);
               } catch (error) {
                 console.error('Error creating notification for due date change after fetching user:', error.response ? error.response.data : error);
               }
@@ -235,10 +233,10 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
           // Prepare notification for task completion
           try {
             await createNotification({
-              notificationText: `Congratulations! The task "${localTask.taskName}" has been successfully completed!`,
-              userIds: [assignedUserID], // Notify the current assigned user
+              notificationText: `Task Completed: Congratulations! The task "${localTask.taskName}" has been successfully completed!`,
+              userIds: [assignedUserID],
             });
-            setPreviousStatus('Completed'); // Update previousStatus after successful save
+            setPreviousStatus('Completed');
           } catch (error) {
             console.error('Error creating notification for task completion:', error.response ? error.response.data : error);
           }
@@ -691,6 +689,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
                   </HStack>
                 </Box>
               </Box>
+
               <DrawerFooter position="fixed" bottom="0" left="0" right="0" bg="white" zIndex="1">
                 <Button colorScheme="green" onClick={() => handleCompleteClick(task)} width={400}>
                   {<CheckIcon />}
@@ -698,6 +697,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
                 </Button>
                 <Button ml={400} colorScheme="blue" onClick={handleSaveAndClose} width={500}>Update Task</Button>
               </DrawerFooter>
+
             </VStack>
           </DrawerBody>
         </DrawerContent>

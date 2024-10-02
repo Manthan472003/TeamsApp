@@ -15,9 +15,20 @@ import {
 import { FaBell } from 'react-icons/fa';
 import { getNotificationsByUserId } from '../Services/NotificationService';
 
+const colorPalette = [
+  "#ffddd6",
+  "#d0f5d7",
+  "#dee4ff",
+  "#fadcec",
+  "#fff1d4",
+  "#d4fffc",
+  "#feffd4",
+  "#edd4ff"
+];
+
 const NotificationPopover = ({ isOpen, onToggle, userId }) => {
   const [notifications, setNotifications] = useState([]);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -39,6 +50,9 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
     }
   }, [isOpen, userId]);
 
+  // Sort notifications by creation date (newest first)
+  const sortedNotifications = notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
   return (
     <Popover isOpen={isOpen} onClose={onToggle}>
       <PopoverTrigger>
@@ -51,42 +65,62 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
           onClick={onToggle}
         />
       </PopoverTrigger>
-      <PopoverContent 
-        width="320px" // Adjusted width for better aesthetics
-        maxHeight="400px" // Fixed height with scrolling
-        overflowY="auto" // Enable vertical scrolling
-        boxShadow="lg" // Add a shadow for depth
-        borderRadius="md" // Rounded corners
-        border="1px" // Border style
-        borderColor="gray.200" // Light border color
-        bg="white" // Background color
+      <PopoverContent
+        width="320px"
+        maxHeight="400px"
+        boxShadow="lg"
+        borderRadius="md"
+        border="1px"
+        borderColor="gray.200"
+        bg="white"
       >
         <PopoverArrow />
         <PopoverCloseButton />
         <PopoverHeader fontSize="lg" fontWeight="bold" borderBottom="1px" borderColor="gray.200">
           Notifications
         </PopoverHeader>
-        <PopoverBody p={3} overflowY="auto"> {/* Add padding and keep it scrollable */}
-          {error && <Text color="red.500" mb={2}>{error}</Text>}
-          {notifications.length === 0 ? (
+        <PopoverBody p={3} overflowY="auto" maxHeight="300px">
+          {sortedNotifications.length === 0 ? (
             <Text color="gray.500">No new notifications</Text>
           ) : (
-            <VStack spacing={2} align="start"> {/* Align items to start */}
-              {notifications.map((notification) => (
-                <Box 
-                  key={notification.id} 
-                  p={2} // Padding for each notification
-                  borderRadius="md" // Rounded corners
-                  bg="gray.50" // Light background for notifications
-                  _hover={{ bg: "gray.100" }} // Hover effect
-                  width="100%"
-                  whiteSpace="nowrap" 
-                  overflow="hidden" 
-                  textOverflow="ellipsis"
-                >
-                  <Text fontSize="sm">{notification.notificationText}</Text>
-                </Box>
-              ))}
+            <VStack spacing={3} align="start">
+              {sortedNotifications.map((notification) => {
+                let heading = "Notification"; // Default heading
+
+                if (notification.notificationText.includes("New task created")) {
+                  heading = "Task Created";
+                } else if (notification.notificationText.includes("reassigned")) {
+                  heading = "Task Reassigned";
+                } else if (notification.notificationText.includes("due date ")) {
+                  heading = "Due Date Updated";
+                } else if (notification.notificationText.includes("Task Completed")) {
+                  heading = "Task Completed";
+                }
+
+                return (
+                  <Box key={notification.id}>
+                    <Text fontWeight="bold" fontSize="md">{heading}</Text>
+                    <Box
+                      p={2}
+                      borderRadius="md"
+                      bg={colorPalette[Math.floor(Math.random() * colorPalette.length)]}
+                      _hover={{ bg: "gray.100" }}
+                      width="100%"
+                      textAlign="justify"
+                      whiteSpace="normal"
+                      overflow="visible"
+                      textOverflow="clip"
+                    >
+                      <Text fontSize="sm">{notification.notificationText}</Text>
+                      <Box display="flex" justifyContent="flex-end" alignItems="center" mt={1}>
+                        <Text fontSize="xs" color="gray.500">
+                          {new Date(notification.createdAt).toLocaleString()}
+                        </Text>
+                      </Box>
+                    </Box>
+                  </Box>
+                );
+              })}
             </VStack>
           )}
         </PopoverBody>
