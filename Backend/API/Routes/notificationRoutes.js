@@ -28,7 +28,6 @@ router.post('/', async (req, res) => {
         return res.status(500).json({ message: 'Internal server error' });
     }
 });
-
 // Route for getting all notifications
 router.get('/', notificationController.getAllNotifications);
 
@@ -40,5 +39,9 @@ router.delete('/:id', notificationController.deleteNotificationById);
 
 // Route for getting notifications for a user by User ID
 router.get('/users/:userId', notificationController.getNotificationsByUserId);
+
+//Mark Notification as seen
+router.put('/:notificationId/markAsSeen/:userId', notificationController.seenTheNotificationByUserId);
+
 
 module.exports = router;
