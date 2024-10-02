@@ -184,8 +184,8 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
           // Prepare notification for user assignment change
           try {
             await createNotification({
-              notificationText: `Task "${localTask.taskName}" has been reassigned from User ID ${previousAssignedUser} to User ID ${assignedUserID}.`,
-              userIds: [previousAssignedUser, assignedUserID],
+              notificationText: `Task "${localTask.taskName}" has been reassigned from ${getUserNameById(previousAssignedUser)} to ${getUserNameById(assignedUserID)}.`,
+              userIds: [parseInt(previousAssignedUser), parseInt(assignedUserID)],
             });
           } catch (error) {
             console.error('Error creating notification for assigned user change:', error.response ? error.response.data : error);
