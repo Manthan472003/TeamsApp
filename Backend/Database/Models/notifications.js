@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../Config/config');
 
-const Notification = sequelize.define('Notification',{
+const Notification = sequelize.define('Notification', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -13,6 +13,10 @@ const Notification = sequelize.define('Notification',{
     },
     userIds: {
         type: DataTypes.JSON
+    },
+    notificationSeenByUserIds: {
+        type: DataTypes.JSON,
+        defaultValue: []
     },
     createdAt: {
         type: DataTypes.DATE,
@@ -27,7 +31,7 @@ const Notification = sequelize.define('Notification',{
     }
 }, {
     tableName: 'notifications_table',
-    timestamps:  false,
+    timestamps: false,
 
 });
 

@@ -1,7 +1,7 @@
 const Notification = require('../../Database/Models/notifications');
 const User = require('../../Database/Models/user');
 const { Op } = require('sequelize');
-const sequelize = require('../../Database/Config/config'); 
+const sequelize = require('../../Database/Config/config');
 
 // Create a new notification
 const createNotification = async (req, res) => {
@@ -109,10 +109,43 @@ const getNotificationsByUserId = async (req, res) => {
     }
 };
 
+const seenTheNotificationByUserId = async (req, res) => {
+    try {
+        const userId = parseInt(req.params.userId, 10);
+        const notificationId = parseInt(req.params.notificationId, 10); // Assuming notification ID is passed in the URL
+
+        // Find the notification by its ID
+        const notification = await Notification.findByPk(notificationId);
+        if (!notification) {
+            return res.status(404).json({ message: 'Notification not found' });
+        }
+
+        // Check if userId is already in notificationSeenByUserIds
+        if (!notification.notificationSeenByUserIds.includes(userId)) {
+            // Add userId to the array
+            notification.notificationSeenByUserIds.push(userId);
+        } else {
+            return res.status(200).json({ message: 'Notification already marked as seen' });
+        }
+
+        // Update the notification
+        await Notification.update(
+            { notificationSeenByUserIds: notification.notificationSeenByUserIds },
+            { where: { id: notificationId } }
+        );
+
+        return res.status(200).json({ message: 'Notification marked as seen', notification });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 module.exports = {
     createNotification,
     getNotificationById,
     getAllNotifications,
     deleteNotificationById,
-    getNotificationsByUserId
+    getNotificationsByUserId,
+    seenTheNotificationByUserId
 };
