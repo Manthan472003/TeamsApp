@@ -13,9 +13,10 @@ import {
   Box,
   HStack,
   Button,
+  Badge,
 } from '@chakra-ui/react';
 import { FaBell, FaCheck } from 'react-icons/fa';
-import { getNotificationsByUserId, markNotificationSeen } from '../Services/NotificationService';
+import { getNotificationsByUserId, markNotificationSeen, getUnreadNotificationsCount } from '../Services/NotificationService';
 
 const colorPalette = [
   "#ffddd6",
@@ -31,6 +32,7 @@ const colorPalette = [
 const NotificationPopover = ({ isOpen, onToggle, userId }) => {
   const [notifications, setNotifications] = useState([]);
   const [, setError] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -47,37 +49,76 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
       }
     };
 
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await getUnreadNotificationsCount(userId);
+        setUnreadCount(response.data.count);
+      } catch (error) {
+        console.error('Error fetching unread notifications count:', error);
+      }
+    };
+
     if (isOpen) {
       fetchNotifications();
-    }
-  }, [isOpen, userId]);
+      fetchUnreadCount();
 
-  // Sort notifications by creation date (newest first)
-  const sortedNotifications = notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      // Poll for new notifications and unread count every 5 seconds
+      const interval = setInterval(() => {
+        fetchNotifications();
+        fetchUnreadCount();
+      }, 5000);
+
+      // Clear interval on component unmount or when popover closes
+      return () => clearInterval(interval);
+    }
+  }, [isOpen, userId]); // Dependencies are isOpen and userId
 
   const onMarkAsRead = async (notificationId) => {
     try {
-      await markNotificationSeen(notificationId, userId); // Call the API to mark as seen
+      await markNotificationSeen(notificationId, userId);
       setNotifications((prevNotifications) =>
         prevNotifications.filter(notification => notification.id !== notificationId)
-      ); // Remove the notification from the state
+      );
+
+      // Refresh the unread count
+      const response = await getUnreadNotificationsCount(userId);
+      setUnreadCount(response.data.count); // Use the passed setter function
     } catch (err) {
       setError('Failed to mark notification as read.');
       console.error(err);
     }
   };
 
+  // Sort notifications by creation date (newest first)
+  const sortedNotifications = notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
   return (
     <Popover isOpen={isOpen} onClose={onToggle}>
       <PopoverTrigger>
-        <IconButton
-          icon={<FaBell size={20} />}
-          aria-label="Notifications"
-          variant="outline"
-          colorScheme="gray.500"
-          ml={2}
-          onClick={onToggle}
-        />
+        <Box position="relative">
+          <IconButton
+            icon={<FaBell size={20} />}
+            aria-label="Notifications"
+            variant="outline"
+            colorScheme="gray.500"
+            ml={2}
+            onClick={onToggle}
+          />
+          {/* Badge for unread notifications */}
+          {unreadCount > 0 && (
+            <Badge
+              colorScheme="red"
+              position="absolute"
+              top="-5px"
+              right="-10px"
+              borderRadius="full"
+              fontSize="0.8em"
+              paddingX="0.5em"
+            >
+              {unreadCount}
+            </Badge>
+          )}
+        </Box>
       </PopoverTrigger>
       <PopoverContent
         width="320px"
@@ -138,7 +179,6 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                           </Box>
                         </HStack>
                       </Box>
-
                     </Box>
                   </Box>
                 );

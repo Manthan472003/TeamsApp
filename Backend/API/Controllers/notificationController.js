@@ -148,6 +148,33 @@ const seenTheNotificationByUserId = async (req, res) => {
     }
 };
 
+const getCountOfUnreadNotificationsByUserId = async (req, res) => {
+    try {
+        const userId = parseInt(req.params.userId, 10);
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ message: 'Invalid userId' });
+        }
+
+        // Count notifications where userId is in userIds but not in notificationSeenByUserIds
+        const count = await Notification.count({
+            where: {
+                [Op.and]: [
+                    sequelize.where(sequelize.fn('JSON_CONTAINS', sequelize.col('userIds'), JSON.stringify(userId)), true), // userId exists in userIds
+                    sequelize.where(sequelize.fn('JSON_CONTAINS', sequelize.col('notificationSeenByUserIds'), JSON.stringify(userId)), false) // userId does not exist in notificationSeenByUserIds
+                ]
+            }
+        });
+
+        console.log(`Count of unread notifications for userId ${userId}: ${count}`);
+        return res.status(200).json({ count });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
 
 module.exports = {
     createNotification,
@@ -155,5 +182,6 @@ module.exports = {
     getAllNotifications,
     deleteNotificationById,
     getNotificationsByUserId,
-    seenTheNotificationByUserId
+    seenTheNotificationByUserId,
+    getCountOfUnreadNotificationsByUserId
 };

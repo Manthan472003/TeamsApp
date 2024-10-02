@@ -43,5 +43,7 @@ router.get('/users/:userId', notificationController.getNotificationsByUserId);
 //Mark Notification as seen
 router.put('/:notificationId/markAsSeen/:userId', notificationController.seenTheNotificationByUserId);
 
+//Get Count of unread notifications
+router.get('/count/unread/:userId', notificationController.getCountOfUnreadNotificationsByUserId);
 
 module.exports = router;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, VStack, Button, Flex, Image, Text, useDisclosure, useToast, Menu, MenuButton, MenuList, MenuItem,
-  SimpleGrid
+  SimpleGrid, Badge
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircleIcon, DeleteIcon } from '@chakra-ui/icons';
@@ -18,6 +18,7 @@ import ConfirmLogoutModal from './ConfirmLogoutModal';
 import jwt_decode from 'jwt-decode'; // Import jwt-decode
 import NotificationPopover from './NotificationPopover';
 import { FaAngleUp, FaList, FaUserCheck } from "react-icons/fa"; // Import the notification icon
+import { getUnreadNotificationsCount } from '../Services/NotificationService'; // Add this import
 
 
 const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
@@ -26,12 +27,23 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
   const [activeButton, setActiveButton] = useState(location.pathname);
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0); // State to store unread count
   const [isNotificationOpen, setNotificationOpen] = useState(false);
   const [, setIsOpen] = useState(location.pathname === '/Home'); // Manage Collapse state
   const { isOpen: isSectionOpen, onOpen: onSectionOpen, onClose: onSectionClose } = useDisclosure();
   const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
   const { isOpen: isLogoutOpen, onOpen: onLogoutOpen, onClose: onLogoutClose } = useDisclosure();
   const toast = useToast();
+
+  // Fetch unread notifications count when Sidebar is loaded
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const response = await getUnreadNotificationsCount(userId);
+      setUnreadCount(response.data.count); // Update unread count
+    } catch (error) {
+      console.error('Error fetching unread notifications count:', error);
+    }
+  }, [userId]);
 
   // Fetch sections list
   const fetchSections = useCallback(async () => {
@@ -55,7 +67,18 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
       setUserName(decoded.userName); // Set the user information state
       setUserId(decoded.id);
     }
-  }, [fetchSections]);
+    if (userId) {
+      fetchUnreadCount(); // Initial fetch when Sidebar loads
+
+      // Set interval to fetch unread count every 3 seconds
+      const intervalId = setInterval(() => {
+        fetchUnreadCount();
+      }, 3000);
+
+      // Clean up the interval on component unmount
+      return () => clearInterval(intervalId);
+    }
+  }, [userId, fetchUnreadCount, fetchSections]);
 
   useEffect(() => {
     setActiveButton(location.pathname);
@@ -315,14 +338,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
       >
         <Flex align="center">
           <Menu>
-            <MenuButton
-              as={Button}
-              rightIcon={<FaAngleUp size={20} />}
-              colorScheme="#086F83"
-              width="100%"
-              backgroundImage="linear-gradient(288deg, rgba(0,85,255,1) 1.5%, rgba(4,56,115,1) 91.6%)"
-              color="white"
-            >
+            <MenuButton as={Button} rightIcon={<FaAngleUp size={20} />} colorScheme="#086F83" width="100%" backgroundImage="linear-gradient(288deg, rgba(0,85,255,1) 1.5%, rgba(4,56,115,1) 91.6%)" color="white">
               Hi, {userName || 'User'}
             </MenuButton>
             <MenuList>
@@ -331,11 +347,27 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
             </MenuList>
           </Menu>
 
-          <NotificationPopover
-            isOpen={isNotificationOpen}
-            onToggle={() => setNotificationOpen(!isNotificationOpen)}
-            userId={userId} // Pass userId to the NotificationPopover
-          />
+          <Box position="relative">
+            <NotificationPopover
+              isOpen={isNotificationOpen}
+              onToggle={() => setNotificationOpen(!isNotificationOpen)}
+              userId={userId}
+              unreadCount={unreadCount} // Pass unreadCount as a prop
+            />
+            {unreadCount > 0 && (
+              <Badge
+                colorScheme="red"
+                position="absolute"
+                top="-5px"
+                right="-10px"
+                borderRadius="full"
+                fontSize="0.8em"
+                paddingX="0.5em"
+              >
+                {unreadCount}
+              </Badge>
+            )}
+          </Box>
         </Flex>
 
         <ConfirmLogoutModal
