@@ -27,7 +27,7 @@ export const createNotification = async ({ notificationText, userIds }) => {
 };
 
 //Mark Notification Seen for a user
-export const markNotificationSeen = async ({ notificationId, userId }) => {
+export const markNotificationSeen = async ( notificationId, userId ) => {
     try {
         const response = await axios.put(`${API_URL}/${notificationId}/markAsSeen/${userId}`);
         return response.data;
