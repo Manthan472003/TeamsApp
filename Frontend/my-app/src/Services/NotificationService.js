@@ -17,7 +17,7 @@ export const createNotification = async ({ notificationText, userIds }) => {
     try {
         const response = await axios.post(API_URL, {
             notificationText,
-            userIds, 
+            userIds,
         });
         return response.data;
     } catch (error) {
@@ -25,3 +25,14 @@ export const createNotification = async ({ notificationText, userIds }) => {
         throw error;
     }
 };
+
+//Mark Notification Seen for a user
+export const markNotificationSeen = async ({ notificationId, userId }) => {
+    try {
+        const response = await axios.put(`${API_URL}/${notificationId}/markAsSeen/${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error marking notification seen:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+}

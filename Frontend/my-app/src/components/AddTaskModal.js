@@ -14,7 +14,6 @@ import { getTags } from '../Services/TagService'; // Import the service to get t
 import { IoIosSave, IoMdCloseCircleOutline } from "react-icons/io";
 import { createNotification } from '../Services/NotificationService';
 
-
 const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID }) => {
     const initialRef = useRef(null);
     const [taskName, setTaskName] = useState('');
@@ -29,7 +28,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     const [tags, setTags] = useState([]);
     const [selectedSection, setSelectedSection] = useState(sectionID || '');
     const [userId, setUserId] = useState(propUserId || '');
-    const [setAssignedUserName] = useState('');
+    const [, setAssignedUserName] = useState('');
     const toast = useToast();
 
     useEffect(() => {
@@ -98,7 +97,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
         try {
             const response = await getUser(userId);
             setAssignedUserEmail(response.data.email);
-            setAssignedUserName(response.data.userName); 
+            setAssignedUserName(response.data.userName);
         } catch (error) {
             console.error('Error fetching user details:', error);
         }
@@ -115,9 +114,9 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-    
+
         const validTagIDs = selectedTags.filter(id => id != null);
-    
+
         const task = {
             taskName,
             dueDate,
@@ -128,33 +127,37 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             sectionID: selectedSection,
             tagIDs: validTagIDs
         };
-    
+
         try {
-            // Save the task and await the response
-            await saveTask(task);
-            
-            // Create the notification after the task is saved
-            const notificationText = `New task created:\n${taskName}`; // Notification message
-            const userIds = [assignedTo, userId].filter(id => id); // Collect user IDs
-    
-            // Create a notification if there are user IDs
+            const newTask = await saveTask(task);
+            onSubmit(newTask);  
+
+            const notificationText = `New task created:\n${taskName}`;
+
+            // Ensure you are only including valid user IDs
+            const userIds = [assignedTo, userId].filter(id => typeof id === 'number' && id > 0);
+
+            // Log the user IDs for debugging
+            console.log("User IDs for notification:", userIds);
+
             if (userIds.length > 0) {
                 await createNotification({ notificationText, userIds });
             }
-    
-            toast({
-                title: "Task added.",
-                description: "The new task was successfully added.",
-                status: "success",
-                duration: 5000,
-                isClosable: true,
-            });
+
+            // toast({
+            //     title: "Task added.",
+            //     description: "The new task was successfully added.",
+            //     status: "success",
+            //     duration: 5000,
+            //     isClosable: true,
+            // });
             onClose();
-    
+            resetForm();
+
             // Send email to the assigned user
             if (assignedUserEmail) {
                 const tagNames = getTagNamesByIds(validTagIDs).join(', ');
-    
+
                 const emailContent = {
                     email: assignedUserEmail,
                     subject: `New Task Assigned : ${taskName}`,
@@ -173,11 +176,10 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                         </div>
                     `,
                 };
-    
+
                 await sendEmail(emailContent);
             }
-    
-            resetForm();
+
         } catch (error) {
             console.error('Error adding task:', error);
             toast({
@@ -189,7 +191,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             });
         }
     };
-    
+
 
     const buttonStyles = {
         base: {

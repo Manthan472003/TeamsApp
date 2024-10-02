@@ -114,6 +114,13 @@ const seenTheNotificationByUserId = async (req, res) => {
         const userId = parseInt(req.params.userId, 10);
         const notificationId = parseInt(req.params.notificationId, 10); // Assuming notification ID is passed in the URL
 
+        // Check if userId and notificationId are valid numbers
+        if (isNaN(userId) || isNaN(notificationId)) {
+            return res.status(400).json({ message: 'Invalid userId or notificationId' });
+        }
+
+        console.log(`User ID: ${userId}, Notification ID: ${notificationId}`); // Debug log
+
         // Find the notification by its ID
         const notification = await Notification.findByPk(notificationId);
         if (!notification) {
@@ -140,6 +147,7 @@ const seenTheNotificationByUserId = async (req, res) => {
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
+
 
 module.exports = {
     createNotification,

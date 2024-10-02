@@ -11,9 +11,11 @@ import {
   Text,
   VStack,
   Box,
+  HStack,
+  Button,
 } from '@chakra-ui/react';
 import { FaBell } from 'react-icons/fa';
-import { getNotificationsByUserId } from '../Services/NotificationService';
+import { getNotificationsByUserId, markNotificationSeen } from '../Services/NotificationService';
 
 const colorPalette = [
   "#ffddd6",
@@ -52,6 +54,18 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
 
   // Sort notifications by creation date (newest first)
   const sortedNotifications = notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const onMarkAsRead = async (notificationId) => {
+    try {
+      await markNotificationSeen(userId, notificationId); // Call the API to mark as seen
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter(notification => notification.id !== notificationId)
+      ); // Remove the notification from the state
+    } catch (err) {
+      setError('Failed to mark notification as read.');
+      console.error(err);
+    }
+  };
 
   return (
     <Popover isOpen={isOpen} onClose={onToggle}>
@@ -104,7 +118,6 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                       p={2}
                       borderRadius="md"
                       bg={colorPalette[Math.floor(Math.random() * colorPalette.length)]}
-                      _hover={{ bg: "gray.100" }}
                       width="100%"
                       textAlign="justify"
                       whiteSpace="normal"
@@ -112,10 +125,15 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                       textOverflow="clip"
                     >
                       <Text fontSize="sm">{notification.notificationText}</Text>
-                      <Box display="flex" justifyContent="flex-end" alignItems="center" mt={1}>
-                        <Text fontSize="xs" color="gray.500">
-                          {new Date(notification.createdAt).toLocaleString()}
-                        </Text>
+                      <Box>
+                        <HStack>
+                          <Button onClick={() => onMarkAsRead(notification.id)}>
+                            Mark as Read
+                          </Button>
+                          <Text fontSize="xs" color="gray.500" display="flex" justifyContent="flex-end" alignItems="center" mt={1}>
+                            {new Date(notification.createdAt).toLocaleString()}
+                          </Text>
+                        </HStack>
                       </Box>
                     </Box>
                   </Box>
