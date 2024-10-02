@@ -14,7 +14,7 @@ import {
   HStack,
   Button,
 } from '@chakra-ui/react';
-import { FaBell } from 'react-icons/fa';
+import { FaBell, FaCheck } from 'react-icons/fa';
 import { getNotificationsByUserId, markNotificationSeen } from '../Services/NotificationService';
 
 const colorPalette = [
@@ -57,7 +57,7 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
 
   const onMarkAsRead = async (notificationId) => {
     try {
-      await markNotificationSeen(userId, notificationId); // Call the API to mark as seen
+      await markNotificationSeen(notificationId, userId); // Call the API to mark as seen
       setNotifications((prevNotifications) =>
         prevNotifications.filter(notification => notification.id !== notificationId)
       ); // Remove the notification from the state
@@ -112,7 +112,7 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                 }
 
                 return (
-                  <Box key={notification.id}>
+                  <Box width="full" key={notification.id}>
                     <Text fontWeight="bold" fontSize="md">{heading}</Text>
                     <Box
                       p={2}
@@ -125,16 +125,20 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                       textOverflow="clip"
                     >
                       <Text fontSize="sm">{notification.notificationText}</Text>
+
                       <Box>
-                        <HStack>
-                          <Button onClick={() => onMarkAsRead(notification.id)}>
-                            Mark as Read
+                        <HStack justifyContent="space-between">
+                          <Button bg="transparent" onClick={() => onMarkAsRead(notification.id)}>
+                            <FaCheck size={15} />
                           </Button>
-                          <Text fontSize="xs" color="gray.500" display="flex" justifyContent="flex-end" alignItems="center" mt={1}>
-                            {new Date(notification.createdAt).toLocaleString()}
-                          </Text>
+                          <Box display="flex" alignItems="center">
+                            <Text fontSize="xs" color="gray.500">
+                              {new Date(notification.createdAt).toLocaleString()}
+                            </Text>
+                          </Box>
                         </HStack>
                       </Box>
+
                     </Box>
                   </Box>
                 );
