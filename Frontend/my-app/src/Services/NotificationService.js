@@ -39,3 +39,6 @@ export const markNotificationSeen = async ( notificationId, userId ) => {
 
 //Get Count of unread notifications
 export const getUnreadNotificationsCount = async (userId) => axios.get(`${API_URL}/count/unread/${userId}`);
+
+//Get Unread Notifications by UserId
+export const getUnreadNotifications = async (userId) => axios.get(`${API_URL}/unseenNotifications/${userId}`);

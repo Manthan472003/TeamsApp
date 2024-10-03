@@ -166,11 +166,32 @@ const getCountOfUnreadNotificationsByUserId = async (req, res) => {
             }
         });
 
-        console.log(`Count of unread notifications for userId ${userId}: ${count}`);
         return res.status(200).json({ count });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
+const getUnreadNotificationsByUserId = async (req, res) => {
+    try {
+        const userId = parseInt(req.params.userId, 10); // Convert to number
+
+        const unseenNotifications = await Notification.findAll({
+            where: {
+                [Op.and]: [
+                    sequelize.where(sequelize.fn('JSON_CONTAINS', sequelize.col('userIds'), JSON.stringify(userId)), true), // userId exists in userIds
+                    sequelize.where(sequelize.fn('JSON_CONTAINS', sequelize.col('notificationSeenByUserIds'), JSON.stringify(userId)), false) // userId does not exist in notificationSeenByUserIds
+                ]
+            }
+        });
+
+        // Send the results back to the client
+        res.status(200).json(unseenNotifications);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while fetching notifications.' });
     }
 };
 
@@ -183,5 +204,6 @@ module.exports = {
     deleteNotificationById,
     getNotificationsByUserId,
     seenTheNotificationByUserId,
-    getCountOfUnreadNotificationsByUserId
+    getCountOfUnreadNotificationsByUserId,
+    getUnreadNotificationsByUserId
 };
