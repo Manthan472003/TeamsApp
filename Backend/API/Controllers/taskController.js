@@ -199,7 +199,6 @@ const updateTaskById = async (req, res) => {
     }
 };
 
-
 //Delete task by task ID
 const deleteTaskById = async (req, res) => {
     const { id } = req.params;

@@ -88,6 +88,7 @@ const TaskTable = ({ tasks, onEdit, onStatusChange, users }) => {
 
     const sortedTasks = filteredTasks
         .filter(task => task.status !== 'Completed')
+        .filter(task => !task.isDelete)
         .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
     const handleTaskClick = (task) => {

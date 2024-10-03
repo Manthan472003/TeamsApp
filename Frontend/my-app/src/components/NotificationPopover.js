@@ -139,22 +139,24 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
         border="1px"
         borderColor="gray.200"
         bg="white"
+        p={0} // Remove padding
+        m={0} // Remove margin
       >
         <PopoverArrow />
         <PopoverCloseButton />
         <PopoverHeader fontSize="lg" fontWeight="bold" borderBottom="1px" borderColor="gray.200">
           Notifications
         </PopoverHeader>
-        <Tabs  isFitted variant='enclosed'>
+        <Tabs isFitted variant='enclosed'>
           <Flex justify="center" align="center">
-            <TabList>
-              <Tab _selected={{ color: 'white', bg: 'blue.500' }} width={20}>All</Tab>
-              <Tab _selected={{ color: 'white', bg: 'green.400' }} width={20}>Unread</Tab>
+            <TabList width="full" justifyContent="space-between">
+              <Tab flex="1" _selected={{ color: 'white', bg: 'blue.500' }} textAlign="center">All</Tab>
+              <Tab flex="1" _selected={{ color: 'white', bg: 'green.400' }} textAlign="center">Unread</Tab>
             </TabList>
           </Flex>
           <TabPanels>
             <TabPanel>
-              <PopoverBody p={3} overflowY="auto" maxHeight="300px">
+              <PopoverBody width="full" overflowY="auto" maxHeight="300px">
                 {sortedNotifications.length === 0 ? (
                   <Text color="gray.500">No new notifications</Text>
                 ) : (
@@ -264,8 +266,6 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
             </TabPanel>
           </TabPanels>
         </Tabs>
-
-
       </PopoverContent>
     </Popover>
   );
