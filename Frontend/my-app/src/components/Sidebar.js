@@ -178,18 +178,17 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
       display="flex"
       flexDirection="column"
     >
-      <Flex direction="row" align="center" mb={4}>
-        <Image ml={8} src={logo} alt="App Logo" width="70px" height={10} />
+      <Flex direction="row" align="center" mb={4} onClick={handleReload} cursor="pointer"
+
+      >
+        <Image ml={8} src={logo} alt="App Logo" width="60px" height={10} />
         <Text
           color="#2D5BA8"
-          fontSize="3xl"
+          fontSize="1.4rem"
           fontWeight="bold"
           ml={4}
-          onClick={handleReload}
-          cursor="pointer"
-          _hover={{ textDecoration: 'underline' }}
         >
-          Copious
+          Copious Teams
         </Text>
       </Flex>
 
