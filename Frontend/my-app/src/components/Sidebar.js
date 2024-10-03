@@ -352,7 +352,6 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
               isOpen={isNotificationOpen}
               onToggle={() => setNotificationOpen(!isNotificationOpen)}
               userId={userId}
-              unreadCount={unreadCount} // Pass unreadCount as a prop
             />
             {unreadCount > 0 && (
               <Badge

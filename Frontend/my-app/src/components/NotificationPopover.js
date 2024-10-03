@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Popover,
   PopoverTrigger,
@@ -18,10 +18,11 @@ import {
   TabList,
   TabPanel,
   TabPanels,
-  Flex
+  Flex,
+  Badge
 } from '@chakra-ui/react';
 import { FaBell, FaCheck } from 'react-icons/fa';
-import { getNotificationsByUserId, markNotificationSeen, getUnreadNotifications } from '../Services/NotificationService';
+import { getNotificationsByUserId, markNotificationSeen, getUnreadNotifications, getUnreadNotificationsCount } from '../Services/NotificationService';
 
 const colorPalette = [
   "#ffddd6",
@@ -38,6 +39,16 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
   const [notifications, setNotifications] = useState([]);
   const [, setError] = useState(null);
   const [unreadNotifications, setUnreadNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0); // State to store unread count
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const response = await getUnreadNotificationsCount(userId);
+      setUnreadCount(response.data.count); // Update unread count
+    } catch (error) {
+      console.error('Error fetching unread notifications count:', error);
+    }
+  }, [userId]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -84,16 +95,27 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
     if (isOpen) {
       fetchUnreadNotifications();
     }
-  }, [userId, isOpen])
+    if (userId) {
+      fetchUnreadCount(); // Initial fetch when Sidebar loads
 
-  const onMarkAsRead = async (notificationId) => {
-    try {
-      await markNotificationSeen(notificationId, userId);
-    } catch (err) {
-      setError('Failed to mark notification as read.');
-      console.error(err);
+      // Set interval to fetch unread count every 3 seconds
+      const intervalId = setInterval(() => {
+        fetchUnreadCount();
+      }, 3000);
+
+      // Clean up the interval on component unmount
+      return () => clearInterval(intervalId);
     }
-  };
+  }, [userId, isOpen, fetchUnreadCount]);
+
+  // const onMarkAsRead = async (notificationId) => {
+  //   try {
+  //     await markNotificationSeen(notificationId, userId);
+  //   } catch (err) {
+  //     setError('Failed to mark notification as read.');
+  //     console.error(err);
+  //   }
+  // };
 
   const onMarkUnreadAsRead = async (notificationId) => {
     try {
@@ -103,6 +125,7 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
       // setNotifications((prevNotifications) =>
       //     prevNotifications.filter(notification => notification.id !== notificationId)
       // );
+
       setUnreadNotifications((prevUnreadNotifications) =>
         prevUnreadNotifications.filter(notification => notification.id !== notificationId)
       );
@@ -112,7 +135,6 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
       console.error(err);
     }
   };
-
 
   const sortedNotifications = notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const sortedUnreadNotifications = unreadNotifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -151,7 +173,21 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
           <Flex justify="center" align="center">
             <TabList width="full" justifyContent="space-between">
               <Tab flex="1" _selected={{ color: 'white', bg: 'blue.500' }} textAlign="center">All</Tab>
-              <Tab flex="1" _selected={{ color: 'white', bg: 'green.400' }} textAlign="center">Unread</Tab>
+              <Tab flex="1" _selected={{ color: 'white', bg: 'green.400' }} textAlign="center">Unread
+                {unreadCount > 0 && (
+                  <Badge
+                    variant='solid'
+                    colorScheme="red"
+                    position="absolute"
+                    top="10px"
+                    right="14px"
+                    borderRadius="full"
+                    fontSize="0.9em"
+                    paddingX="0.5em"
+                  >
+                    {unreadCount}
+                  </Badge>
+                )}</Tab>
             </TabList>
           </Flex>
           <TabPanels>
@@ -189,17 +225,10 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                           >
                             <Text fontSize="sm">{notification.notificationText}</Text>
 
-                            <Box>
-                              <HStack justifyContent="space-between">
-                                <Button bg="transparent" onClick={() => onMarkAsRead(notification.id)}>
-                                  <FaCheck size={15} />
-                                </Button>
-                                <Box display="flex" alignItems="center">
-                                  <Text fontSize="xs" color="gray.500">
-                                    {new Date(notification.createdAt).toLocaleString()}
-                                  </Text>
-                                </Box>
-                              </HStack>
+                            <Box display="flex" justifyContent="flex-end">
+                              <Text fontSize="xs" color="gray.500">
+                                {new Date(notification.createdAt).toLocaleString()}
+                              </Text>
                             </Box>
                           </Box>
                         </Box>
@@ -244,9 +273,9 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                           >
                             <Text fontSize="sm">{notification.notificationText}</Text>
 
-                            <Box>
+                            <Box mt={2}>
                               <HStack justifyContent="space-between">
-                                <Button bg="transparent" onClick={() => onMarkUnreadAsRead(notification.id)}>
+                                <Button bg="transparent" width={50} height={5} onClick={() => onMarkUnreadAsRead(notification.id)}>
                                   <FaCheck size={15} />
                                 </Button>
                                 <Box display="flex" alignItems="center">
