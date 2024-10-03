@@ -22,7 +22,7 @@ import {
   Badge,
   Divider
 } from '@chakra-ui/react';
-import { FaBell, FaCheck } from 'react-icons/fa';
+import { FaBell, FaTimes } from 'react-icons/fa';
 import { getNotificationsByUserId, markNotificationSeen, getUnreadNotifications, getUnreadNotificationsCount } from '../Services/NotificationService';
 
 const colorPalette = [
@@ -204,7 +204,7 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                             <Text color="" fontWeight="bold" fontSize="md">{heading}</Text>
                             <Divider my={1} borderColor="gray.700" />
                             <Text fontSize="sm">{notification.notificationText}</Text>
-                            <Box display="flex" justifyContent="flex-end">
+                            <Box mt={1} display="flex" justifyContent="flex-start">
                               <Text fontSize="xs" color="gray.500">
                                 {new Date(notification.createdAt).toLocaleString()}
                               </Text>
@@ -238,8 +238,7 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                       }
 
                       return (
-                        <Box width="full" key={notification.id}>
-                          <Text fontWeight="bold" fontSize="md">{heading}</Text>
+                        <Box width="full" key={notification.id} position="relative">
                           <Box
                             p={2}
                             borderRadius="md"
@@ -250,14 +249,33 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                             overflow="visible"
                             textOverflow="clip"
                           >
+                            {/* Cross mark button */}
+                            <Button
+                              bg="transparent"
+                              position="absolute"
+                              top={2}
+                              right={2}
+                              size={15}
+                              onClick={() => onMarkUnreadAsRead(notification.id)}
+                              aria-label="Mark as read"
+                              border="2px solid transparent" // Default border
+                              _hover={{ 
+                                borderColor: 'red.500', // Red border on hover
+                                bg: 'transparent', // No background on hover
+                              }}
+                              _focus={{ 
+                                outline: 'none', // Remove default focus outline
+                              }}
+                            >
+                              <FaTimes size={15} />
+                            </Button>
+                            <Text fontWeight="bold" fontSize="md">{heading}</Text>
+                            <Divider my={1} borderColor="gray.700" />
                             <Text fontSize="sm">{notification.notificationText}</Text>
-
+                      
                             <Box mt={2}>
-                              <HStack justifyContent="space-between">
-                                <Button bg="transparent" width={50} height={5} onClick={() => onMarkUnreadAsRead(notification.id)}>
-                                  <FaCheck size={15} />
-                                </Button>
-                                <Box display="flex" alignItems="center">
+                              <HStack>
+                                <Box display="flex" justifyContent="flex-end">
                                   <Text fontSize="xs" color="gray.500">
                                     {new Date(notification.createdAt).toLocaleString()}
                                   </Text>
@@ -267,6 +285,8 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                           </Box>
                         </Box>
                       );
+                      
+
                     })}
                   </VStack>
                 )}
