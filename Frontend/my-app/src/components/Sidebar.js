@@ -20,7 +20,6 @@ import NotificationPopover from './NotificationPopover';
 import { FaAngleUp, FaList, FaUserCheck } from "react-icons/fa"; // Import the notification icon
 import { getUnreadNotificationsCount } from '../Services/NotificationService'; // Add this import
 
-
 const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
   const navigate = useNavigate();
   const location = useLocation();
