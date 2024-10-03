@@ -19,20 +19,15 @@ import {
   TabPanel,
   TabPanels,
   Flex,
-  Badge
+  Badge,
+  Divider
 } from '@chakra-ui/react';
 import { FaBell, FaCheck } from 'react-icons/fa';
 import { getNotificationsByUserId, markNotificationSeen, getUnreadNotifications, getUnreadNotificationsCount } from '../Services/NotificationService';
 
 const colorPalette = [
-  "#ffddd6",
-  "#d0f5d7",
-  "#dee4ff",
-  "#fadcec",
-  "#fff1d4",
-  "#d4fffc",
-  "#feffd4",
-  "#edd4ff"
+  "#ffddd6", // Color for unread notifications
+  "#dcfce2"  // Color for read notifications
 ];
 
 const NotificationPopover = ({ isOpen, onToggle, userId }) => {
@@ -64,7 +59,6 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
         console.error(err);
       }
     };
-
 
     if (isOpen) {
       fetchNotifications();
@@ -108,28 +102,12 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
     }
   }, [userId, isOpen, fetchUnreadCount]);
 
-  // const onMarkAsRead = async (notificationId) => {
-  //   try {
-  //     await markNotificationSeen(notificationId, userId);
-  //   } catch (err) {
-  //     setError('Failed to mark notification as read.');
-  //     console.error(err);
-  //   }
-  // };
-
   const onMarkUnreadAsRead = async (notificationId) => {
     try {
       await markNotificationSeen(notificationId, userId);
-
-      // // Update both notifications and unreadNotifications states
-      // setNotifications((prevNotifications) =>
-      //     prevNotifications.filter(notification => notification.id !== notificationId)
-      // );
-
       setUnreadNotifications((prevUnreadNotifications) =>
         prevUnreadNotifications.filter(notification => notification.id !== notificationId)
       );
-
     } catch (err) {
       setError('Failed to mark notification as read.');
       console.error(err);
@@ -187,7 +165,8 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                   >
                     {unreadCount}
                   </Badge>
-                )}</Tab>
+                )}
+              </Tab>
             </TabList>
           </Flex>
           <TabPanels>
@@ -212,19 +191,19 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
 
                       return (
                         <Box width="full" key={notification.id}>
-                          <Text fontWeight="bold" fontSize="md">{heading}</Text>
                           <Box
                             p={2}
                             borderRadius="md"
-                            bg={colorPalette[Math.floor(Math.random() * colorPalette.length)]}
+                            bg={unreadNotifications.some(unread => unread.id === notification.id) ? colorPalette[0] : colorPalette[1]} // Conditional color
                             width="100%"
                             textAlign="justify"
                             whiteSpace="normal"
                             overflow="visible"
                             textOverflow="clip"
                           >
+                            <Text color="" fontWeight="bold" fontSize="md">{heading}</Text>
+                            <Divider my={1} borderColor="gray.700" />
                             <Text fontSize="sm">{notification.notificationText}</Text>
-
                             <Box display="flex" justifyContent="flex-end">
                               <Text fontSize="xs" color="gray.500">
                                 {new Date(notification.createdAt).toLocaleString()}
@@ -264,7 +243,7 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
                           <Box
                             p={2}
                             borderRadius="md"
-                            bg={colorPalette[Math.floor(Math.random() * colorPalette.length)]}
+                            bg={colorPalette[0]} // Color for unread notifications
                             width="100%"
                             textAlign="justify"
                             whiteSpace="normal"
