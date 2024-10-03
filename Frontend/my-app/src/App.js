@@ -12,7 +12,7 @@ import MyTasks from './components/MyTasks';
 import DailyReports from './components/DailyReports';
 import Sections from './components/Sections';
 import Users from './components/Users';
-
+import Profile from './components/Profile'
 
 function App() {
   return (
@@ -46,6 +46,11 @@ function App() {
           <Route path="/users" element={<MainScreen />}>
             <Route index element={<Users />} />
           </Route>
+
+          <Route path="/profile" element={<MainScreen />}>
+            <Route index element={<Profile />} />
+          </Route>
+
         </Routes>
       </Router>
     </ChakraProvider>
