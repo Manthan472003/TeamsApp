@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDisclosure } from '@chakra-ui/react';
+import { useDisclosure, Button } from '@chakra-ui/react';
 import { TbRestore } from "react-icons/tb";
 import { getTags } from '../Services/TagService'; // Adjust import according to your file structure
 import ConfirmRestoreModal from './ConfirmRestoreModal'; // Import ConfirmRestoreModal
@@ -108,21 +108,13 @@ const CompletedTaskTable = ({ tasks, onStatusChange, users }) => {
                                 </td>
                                 <td style={{ padding: '10px' }}>{getUserNameById(task.taskAssignedToID)}</td>
                                 <td style={{ padding: '10px' }}>
-                                    <button
-                                        style={{
-                                            backgroundColor: '#48bb78',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            padding: '4px 8px',
-                                            cursor: 'pointer',
-                                            fontSize: '14px'
-                                        }}
-                                        leftIcon={<TbRestore />}
+                                    <Button
+                                        colorScheme="green"
                                         onClick={() => handleRestoreClick(task)}
+                                        leftIcon={<TbRestore size={20} />}
                                     >
                                         Restore
-                                    </button>
+                                    </Button>
                                 </td>
                             </tr>
                         ))
