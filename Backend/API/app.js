@@ -12,6 +12,7 @@ const versionManagementRoutes = require('./Routes/versionManagementRoutes');
 const notificationRoutes = require('./Routes/notificationRoutes');
 const commentRoutes = require('./Routes/commentRoutes');
 const sendMailRoute = require('./Routes/sendMailRoute');
+const appVersionManagementRoutes = require('./Routes/appVersionManagementRoutes');
 
 require('./Controllers/deletePermanentlyController'); 
 
@@ -33,6 +34,7 @@ app.use('/versionManagement', versionManagementRoutes);
 app.use('/notifications', notificationRoutes);
 app.use('/comment', commentRoutes);
 app.use('/sendMail', sendMailRoute);
+app.use('/appVersionManagement', appVersionManagementRoutes)
 
 sequelize.sync().then(() => {
   app.listen(PORT, () => {
