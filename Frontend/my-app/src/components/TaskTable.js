@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useDisclosure } from '@chakra-ui/react';
-import { MdOutlineDeleteOutline } from "react-icons/md";
+import { useDisclosure, IconButton } from '@chakra-ui/react';
+import { TbHttpDelete } from "react-icons/tb";
 import { getTags } from '../Services/TagService';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmCompleteModal from './ConfirmCompleteModal';
@@ -35,14 +35,6 @@ const TaskTable = ({ tasks, onEdit, onStatusChange, users }) => {
     useEffect(() => {
         setFilteredTasks(tasks); // Reset filtered tasks when the original tasks prop changes
     }, [tasks]);
-
-    const formatDate = (dateString) => {
-        const d = new Date(dateString);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
 
     const handleStatusChange = (taskId, newStatus) => {
         if (onStatusChange) {
@@ -211,7 +203,13 @@ const TaskTable = ({ tasks, onEdit, onStatusChange, users }) => {
                                             ))}
                                         </div>
                                     </td>
-                                    <td>{formatDate(task.dueDate)}</td>
+                                    <td style={{ padding: '10px' }}>
+                                        {new Intl.DateTimeFormat('en-GB', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric'
+                                        }).format(new Date(task.dueDate))}
+                                    </td>
                                     <td>{getUserNameById(task.taskAssignedToID)}</td>
                                     <td>
                                         <select
@@ -225,9 +223,15 @@ const TaskTable = ({ tasks, onEdit, onStatusChange, users }) => {
                                         </select>
                                     </td>
                                     <td>
-                                        <button className="delete-button" onClick={() => handleDeleteClick(task)}>
-                                            <MdOutlineDeleteOutline size={25} />
-                                        </button>
+                                        <IconButton
+                                            icon={<TbHttpDelete size={30} />}
+                                            onClick={() => handleDeleteClick(task)}
+                                            variant="outline"
+                                            title='Delete'
+                                            border={0}
+                                            colorScheme="red"
+                                        />
+
                                     </td>
                                 </tr>
                             ))

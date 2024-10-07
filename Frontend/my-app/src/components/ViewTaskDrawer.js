@@ -531,7 +531,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
 
   return (
     <>
-      <Drawer onClose={onClose} isOpen={isOpen} size={size}>
+      <Drawer onClose={onClose} isOpen={isOpen} size={size} closeOnOverlayClick={false}>
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />

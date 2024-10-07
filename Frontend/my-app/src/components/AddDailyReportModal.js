@@ -3,6 +3,8 @@ import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton,
   Button, FormControl, FormLabel, Input, Select, useToast
 } from '@chakra-ui/react';
+import jwt_decode from 'jwt-decode'; // Import jwt-decode
+
 
 const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) => {
   const [taskName, setTaskName] = useState('');
@@ -11,17 +13,23 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
   const toast = useToast();
 
   useEffect(() => {
-    if (!propUserId) {
-      const storedUserId = localStorage.getItem('userId');
-      if (storedUserId) {
-        setUserId(storedUserId);
-      } else {
-        console.error('No user ID found in local storage');
-      }
+    // Check if userId is available from props or token
+    if (propUserId) {
+        setUserId(propUserId);
     } else {
-      setUserId(propUserId);
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const decodedToken = jwt_decode(token);
+                setUserId(decodedToken.id); // Adjust according to your token structure
+            } catch (error) {
+                console.error('Failed to decode token:', error);
+            }
+        } else {
+            console.error('No token found in local storage');
+        }
     }
-  }, [propUserId]);
+}, [propUserId]);
 
   const resetForm = () => {
     setTaskName('');

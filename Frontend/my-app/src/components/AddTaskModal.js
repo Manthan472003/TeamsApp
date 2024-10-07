@@ -130,7 +130,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
 
         try {
             const newTask = await saveTask(task);
-            onSubmit(newTask);  
+            onSubmit(newTask);
 
             const notificationText = `New task created:\n${taskName}`;
 
@@ -216,6 +216,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             placement="right"
             onClose={onClose}
             size="xl"
+            closeOnOverlayClick={false}
         >
             <DrawerOverlay />
             <DrawerContent>

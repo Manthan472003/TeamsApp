@@ -29,11 +29,6 @@ const MyTasksTable = ({ tasks, users }) => {
         fetchSections();
     }, []);
 
-    const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        const date = new Date(dateString);
-        return date.toLocaleDateString(undefined, options);
-    };
 
     const getTagNamesByIds = (tagIds) => {
         const tagMap = new Map(tags.map(tag => [tag.id, tag.tagName]));
@@ -92,7 +87,13 @@ const MyTasksTable = ({ tasks, users }) => {
                                         ))}
                                     </div>
                                 </td>
-                                <td style={{ padding: '10px' }}>{formatDate(task.dueDate)}</td>
+                                <td style={{ padding: '10px' }}>
+                                    {new Intl.DateTimeFormat('en-GB', {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric'
+                                    }).format(new Date(task.dueDate))}
+                                </td>
                                 <td style={{ padding: '10px' }}>{task.sectionID ? getSectionNameById(task.sectionID) : 'No Section'}</td>
                             </tr>
                         ))

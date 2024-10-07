@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverArrow,
-  PopoverCloseButton,
-  PopoverHeader,
-  PopoverBody,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  DrawerHeader,
+  DrawerBody,
   IconButton,
   Text,
   VStack,
@@ -20,7 +19,8 @@ import {
   TabPanels,
   Flex,
   Badge,
-  Divider
+  Divider,
+  useDisclosure
 } from '@chakra-ui/react';
 import { FaBell, FaTimes } from 'react-icons/fa';
 import { getNotificationsByUserId, markNotificationSeen, getUnreadNotifications, getUnreadNotificationsCount } from '../Services/NotificationService';
@@ -30,16 +30,17 @@ const colorPalette = [
   "#dcfce2"  // Color for read notifications
 ];
 
-const NotificationPopover = ({ isOpen, onToggle, userId }) => {
+const NotificationPopover = ({ userId }) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const [notifications, setNotifications] = useState([]);
   const [, setError] = useState(null);
   const [unreadNotifications, setUnreadNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0); // State to store unread count
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const fetchUnreadCount = useCallback(async () => {
     try {
       const response = await getUnreadNotificationsCount(userId);
-      setUnreadCount(response.data.count); // Update unread count
+      setUnreadCount(response.data.count);
     } catch (error) {
       console.error('Error fetching unread notifications count:', error);
     }
@@ -62,13 +63,9 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
 
     if (isOpen) {
       fetchNotifications();
-
-      // Poll for new notifications and unread count every 5 seconds
       const interval = setInterval(() => {
         fetchNotifications();
       }, 5000);
-
-      // Clear interval on component unmount or when popover closes
       return () => clearInterval(interval);
     }
   }, [isOpen, userId]);
@@ -90,14 +87,10 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
       fetchUnreadNotifications();
     }
     if (userId) {
-      fetchUnreadCount(); // Initial fetch when Sidebar loads
-
-      // Set interval to fetch unread count every 3 seconds
+      fetchUnreadCount();
       const intervalId = setInterval(() => {
         fetchUnreadCount();
       }, 3000);
-
-      // Clean up the interval on component unmount
       return () => clearInterval(intervalId);
     }
   }, [userId, isOpen, fetchUnreadCount]);
@@ -118,184 +111,169 @@ const NotificationPopover = ({ isOpen, onToggle, userId }) => {
   const sortedUnreadNotifications = unreadNotifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   return (
-    <Popover isOpen={isOpen} onClose={onToggle}>
-      <PopoverTrigger>
-        <Box position="relative">
-          <IconButton
-            icon={<FaBell size={20} />}
-            aria-label="Notifications"
-            variant="outline"
-            colorScheme="gray.500"
-            ml={2}
-            onClick={onToggle}
-          />
-        </Box>
-      </PopoverTrigger>
-      <PopoverContent
-        width="320px"
-        height="400px"
-        boxShadow="lg"
-        borderRadius="md"
-        border="1px"
-        borderColor="gray.200"
-        bg="white"
-        p={0} // Remove padding
-        m={0} // Remove margin
-      >
-        <PopoverArrow />
-        <PopoverCloseButton />
-        <PopoverHeader fontSize="lg" fontWeight="bold" borderBottom="1px" borderColor="gray.200">
-          Notifications
-        </PopoverHeader>
-        <Tabs isFitted variant='enclosed'>
-          <Flex justify="center" align="center">
-            <TabList width="full" justifyContent="space-between">
-              <Tab flex="1" _selected={{ color: 'white', bg: 'blue.500' }} textAlign="center">All</Tab>
-              <Tab flex="1" _selected={{ color: 'white', bg: 'green.400' }} textAlign="center">Unread
-                {unreadCount > 0 && (
-                  <Badge
-                    variant='solid'
-                    colorScheme="red"
-                    position="absolute"
-                    top="10px"
-                    right="14px"
-                    borderRadius="full"
-                    fontSize="0.9em"
-                    paddingX="0.5em"
-                  >
-                    {unreadCount}
-                  </Badge>
-                )}
-              </Tab>
-            </TabList>
-          </Flex>
-          <TabPanels>
-            <TabPanel>
-              <PopoverBody width="full" overflowY="auto" maxHeight="300px">
-                {sortedNotifications.length === 0 ? (
-                  <Text color="gray.500">No new notifications</Text>
-                ) : (
-                  <VStack spacing={3} align="start">
-                    {sortedNotifications.map((notification) => {
-                      let heading = "Notification"; // Default heading
+    <>
+      <IconButton
+        icon={<FaBell size={20} />}
+        aria-label="Notifications"
+        variant="outline"
+        colorScheme="gray.500"
+        ml={2}
+        onClick={onOpen}
+      />
+      <Drawer isOpen={isOpen} placement="right" onClose={onClose} size="md" closeOnOverlayClick={false}>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader fontSize="lg" fontWeight="bold">Notifications</DrawerHeader>
+          <DrawerBody>
+            <Tabs isFitted variant='enclosed'>
+              <Flex justify="center" align="center">
+                <TabList width="full" justifyContent="space-between">
+                  <Tab flex="1" _selected={{ color: 'white', bg: 'green.400' }} textAlign="center">Unread
+                    {unreadCount > 0 && (
+                      <Badge
+                        variant='solid'
+                        colorScheme="red"
+                        position="absolute"
+                        top="10px"
+                        left="14px"
+                        borderRadius="full"
+                        fontSize="0.9em"
+                        paddingX="0.5em"
+                      >
+                        {unreadCount}
+                      </Badge>
+                    )}
+                  </Tab>
+                  <Tab flex="1" _selected={{ color: 'white', bg: 'blue.500' }} textAlign="center">All</Tab>
+                </TabList>
+              </Flex>
+              <TabPanels>
+                
+                <TabPanel>
+                  <Box overflowY="auto" maxHeight="300px">
+                    {sortedUnreadNotifications.length === 0 ? (
+                      <Text color="gray.500">No new notifications</Text>
+                    ) : (
+                      <VStack spacing={3} align="start">
+                        {sortedUnreadNotifications.map((notification) => {
+                          let heading = "Notification";
 
-                      if (notification.notificationText.includes("New task created")) {
-                        heading = "Task Created";
-                      } else if (notification.notificationText.includes("reassigned")) {
-                        heading = "Task Reassigned";
-                      } else if (notification.notificationText.includes("due date ")) {
-                        heading = "Due Date Updated";
-                      } else if (notification.notificationText.includes("Task Completed")) {
-                        heading = "Task Completed";
-                      }
+                          if (notification.notificationText.includes("New task created")) {
+                            heading = "Task Created";
+                          } else if (notification.notificationText.includes("reassigned")) {
+                            heading = "Task Reassigned";
+                          } else if (notification.notificationText.includes("due date ")) {
+                            heading = "Due Date Updated";
+                          } else if (notification.notificationText.includes("Task Completed")) {
+                            heading = "Task Completed";
+                          }
 
-                      return (
-                        <Box width="full" key={notification.id}>
-                          <Box
-                            p={2}
-                            borderRadius="md"
-                            bg={unreadNotifications.some(unread => unread.id === notification.id) ? colorPalette[0] : colorPalette[1]} // Conditional color
-                            width="100%"
-                            textAlign="justify"
-                            whiteSpace="normal"
-                            overflow="visible"
-                            textOverflow="clip"
-                          >
-                            <Text color="" fontWeight="bold" fontSize="md">{heading}</Text>
-                            <Divider my={1} borderColor="gray.700" />
-                            <Text fontSize="sm">{notification.notificationText}</Text>
-                            <Box mt={1} display="flex" justifyContent="flex-start">
-                              <Text fontSize="xs" color="gray.500">
-                                {new Date(notification.createdAt).toLocaleString()}
-                              </Text>
+                          return (
+                            <Box width="full" key={notification.id} position="relative">
+                              <Box
+                                p={2}
+                                borderRadius="md"
+                                bg={colorPalette[0]}
+                                width="100%"
+                                textAlign="justify"
+                                whiteSpace="normal"
+                                overflow="visible"
+                                textOverflow="clip"
+                              >
+                                <Button
+                                  bg="transparent"
+                                  position="absolute"
+                                  top={2}
+                                  right={2}
+                                  size={15}
+                                  onClick={() => onMarkUnreadAsRead(notification.id)}
+                                  aria-label="Mark as read"
+                                  border="2px solid transparent"
+                                  _hover={{ 
+                                    borderColor: 'red.500',
+                                    bg: 'transparent',
+                                  }}
+                                  _focus={{ 
+                                    outline: 'none',
+                                  }}
+                                >
+                                  <FaTimes size={15} />
+                                </Button>
+                                <Text fontWeight="bold" fontSize="md">{heading}</Text>
+                                <Divider my={1} borderColor="gray.700" />
+                                <Text fontSize="sm">{notification.notificationText}</Text>
+                                <Box mt={2}>
+                                  <HStack>
+                                    <Box display="flex" justifyContent="flex-end">
+                                      <Text fontSize="xs" color="gray.500">
+                                        {new Date(notification.createdAt).toLocaleString()}
+                                      </Text>
+                                    </Box>
+                                  </HStack>
+                                </Box>
+                              </Box>
                             </Box>
-                          </Box>
-                        </Box>
-                      );
-                    })}
-                  </VStack>
-                )}
-              </PopoverBody>
-            </TabPanel>
+                          );
+                        })}
+                      </VStack>
+                    )}
+                  </Box>
+                </TabPanel>
 
-            <TabPanel>
-              <PopoverBody p={3} overflowY="auto" maxHeight="300px">
-                {sortedUnreadNotifications.length === 0 ? (
-                  <Text color="gray.500">No new notifications</Text>
-                ) : (
-                  <VStack spacing={3} align="start">
-                    {sortedUnreadNotifications.map((notification) => {
-                      let heading = "Notification"; // Default heading
+                <TabPanel>
+                  <Box overflowY="auto" maxHeight="300px">
+                    {sortedNotifications.length === 0 ? (
+                      <Text color="gray.500">No new notifications</Text>
+                    ) : (
+                      <VStack spacing={3} align="start">
+                        {sortedNotifications.map((notification) => {
+                          let heading = "Notification";
+                          if (notification.notificationText.includes("New task created")) {
+                            heading = "Task Created";
+                          } else if (notification.notificationText.includes("reassigned")) {
+                            heading = "Task Reassigned";
+                          } else if (notification.notificationText.includes("due date ")) {
+                            heading = "Due Date Updated";
+                          } else if (notification.notificationText.includes("Task Completed")) {
+                            heading = "Task Completed";
+                          }
 
-                      if (notification.notificationText.includes("New task created")) {
-                        heading = "Task Created";
-                      } else if (notification.notificationText.includes("reassigned")) {
-                        heading = "Task Reassigned";
-                      } else if (notification.notificationText.includes("due date ")) {
-                        heading = "Due Date Updated";
-                      } else if (notification.notificationText.includes("Task Completed")) {
-                        heading = "Task Completed";
-                      }
-
-                      return (
-                        <Box width="full" key={notification.id} position="relative">
-                          <Box
-                            p={2}
-                            borderRadius="md"
-                            bg={colorPalette[0]} // Color for unread notifications
-                            width="100%"
-                            textAlign="justify"
-                            whiteSpace="normal"
-                            overflow="visible"
-                            textOverflow="clip"
-                          >
-                            {/* Cross mark button */}
-                            <Button
-                              bg="transparent"
-                              position="absolute"
-                              top={2}
-                              right={2}
-                              size={15}
-                              onClick={() => onMarkUnreadAsRead(notification.id)}
-                              aria-label="Mark as read"
-                              border="2px solid transparent" // Default border
-                              _hover={{ 
-                                borderColor: 'red.500', // Red border on hover
-                                bg: 'transparent', // No background on hover
-                              }}
-                              _focus={{ 
-                                outline: 'none', // Remove default focus outline
-                              }}
-                            >
-                              <FaTimes size={15} />
-                            </Button>
-                            <Text fontWeight="bold" fontSize="md">{heading}</Text>
-                            <Divider my={1} borderColor="gray.700" />
-                            <Text fontSize="sm">{notification.notificationText}</Text>
-                      
-                            <Box mt={2}>
-                              <HStack>
-                                <Box display="flex" justifyContent="flex-end">
+                          return (
+                            <Box width="full" key={notification.id}>
+                              <Box
+                                p={2}
+                                borderRadius="md"
+                                bg={unreadNotifications.some(unread => unread.id === notification.id) ? colorPalette[0] : colorPalette[1]}
+                                width="100%"
+                                textAlign="justify"
+                                whiteSpace="normal"
+                                overflow="visible"
+                                textOverflow="clip"
+                              >
+                                <Text fontWeight="bold" fontSize="md">{heading}</Text>
+                                <Divider my={1} borderColor="gray.700" />
+                                <Text fontSize="sm">{notification.notificationText}</Text>
+                                <Box mt={1} display="flex" justifyContent="flex-start">
                                   <Text fontSize="xs" color="gray.500">
                                     {new Date(notification.createdAt).toLocaleString()}
                                   </Text>
                                 </Box>
-                              </HStack>
+                              </Box>
                             </Box>
-                          </Box>
-                        </Box>
-                      );
-                      
+                          );
+                        })}
+                      </VStack>
+                    )}
+                  </Box>
+                </TabPanel>
 
-                    })}
-                  </VStack>
-                )}
-              </PopoverBody>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
-      </PopoverContent>
-    </Popover>
+              </TabPanels>
+            </Tabs>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 };
 
