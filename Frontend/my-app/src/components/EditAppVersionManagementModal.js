@@ -21,8 +21,8 @@ const EditAppVersionManagementModal = ({ isOpen, onClose, entryId, onUpdate }) =
     const [applicationName, setApplicationName] = useState('');
     const [liveVersion, setLiveVersion] = useState('');
     const [testVersion, setTestVersion] = useState('');
-    const [status, setStatus] = useState('Not Started'); 
-    const [loading, setLoading] = useState(false); 
+    const [status, setStatus] = useState('Not Started');
+    const [loading, setLoading] = useState(false);
     const toast = useToast();
 
     useEffect(() => {
@@ -58,7 +58,7 @@ const EditAppVersionManagementModal = ({ isOpen, onClose, entryId, onUpdate }) =
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
+    
         const updatedEntry = {
             id: entryId,
             applicationName,
@@ -66,10 +66,10 @@ const EditAppVersionManagementModal = ({ isOpen, onClose, entryId, onUpdate }) =
             testVersion,
             status,
         };
-
+    
         try {
-            const response = await updateAppVersionManagementEntryByID(updatedEntry);
-            onUpdate(response); // Call the onUpdate function with the updated entry
+            await updateAppVersionManagementEntryByID(updatedEntry);
+            onUpdate(updatedEntry); // Pass the correctly updated entry object
             toast({
                 title: "Entry updated.",
                 description: "The entry has been updated successfully.",
@@ -89,6 +89,8 @@ const EditAppVersionManagementModal = ({ isOpen, onClose, entryId, onUpdate }) =
             });
         }
     };
+    
+    
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} size="lg">
@@ -132,9 +134,9 @@ const EditAppVersionManagementModal = ({ isOpen, onClose, entryId, onUpdate }) =
                                     onChange={(e) => setStatus(e.target.value)}
                                 >
                                     <option value="Not Started">Not Started</option>
-                                    <option value="working on">Working On</option>
-                                    <option value="submitted">Submitted</option>
-                                    <option value="in Review">In Review</option>
+                                    <option value="Working On">Working On</option>
+                                    <option value="Submitted">Submitted</option>
+                                    <option value="In Review">In Review</option>
                                 </Select>
                             </FormControl>
                         </>

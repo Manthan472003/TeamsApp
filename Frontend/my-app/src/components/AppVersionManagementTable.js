@@ -1,9 +1,9 @@
 import React from 'react';
-import { FaEdit } from "react-icons/fa"; 
-import { FcAcceptDatabase } from "react-icons/fc";
+import { FaEdit } from "react-icons/fa";
+import { IoMdCheckboxOutline } from "react-icons/io";
 import { IconButton } from '@chakra-ui/react';
 
-const VersionManagementTable = ({ entries, onEdit, onUpdate }) => {
+const VersionManagementTable = ({ entries, onEdit, onAccept }) => {
     const sortedEntries = [...entries].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)); // Sorting by updatedAt
 
     return (
@@ -33,29 +33,33 @@ const VersionManagementTable = ({ entries, onEdit, onUpdate }) => {
                             <td style={{ padding: '10px' }}>{entry.status}</td>
                             <td style={{ padding: '10px' }}>
                                 <IconButton
-                                    icon={<FaEdit size={20}/>}
-                                    aria-label="Edit"
-                                    title="Edit"
+                                    icon={<FaEdit size={25} />}
                                     onClick={() => onEdit(entry.id)}
                                     variant="outline"
-                                    colorScheme="teal"
+                                    title='Edit'
+                                    colorScheme="green"
+                                    border={0}
                                     mr={2}
                                 />
                                 <IconButton
-                                    icon={<FcAcceptDatabase size={24} />}
-                                    aria-label="Accept"
-                                    title="Accept"
-                                    onClick={() => onEdit(entry.id)}
+                                    icon={<IoMdCheckboxOutline size={27} />}
+                                    onClick={() => onAccept(entry.id)}
                                     variant="outline"
+                                    title='Accepted'
+                                    border={0}
                                     colorScheme="green"
                                 />
                             </td>
                             <td style={{ padding: '10px' }}>
-                                {new Intl.DateTimeFormat('en-GB', {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric'
-                                }).format(new Date(entry.updatedAt))}
+                                {entry.updatedAt && !isNaN(new Date(entry.updatedAt)) ? (
+                                    new Intl.DateTimeFormat('en-GB', {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric',
+                                    }).format(new Date(entry.updatedAt))
+                                ) : (
+                                    'Unknown'
+                                )}
                             </td>
                         </tr>
                     ))

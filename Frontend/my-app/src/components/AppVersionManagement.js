@@ -3,7 +3,7 @@ import { Box, Button, useDisclosure, Heading, Stack } from '@chakra-ui/react';
 import AppVersionManagementTable from './AppVersionManagementTable';
 import AppVersionManagementModal from './AppVersionManagementModal';
 import EditAppVersionManagementModal from './EditAppVersionManagementModal';
-import { createNewAppVersionManagementEntry, getAllAppVersionManagementEntries } from '../Services/AppVersionManagementService';
+import { createNewAppVersionManagementEntry, getAllAppVersionManagementEntries, versionAcceptedById } from '../Services/AppVersionManagementService';
 import { getUsers } from '../Services/UserService';
 import ExportToExcel from './ExportToExcel';
 import ExportToPDF from './ExportToPdf';
@@ -36,6 +36,30 @@ const AppVersionManagement = () => {
     fetchData();
   }, []);
 
+  const handleAcceptVersion = async (id) => {
+    try {
+      const response = await versionAcceptedById(id);
+      console.log(response.data.message); // Log success message
+
+      // Update the entries state after acceptance
+      setEntries((prevEntries) =>
+        prevEntries.map(entry =>
+          entry.id === id ? {
+            ...entry,
+            liveVersion: entry.testVersion,
+            testVersion: null,
+            status: null,
+            updatedAt: new Date() // Update the timestamp
+          } : entry
+        )
+      );
+
+    } catch (error) {
+      console.error('Error accepting version:', error.response ? error.response.data : error.message);
+    }
+  };
+
+
   // Handle saving a new entry
   const handleSave = async (data) => {
     try {
@@ -58,12 +82,23 @@ const AppVersionManagement = () => {
 
   // Handle updating an entry
   const handleUpdateEntry = (updatedEntry) => {
-    setEntries((prevEntries) =>
+    if (!updatedEntry.updatedAt) {
+      // If updatedAt is missing from the response, manually set it to the current date
+      updatedEntry.updatedAt = new Date().toISOString();
+    }
+  
+    // Update the entries state
+    setEntries(prevEntries =>
       prevEntries.map(entry =>
         entry.id === updatedEntry.id ? updatedEntry : entry
       )
     );
   };
+  
+
+
+
+
 
   const columns = [
     { key: 'applicationName', label: 'Application Name' },
@@ -75,9 +110,11 @@ const AppVersionManagement = () => {
 
   const enrichedEntries = entries.map(entry => ({
     ...entry,
-    updatedAt: new Date(entry.updatedAt).toLocaleDateString(),
+    updatedAt: entry.updatedAt && !isNaN(new Date(entry.updatedAt)) ? new Date(entry.updatedAt).toLocaleDateString() : 'Unknown',
     userId: entry.userId ? users.find(user => user.id === entry.userId)?.userName || 'Unknown' : 'Unknown',
   }));
+  
+  
 
 
 
@@ -119,11 +156,12 @@ const AppVersionManagement = () => {
         isOpen={isEditOpen}
         onClose={onEditClose}
         entryId={selectedEntryId}
-        onUpdate={handleUpdateEntry} // Pass the update handler
+        onUpdate={handleUpdateEntry}
       />
       <AppVersionManagementTable
-        entries={enrichedEntries} // Use enriched entries for display
+        entries={enrichedEntries}
         onEdit={handleEdit}
+        onAccept={handleAcceptVersion}
       />
     </Box>
   );
