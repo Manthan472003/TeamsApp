@@ -14,15 +14,14 @@ import {
     Select,
     useToast,
 } from '@chakra-ui/react';
-import jwt_decode from 'jwt-decode'; 
+import jwt_decode from 'jwt-decode';
 
 const AppVersionManagementModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) => {
     const [applicationName, setApplicationName] = useState('');
     const [liveVersion, setLiveVersion] = useState('');
     const [testVersion, setTestVersion] = useState('');
-    const [status, setStatus] = useState('Working On');
+    const [status, setStatus] = useState('Not Started');
     const [userId, setUserId] = useState('');
-
     const toast = useToast();
 
     useEffect(() => {
@@ -33,7 +32,7 @@ const AppVersionManagementModal = ({ isOpen, onClose, onSubmit, userId: propUser
             if (token) {
                 try {
                     const decodedToken = jwt_decode(token);
-                    setUserId(decodedToken.id); 
+                    setUserId(decodedToken.id);
                 } catch (error) {
                     console.error('Failed to decode token:', error);
                 }
@@ -47,7 +46,7 @@ const AppVersionManagementModal = ({ isOpen, onClose, onSubmit, userId: propUser
         setApplicationName('');
         setLiveVersion('');
         setTestVersion('');
-        setStatus('Working On');
+        setStatus('Not Started');
     };
 
     const handleSubmit = async (event) => {
@@ -122,7 +121,8 @@ const AppVersionManagementModal = ({ isOpen, onClose, onSubmit, userId: propUser
                             value={status}
                             onChange={(e) => setStatus(e.target.value)}
                         >
-                            <option value="Working On">Working On</option>
+                            <option value="Not Started">Not Started</option>
+                            <option value="Working On">Working On</option   >
                             <option value="Submitted">Submitted</option>
                             <option value="In Review">In Review</option>
                         </Select>
