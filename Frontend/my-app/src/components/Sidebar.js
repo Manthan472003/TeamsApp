@@ -5,7 +5,7 @@ import {
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircleIcon, DeleteIcon } from '@chakra-ui/icons';
-import { MdAddTask, MdDashboard } from "react-icons/md";
+import { MdAddTask, MdDashboard, MdPermDeviceInformation  } from "react-icons/md";
 import { FaTasks } from "react-icons/fa";
 import { HiOutlineFolderAdd } from "react-icons/hi";
 import { RiInformationFill } from "react-icons/ri";
@@ -315,7 +315,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         </Button>
 
         <Button
-          leftIcon={<RiInformationFill size={18} />}
+          leftIcon={<MdPermDeviceInformation size={18} />}
           {...buttonStyles.base}
           {...(activeButton === '/app-version-management' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
