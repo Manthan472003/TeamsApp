@@ -18,8 +18,8 @@ const AppVersionManagement = sequelize.define('AppVersionManagement', {
         type: DataTypes.STRING(45)
     },
     status: {
-        type: DataTypes.ENUM('Working On', 'Submitted', 'In Review'),
-        defaultValue: null
+        type: DataTypes.ENUM('Not Started','Working On', 'Submitted', 'In Review'),
+        defaultValue: 'Not Started'
     },
     createdAt: {
         type: DataTypes.DATE,

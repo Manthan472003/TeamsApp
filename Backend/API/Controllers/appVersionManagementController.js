@@ -77,7 +77,7 @@ const updateEntryByID = async (req, res) => {
         console.error('Error updating entry:', error);
         return res.status(500).json({ message: 'Error updating entry.' });
     }
-}
+};
 
 //Delete Entry By ID
 const deleteEntryByID = async (req, res) => {
@@ -98,15 +98,50 @@ const deleteEntryByID = async (req, res) => {
         await entry.destroy();
         return res.status(200).json("Entry deleted Successfully");
     } catch (error) {
-        console.error('Error retrieving entry:', error);
-        return res.status(500).json({ message: 'Error retrieving Entry.' });
+        console.error('Error deleting entry:', error);
+        return res.status(500).json({ message: 'Error deleting Entry.' });
     }
-}
+};
+
+//Version Accepted By ID
+const versionAccepted = async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({ message: 'ID parameter is required.' });
+    }
+    try {
+        const entry = await AppVersionManagement.findOne({
+            where: { id }
+        });
+        if (!entry) {
+            return res.status(404).json({ message: 'Entry Not Found' });
+        }
+
+        // Check if testVersion is null
+        if (entry.testVersion === null) {
+            return res.status(400).json({ message: 'No test version found. Please check if someone is working on a new test version.' });
+        }
+
+        // Update the entry
+        await entry.update({
+            liveVersion: entry.testVersion,
+            testVersion: null,  
+            status: null               
+        });
+
+        return res.status(200).json({ message: "Version Accepted Successfully", entry });
+
+    } catch (error) {
+        console.error('Error Accepting Version Entry', error);
+        return res.status(500).json({ message: 'Error Accepting Entry.' });
+    }
+};
 
 module.exports = {
     createEntry,
     getAllEntries,
     getEntryByID,
     updateEntryByID,
-    deleteEntryByID
+    deleteEntryByID,
+    versionAccepted
 }

@@ -17,4 +17,7 @@ router.put('/:id',appVersionManagementController.updateEntryByID);
 //Delete App Version Management Entry By ID
 router.delete('/:id', appVersionManagementController.deleteEntryByID);
 
+//App Version Accepted
+router.put('/versionAccepted/:id', appVersionManagementController.versionAccepted);
+
 module.exports = router;
