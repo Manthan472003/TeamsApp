@@ -13,6 +13,7 @@ import DailyReports from './components/DailyReports';
 import Sections from './components/Sections';
 import Users from './components/Users';
 import Profile from './components/Profile'
+import AppVersionManagement from './components/AppVersionManagement';
 
 function App() {
   return (
@@ -49,6 +50,10 @@ function App() {
 
           <Route path="/profile" element={<MainScreen />}>
             <Route index element={<Profile />} />
+          </Route>
+
+          <Route path="/app-version-management" element={<MainScreen />}>
+            <Route index element={<AppVersionManagement />} />
           </Route>
 
         </Routes>

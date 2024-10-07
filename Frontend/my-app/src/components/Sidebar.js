@@ -315,6 +315,16 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         </Button>
 
         <Button
+          leftIcon={<RiInformationFill size={18} />}
+          {...buttonStyles.base}
+          {...(activeButton === '/app-version-management' && buttonStyles.active)}
+          _hover={{ ...buttonStyles.hover }}
+          onClick={() => handleNavigation('/app-version-management')}
+        >
+          App Version Management
+        </Button>
+
+        <Button
           leftIcon={<DeleteIcon />}
           {...buttonStyles.base}
           {...(activeButton === '/bin' && buttonStyles.active)}
