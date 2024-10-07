@@ -97,9 +97,17 @@ const Profile = ({ userId }) => {
   return (
     <ChakraProvider>
       <Box p={5}>
-        <Heading mb={5}>User Profile</Heading>
-        <VStack as="form" spacing={4} align="stretch" onSubmit={handleSubmit}>
-          
+        <Heading as='h2' size='xl' paddingLeft={3} mb={4}
+          sx={{
+            background: 'linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)',
+            backgroundClip: 'text',
+            color: 'transparent',
+            display: 'inline-block',
+          }}>
+          User Profile
+        </Heading>        
+        <VStack as="form" spacing={4} align="stretch" onSubmit={handleSubmit} paddingLeft={4}>
+
           {/* Profile Picture Section */}
           <FormControl>
             <FormLabel htmlFor="profilePic">Profile Picture</FormLabel>
