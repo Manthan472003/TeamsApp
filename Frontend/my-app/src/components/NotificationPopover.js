@@ -151,7 +151,7 @@ const NotificationPopover = ({ userId }) => {
               <TabPanels>
                 
                 <TabPanel>
-                  <Box overflowY="auto" maxHeight="300px">
+                  <Box overflowY="auto" maxHeight="1000px">
                     {sortedUnreadNotifications.length === 0 ? (
                       <Text color="gray.500">No new notifications</Text>
                     ) : (
@@ -222,7 +222,7 @@ const NotificationPopover = ({ userId }) => {
                 </TabPanel>
 
                 <TabPanel>
-                  <Box overflowY="auto" maxHeight="300px">
+                  <Box overflowY="auto" maxHeight="1000px">
                     {sortedNotifications.length === 0 ? (
                       <Text color="gray.500">No new notifications</Text>
                     ) : (

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-    Button, useDisclosure, Spacer, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading,
+    Button, useDisclosure, Spacer, IconButton, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading,
 } from '@chakra-ui/react';
 import { EditIcon } from '@chakra-ui/icons';
 
@@ -238,9 +238,9 @@ const TaskManager = () => {
             const taskToUpdate = Object.values(tasksBySection).flat().find(task => task.id === taskId);
             if (taskToUpdate) {
                 taskToUpdate.status = newStatus;
-                await updateTask(taskToUpdate); 
+                await updateTask(taskToUpdate);
                 if (taskToUpdate.sectionID !== null) {
-                    await fetchTasksBySection(taskToUpdate.sectionID); 
+                    await fetchTasksBySection(taskToUpdate.sectionID);
                 } else {
                     await fetchTasksWithoutSection();
                 }
@@ -280,9 +280,9 @@ const TaskManager = () => {
 
     const handleDelete = async (task) => {
         try {
-            await deleteTask(task.id); 
+            await deleteTask(task.id);
             if (task.sectionID !== null) {
-                await fetchTasksBySection(task.sectionID); 
+                await fetchTasksBySection(task.sectionID);
             } else {
                 await fetchTasksWithoutSection();
             }
@@ -307,7 +307,7 @@ const TaskManager = () => {
 
     const handleUpdateSection = async (section) => {
         try {
-            const response = await updateSection(section); 
+            const response = await updateSection(section);
             if (response.status === 200) {
                 setSections(prevSections =>
                     prevSections.map(sec =>
@@ -375,16 +375,16 @@ const TaskManager = () => {
                                     <Text fontSize='md' color='gray.500'>{section.description}</Text>
                                 </Box>
                                 <Spacer />
-                                <Button
-                                    variant='solid'
-                                    colorScheme='green'
-                                    size='sm'
-                                    ml={2}
-                                    leftIcon={<EditIcon />}
+                                <IconButton
+                                    icon={<EditIcon />}
                                     onClick={() => handleEditSection(section)}
+                                    colorScheme='green'
+                                    size='lg'
+                                    ml={2}
+                                    border={0}
+                                    variant="outline"
                                 />
-
-                                <AccordionIcon />
+                            <AccordionIcon />
                             </AccordionButton>
                             <AccordionPanel pb={4}>
                                 <Button

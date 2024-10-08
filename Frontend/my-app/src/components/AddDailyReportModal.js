@@ -3,36 +3,55 @@ import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton,
   Button, FormControl, FormLabel, Input, Select, useToast
 } from '@chakra-ui/react';
-import jwt_decode from 'jwt-decode'; // Import jwt-decode
-
+import jwt_decode from 'jwt-decode'; 
+import { getAssignedTasks } from '../Services/TaskService';
 
 const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) => {
-  const [taskName, setTaskName] = useState('');
+  const [taskId, setTaskId] = useState(''); // New state for task ID
+  const [taskName, setTaskName] = useState(''); // Optional: Use to display task name
   const [status, setStatus] = useState('');
   const [userId, setUserId] = useState(propUserId || '');
+  const [assignedTasks, setAssignedTasks] = useState([]);
   const toast = useToast();
 
   useEffect(() => {
-    // Check if userId is available from props or token
     if (propUserId) {
-        setUserId(propUserId);
+      setUserId(propUserId);
     } else {
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
-                const decodedToken = jwt_decode(token);
-                setUserId(decodedToken.id); // Adjust according to your token structure
-            } catch (error) {
-                console.error('Failed to decode token:', error);
-            }
-        } else {
-            console.error('No token found in local storage');
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const decodedToken = jwt_decode(token);
+          setUserId(decodedToken.id); 
+        } catch (error) {
+          console.error('Failed to decode token:', error);
         }
+      } else {
+        console.error('No token found in local storage');
+      }
     }
-}, [propUserId]);
+  }, [propUserId]);
+
+  useEffect(() => {
+    if (userId) {
+      const fetchAssignedTasks = async () => {
+        try {
+          const response = await getAssignedTasks(userId);
+          const filteredTasks = response.data.filter(
+            (task) => task.status !== 'Completed' && task.isDelete === false
+          );
+          setAssignedTasks(filteredTasks);
+        } catch (error) {
+          console.error('Error fetching assigned tasks:', error);
+        }
+      };
+      fetchAssignedTasks();
+    }
+  }, [userId]);
 
   const resetForm = () => {
-    setTaskName('');
+    setTaskId(''); // Reset taskId
+    setTaskName(''); // Optional: Reset taskName
     setStatus('');
   };
 
@@ -41,13 +60,14 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
 
     const report = {
       userId: parseInt(userId, 10),
-      taskName,
+      taskId, // Include taskId here
+      taskName, // Optional: If you need to send task name as well
       status,
     };
 
     if (typeof onSubmit === 'function') {
       try {
-        await onSubmit(report); // Call onSubmit instead of createDailyReport directly
+        await onSubmit(report);
         toast({
           title: "New Report Saved.",
           description: "Your Report has been saved.",
@@ -79,13 +99,36 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
         <ModalHeader>Add Daily Report</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
+          {/* Task Name Input (Optional, if you want to display task name) */}
           <FormControl id="taskname" mb={4}>
-            <FormLabel>Task</FormLabel>
+            <FormLabel>Task Name</FormLabel>
             <Input
               value={taskName}
               onChange={(e) => setTaskName(e.target.value)}
+              placeholder="Enter task name"
             />
           </FormControl>
+
+          {/* Dropdown for Assigned Tasks */}
+          <FormControl id="assignedTasks" mb={4}>
+            <FormLabel>My Assigned Tasks</FormLabel>
+            <Select
+              placeholder="Select a task"
+              onChange={(e) => {
+                const selectedTask = assignedTasks.find(task => task.id === e.target.value);
+                setTaskId(e.target.value); // Set selected task ID in taskId state
+                setTaskName(selectedTask ? selectedTask.taskName : ''); // Optionally set task name for display
+              }}
+            >
+              {assignedTasks.map((task) => (
+                <option key={task.id} value={task.id}>
+                  {task.taskName}
+                </option>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Status Dropdown */}
           <FormControl id="status" mb={4}>
             <FormLabel>Status</FormLabel>
             <Select
@@ -99,6 +142,7 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
               <option value="On Hold">On Hold</option>
             </Select>
           </FormControl>
+
           <ModalFooter>
             <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
               Save

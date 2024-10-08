@@ -5,14 +5,16 @@ import {
 
 import { getSections } from '../Services/SectionService';
 import { getCompletedTasks, getTasksBySection, updateTask } from '../Services/TaskService';
-import { getUsers } from '../Services/UserService'; // Import the getUsers function
+import { getUsers } from '../Services/UserService';
 import CompletedTaskTable from './CompletedTaskTable';
+import SearchBar from './SearchBar'; // Import the SearchBar component
 
 const CompletedTask = () => {
     const [sections, setSections] = useState([]);
     const [tasksBySection, setTasksBySection] = useState({});
-    const [users, setUsers] = useState([]); // Ensure users are also fetched and managed
+    const [users, setUsers] = useState([]);
     const [selectedSectionId, setSelectedSectionId] = useState(null);
+    const [searchQuery, setSearchQuery] = useState(''); // State for search query
 
     const toast = useToast();
 
@@ -70,8 +72,8 @@ const CompletedTask = () => {
     // Fetch users
     const fetchUsers = useCallback(async () => {
         try {
-            const response = await getUsers(); // Assuming getUsers function is available
-            setUsers(response.data); // Assuming response.data contains the array of users
+            const response = await getUsers();
+            setUsers(response.data);
         } catch (error) {
             console.error('Fetch Users Error:', error);
             toast({
@@ -86,8 +88,8 @@ const CompletedTask = () => {
 
     useEffect(() => {
         fetchSections();
-        fetchCompletedTasks(); // Fetch completed tasks initially
-        fetchUsers(); // Fetch users
+        fetchCompletedTasks();
+        fetchUsers();
     }, [fetchSections, fetchCompletedTasks, fetchUsers]);
 
     useEffect(() => {
@@ -96,13 +98,11 @@ const CompletedTask = () => {
         }
     }, [selectedSectionId, fetchTasksBySection]);
 
-    // Filter only completed tasks
+    // Filter only completed tasks based on search query
     const getCompletedTasksForSection = (sectionId) => {
-        return (tasksBySection[sectionId] || []).filter(task => task.status === 'Completed');
-    };
-
-    const getCompletedTasksForNoSection = () => {
-        return (tasksBySection['no-section'] || []).filter(task => task.status === 'Completed');
+        return (tasksBySection[sectionId] || []).filter(task => 
+            task.status === 'Completed' && task.taskName.toLowerCase().includes(searchQuery.toLowerCase())
+        );
     };
 
     const handleStatusChange = async (taskId, newStatus) => {
@@ -110,11 +110,11 @@ const CompletedTask = () => {
             const taskToUpdate = Object.values(tasksBySection).flat().find(task => task.id === taskId);
             if (taskToUpdate) {
                 taskToUpdate.status = newStatus;
-                await updateTask(taskToUpdate); // Update task status in the backend
+                await updateTask(taskToUpdate);
                 if (taskToUpdate.sectionID !== null) {
-                    await fetchTasksBySection(taskToUpdate.sectionID); // Refresh tasks for the specific section
+                    await fetchTasksBySection(taskToUpdate.sectionID);
                 } else {
-                    await getCompletedTasksForNoSection(); // Refresh tasks without section
+                    await fetchCompletedTasks();
                 }
                 toast({
                     title: "Task status updated.",
@@ -137,7 +137,6 @@ const CompletedTask = () => {
     };
 
     return (
-
         <Box mt={5}>
             <Heading as='h2' size='xl' paddingLeft={3} mb={3} sx={{
                 background: 'linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)',
@@ -147,6 +146,7 @@ const CompletedTask = () => {
             }}>
                 Completed Tasks
             </Heading>
+            <SearchBar onApplyFilter={setSearchQuery} /> {/* Add the SearchBar component */}
             <br />
             <Accordion allowToggle>
                 {sections.map(section => (
@@ -162,32 +162,12 @@ const CompletedTask = () => {
                         <AccordionPanel pb={4}>
                             <CompletedTaskTable
                                 tasks={getCompletedTasksForSection(section.id)}
-                                users={users} // Pass users to CompletedTaskTable
-                                onStatusChange={handleStatusChange} // Ensure this is defined
+                                users={users}
+                                onStatusChange={handleStatusChange}
                             />
                         </AccordionPanel>
                     </AccordionItem>
                 ))}
-
-                {/* "Others" Section */}
-                {/* <AccordionItem borderWidth={1} borderRadius="md" mb={4}>
-                    <AccordionButton>
-                        <Box flex='1' textAlign='left'>
-                            <Text fontSize='xl' fontWeight='bold' color='#149edf'>Others</Text>
-                            <Text fontSize='md' color='gray.500'>Tasks without a specific section</Text>
-                        </Box>
-                        <Spacer />
-                        <AccordionIcon />
-                    </AccordionButton>
-                    <AccordionPanel pb={4}>
-                        <CompletedTaskTable
-                            tasks={getCompletedTasksForNoSection()}
-                            users={users} // Pass users to CompletedTaskTable
-                            onStatusChange={handleStatusChange} // Ensure this is defined
-
-                        />
-                    </AccordionPanel>
-                </AccordionItem> */}
             </Accordion>
         </Box>
     );
