@@ -6,7 +6,6 @@ const taskRoutes = require('./Routes/taskRoutes');
 const sectionRoutes = require('./Routes/sectionRoutes');
 const tagRoutes = require('./Routes/tagRoutes');
 const mediaRoutes = require('./Routes/mediaRoutes');
-const taskTagRoutes = require('./Routes/taskTagRoutes');
 const dailyReportsRoutes = require('./Routes/dailyReportsRoutes')
 const versionManagementRoutes = require('./Routes/versionManagementRoutes');
 const notificationRoutes = require('./Routes/notificationRoutes');
@@ -28,7 +27,6 @@ app.use('/tasks', taskRoutes);
 app.use('/sections', sectionRoutes);
 app.use('/tags', tagRoutes);
 app.use('/media', mediaRoutes);
-app.use('/taskTags', taskTagRoutes);
 app.use('/dailyReports', dailyReportsRoutes);
 app.use('/versionManagement', versionManagementRoutes);
 app.use('/notifications', notificationRoutes);

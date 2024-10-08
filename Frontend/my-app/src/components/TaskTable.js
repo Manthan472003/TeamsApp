@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDisclosure, IconButton } from '@chakra-ui/react';
-import { TbHttpDelete } from "react-icons/tb";
+import { ImBin2 } from "react-icons/im";
 import { getTags } from '../Services/TagService';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmCompleteModal from './ConfirmCompleteModal';
@@ -240,7 +240,7 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
                                     </td>
                                     <td>
                                         <IconButton
-                                            icon={<TbHttpDelete size={30} />}
+                                            icon={<ImBin2 size={20} />}
                                             onClick={() => handleDeleteClick(task)}
                                             variant="outline"
                                             title='Delete'

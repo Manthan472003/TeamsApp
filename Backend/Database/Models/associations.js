@@ -1,5 +1,5 @@
 // associations.js
-const { User, Task, Tag, TaskTag, Section, Media, TaskMedia, Comment, VersionManagement,DailyReports } = require('./index');
+const { User, Task, Tag, Section, Media, Comment, VersionManagement,DailyReports } = require('./index');
 
 // User to Task (Assigned and Created By)
 User.hasMany(Task, { foreignKey: 'taskCreatedByID', onDelete: 'SET NULL', onUpdate: 'CASCADE' });
@@ -10,10 +10,6 @@ Task.belongsTo(User, { foreignKey: 'taskAssignedToID' });
 // Section to Task
 Section.hasMany(Task, { foreignKey: 'sectionID', onDelete: 'SET NULL', onUpdate: 'SET NULL' });
 Task.belongsTo(Section, { foreignKey: 'sectionID' });
-
-// Tag to Task
-Tag.belongsToMany(Task, { through: TaskTag, foreignKey: 'tagID', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
-Task.belongsToMany(Tag, { through: TaskTag, foreignKey: 'taskID', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 
 //Version Management to User
 User.hasMany(VersionManagement, {foreignKey: 'userID', onDelete: 'CASCADE', onUpdate: 'CASCADE'});

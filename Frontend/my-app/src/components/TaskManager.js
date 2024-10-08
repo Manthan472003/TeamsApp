@@ -66,6 +66,34 @@ const TaskManager = () => {
         );
     };
 
+    // Function to update task in the state without reload
+    const handleTaskUpdate = (updatedTask) => {
+        // Update tasks in the section it belongs to
+        if (updatedTask.sectionID) {
+            setTasksBySection((prevTasksBySection) => ({
+                ...prevTasksBySection,
+                [updatedTask.sectionID]: prevTasksBySection[updatedTask.sectionID].map(task =>
+                    task.id === updatedTask.id ? updatedTask : task
+                ),
+            }));
+        } else {
+            // If the task has no section, update the tasksWithoutSection
+            setTasksWithoutSection((prevTasks) =>
+                prevTasks.map(task =>
+                    task.id === updatedTask.id ? updatedTask : task
+                )
+            );
+        }
+
+        toast({
+            title: "Task updated.",
+            description: "The task was successfully updated.",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+        });
+    };
+
     useEffect(() => {
         const fetchTasks = async () => {
             try {
@@ -476,6 +504,7 @@ const TaskManager = () => {
                 isOpen={isViewTaskOpen}
                 onClose={onViewTaskClose}
                 task={selectedTask} // Pass the selected task to the drawer
+                onUpdateTask={handleTaskUpdate} // Pass the function to update task directly
             />
 
             {sectionToEdit && (
