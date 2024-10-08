@@ -83,8 +83,15 @@ const MyTasks = () => {
 
   // Modify filterTasks to exclude completed and soft deleted tasks
   const filterTasks = (tasks) => {
-    return tasks.filter(task => task.status !== 'Completed' && !task.isDelete); // Assume isDeleted is the property for soft deletion
+    return tasks.filter(task => task.status !== 'Completed' && !task.isDelete);
   };
+
+  // Check if there are any tasks after filtering
+  const hasTasks = sections.some(section => {
+    const sectionTasks = tasksBySection[section.id] || [];
+    const filteredTasks = filterTasks(sectionTasks);
+    return filteredTasks.length > 0;
+  });
 
   return (
     <Box mt={5}>
@@ -97,29 +104,37 @@ const MyTasks = () => {
         My Tasks
       </Heading>
 
-      <Accordion mt={3} allowToggle>
-        {sections.map(section => {
-          const sectionTasks = tasksBySection[section.id] || [];
-          const filteredTasks = filterTasks(sectionTasks); // Filter the tasks for this section
-          if (filteredTasks.length === 0) return null; // Skip rendering this section if no valid tasks
+      {/* Display message if no tasks are available */}
+      {!hasTasks ? (
+        <Text fontSize="lg" color="gray.500" mt={5} textAlign="center">
+          No tasks available.
+        </Text>
+      ) : (
+        <Accordion mt={3} allowToggle>
+          {sections.map(section => {
+            const sectionTasks = tasksBySection[section.id] || [];
+            const filteredTasks = filterTasks(sectionTasks); // Filter the tasks for this section
 
-          return (
-            <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
-              <AccordionButton>
-                <Box flex='1' textAlign='left'>
-                  <Text fontSize='xl' fontWeight='bold' color='#149edf'>{section.sectionName}</Text>
-                  <Text fontSize='md' color='gray.500'>{section.description}</Text>
-                </Box>
-                <Spacer />
-                <AccordionIcon />
-              </AccordionButton>
-              <AccordionPanel pb={4}>
-                <MyTasksTable tasks={filteredTasks} users={[]} />
-              </AccordionPanel>
-            </AccordionItem>
-          );
-        })}
-      </Accordion>
+            if (filteredTasks.length === 0) return null; // Skip rendering this section if no valid tasks
+
+            return (
+              <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
+                <AccordionButton>
+                  <Box flex='1' textAlign='left'>
+                    <Text fontSize='xl' fontWeight='bold' color='#149edf'>{section.sectionName}</Text>
+                    <Text fontSize='md' color='gray.500'>{section.description}</Text>
+                  </Box>
+                  <Spacer />
+                  <AccordionIcon />
+                </AccordionButton>
+                <AccordionPanel pb={4}>
+                  <MyTasksTable tasks={filteredTasks} users={[]} />
+                </AccordionPanel>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      )}
     </Box>
   );
 };

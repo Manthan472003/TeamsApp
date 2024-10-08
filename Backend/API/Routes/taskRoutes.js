@@ -38,4 +38,7 @@ router.get('/tasks/bin', taskController.getDeletedTasks);
 // Restore task
 router.post('/tasks/bin/:id/restore', taskController.restoreTaskById);
 
+//Get Non Deleted Non Completed Task
+router.get('/nonCompleted/nonDeleted', taskController.getNonCompletedNonDeletedTasks);
+
 module.exports = router;

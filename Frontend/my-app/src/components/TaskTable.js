@@ -114,11 +114,11 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
     const getRowColorByStatus = (status) => {
         switch (status) {
             case 'Not Started':
-                return '#ffdede'; // light red
+                return '#FEFFD2'; // light red
             case 'In Progress':
-                return '#fffc8f'; // light yellow
+                return '#FFEEA9'; // light yellow
             case 'On Hold':
-                return '#ccffff'; // light blue
+                return '#FFBF78'; // light blue
             default:
                 return 'transparent';
         }
@@ -218,12 +218,12 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
                                             ))}
                                         </div>
                                     </td>
-                                    <td style={{ padding: '10px' }}>
-                                        {new Intl.DateTimeFormat('en-GB', {
+                                    <td>
+                                        {task.dueDate ? new Intl.DateTimeFormat('en-GB', {
                                             day: '2-digit',
                                             month: '2-digit',
                                             year: 'numeric'
-                                        }).format(new Date(task.dueDate))}
+                                        }).format(new Date(task.dueDate)) : ''}
                                     </td>
                                     <td>{getUserNameById(task.taskAssignedToID)}</td>
                                     <td>
@@ -231,7 +231,7 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
                                             value={task.status}
                                             onChange={(e) => handleStatusChange(task.id, e.target.value)}
                                             className="status-select"
-                                            style={{ width: '100%', fontSize: '15px', padding: '4px' }} 
+                                            style={{ width: '100%', fontSize: '15px', padding: '4px' }}
                                         >
                                             <option value="Not Started">Not Started</option>
                                             <option value="In Progress">In Progress</option>

@@ -4,8 +4,10 @@ import {
 } from '@chakra-ui/react';
 import { EditIcon } from '@chakra-ui/icons';
 
+import ViewTaskDrawer from './ViewTaskDrawer';
+
 import { getSections, updateSection } from '../Services/SectionService';
-import { saveTask, getTasksBySection, deleteTask, updateTask, getTasksWithoutSection } from '../Services/TaskService';
+import { saveTask, getTasksBySection, deleteTask, updateTask, getTasksWithoutSection, getNonDeletedNonCompletedTasks } from '../Services/TaskService';
 import { getUsers } from '../Services/UserService';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
@@ -19,7 +21,8 @@ const TaskManager = () => {
     const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
     const { isOpen: isEditTaskOpen, onOpen: onEditTaskOpen, onClose: onEditTaskClose } = useDisclosure();
     const { isOpen: isEditSectionOpen, onOpen: onEditSectionOpen, onClose: onEditSectionClose } = useDisclosure();
-    // const { isOpen: isConfirmDeleteOpen, onOpen: onConfirmDeleteOpen, onClose: onConfirmDeleteClose } = useDisclosure();
+    const { isOpen: isViewTaskOpen, onOpen: onViewTaskOpen, onClose: onViewTaskClose } = useDisclosure();
+
 
     const [sections, setSections] = useState([]);
     const [tasksBySection, setTasksBySection] = useState({});
@@ -29,10 +32,14 @@ const TaskManager = () => {
     const [taskToEdit, setTaskToEdit] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [sectionToEdit, setSectionToEdit] = useState(null);
-    // const [sectionToDelete, setSectionToDelete] = useState(null);
     const [filteredItems, setFilteredItems] = useState([]);
     const [openSections, setOpenSections] = useState([]); // State to manage open sections
     const [selectedSection, setSelectedSection] = useState(null); // New state for selected section
+    const [selectedTask, setSelectedTask] = useState(null); // State to store selected task for the drawer
+    const [tasks, setTasks] = useState([]); // assuming tasksBySection is an object with section IDs as keys and taskToEdit arrays as values
+    const [filteredTasks, setFilteredTasks] = useState([]);
+
+
 
 
 
@@ -59,6 +66,24 @@ const TaskManager = () => {
         );
     };
 
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const tasksRes = await getNonDeletedNonCompletedTasks(); // Replace with your actual API call
+                setTasks(tasksRes.data);
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+        };
+
+        fetchTasks();
+    }, []);
+    useEffect(() => {
+        const filteredTasks = tasks.filter(task => task.status !== 'Completed' && !task.isDelete);
+        setFilteredTasks(filteredTasks);
+    }, [tasks]);
+
+
     // Callback to be passed to SearchBar to handle section selection
     const handleSectionSelected = (section) => {
         setSelectedSection(section);  // Set the selected section
@@ -69,6 +94,10 @@ const TaskManager = () => {
                 return prevOpenSections;
             }
         }); // Expand the section accordion
+    };
+    const handleTaskSelected = (task) => {
+        setSelectedTask(task);
+        onViewTaskOpen(); // Open the ViewTaskDrawer
     };
 
     const filteredSections = useMemo(() => {
@@ -206,13 +235,17 @@ const TaskManager = () => {
         }
 
         try {
-            await saveTask(task); // Call API to save task
-            if (task.sectionID !== null) {
-                await fetchTasksBySection(task.sectionID); // Refresh tasks for the specific section
-                refreshTasks();
+            // Call API to save the task
+            await saveTask(task);
+
+            // Refresh tasks based on section ID
+            if (task.sectionID) {
+                await fetchTasksBySection(task.sectionID);
             } else {
-                await fetchTasksWithoutSection(); // Refresh tasks without section
+                await fetchTasksWithoutSection();
             }
+
+            // Show success message
             toast({
                 title: "Task added.",
                 description: "The new task was successfully added.",
@@ -221,16 +254,18 @@ const TaskManager = () => {
                 isClosable: true,
             });
         } catch (error) {
-            console.error('Error adding task:', error.response || error);
+            console.error('Error adding task:', error.response ? error.response.data : error);
             toast({
                 title: "Error adding task.",
-                description: error.message,
+                description: error.response ? error.response.data.message : "An unexpected error occurred.",
                 status: "error",
                 duration: 5000,
                 isClosable: true,
             });
+        } finally {
+            // Refresh tasks regardless of success or failure
+            refreshTasks();
         }
-        refreshTasks();
     };
 
     const handleStatusChange = async (taskId, newStatus) => {
@@ -360,7 +395,9 @@ const TaskManager = () => {
 
             <SearchBar
                 onSectionSelected={handleSectionSelected}
+                onTaskSelected={handleTaskSelected}
                 onApplyFilter={applyFilter}
+                tasks={filteredTasks}
             />
 
             <Accordion allowToggle>
@@ -384,7 +421,7 @@ const TaskManager = () => {
                                     border={0}
                                     variant="outline"
                                 />
-                            <AccordionIcon />
+                                <AccordionIcon />
                             </AccordionButton>
                             <AccordionPanel pb={4}>
                                 <Button
@@ -426,6 +463,12 @@ const TaskManager = () => {
                     onUpdate={() => fetchTasksBySection(selectedSectionId)}
                 />
             )}
+
+            <ViewTaskDrawer
+                isOpen={isViewTaskOpen}
+                onClose={onViewTaskClose}
+                task={selectedTask} // Pass the selected task to the drawer
+            />
 
             {sectionToEdit && (
                 <EditSectionModal

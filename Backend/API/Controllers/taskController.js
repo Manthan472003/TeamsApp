@@ -8,21 +8,32 @@ const { DataTypes } = require('sequelize');
 
 // Create a new task (with user, section, and tag existence checks)
 const createTask = async (req, res) => {
-    const { taskName, description, dueDate, subTask, taskAssignedToID, taskCreatedByID, status, sectionID, platformType, tagIDs } = req.body;
+    const { 
+        taskName, 
+        description, 
+        dueDate, 
+        subTask, 
+        taskAssignedToID, 
+        taskCreatedByID, 
+        status, 
+        sectionID, 
+        platformType, 
+        tagIDs 
+    } = req.body;
 
-    // Validate required fields
+    // // Validate required fields
     if (!taskName || !sectionID) {
-        return res.status(400).json({ message: 'Task name and section ID are required.' });
+        return res.status(200).json({ message: 'Task name and section ID are required.' });
     }
 
     try {
-        // Convert IDs to appropriate types (e.g., integers)
+        // Convert IDs to appropriate types
         const assignedUserId = taskAssignedToID ? parseInt(taskAssignedToID, 10) : null;
         const createdByUserId = taskCreatedByID ? parseInt(taskCreatedByID, 10) : null;
         const sectionId = parseInt(sectionID, 10);
-        const tagsIds = tagIDs && Array.isArray(tagIDs) ? tagIDs.map(id => parseInt(id, 10)) : [];
+        const tagsIds = Array.isArray(tagIDs) ? tagIDs.map(id => parseInt(id, 10)) : [];
 
-        // Check if the assigned user exists (if provided)
+        // Validate users and section existence
         if (assignedUserId) {
             const assignedUser = await User.findOne({ where: { id: assignedUserId } });
             if (!assignedUser) {
@@ -30,7 +41,6 @@ const createTask = async (req, res) => {
             }
         }
 
-        // Check if the task creator exists (if provided)
         if (createdByUserId) {
             const createdByUser = await User.findOne({ where: { id: createdByUserId } });
             if (!createdByUser) {
@@ -38,13 +48,12 @@ const createTask = async (req, res) => {
             }
         }
 
-        // Check if the section exists
         const section = await Section.findOne({ where: { id: sectionId } });
         if (!section) {
             return res.status(404).json({ message: 'Section does not exist.' });
         }
 
-        // Validate tagIDs if provided
+        // Validate tags if provided
         if (tagsIds.length > 0) {
             const tags = await Tag.findAll({ where: { id: tagsIds } });
             const tagIdsInDb = tags.map(tag => tag.id);
@@ -66,14 +75,12 @@ const createTask = async (req, res) => {
             status,
             sectionID: sectionId,
             platformType,
-            tagIDs: tagsIds // Handle this as JSON array
+            tagIDs: tagsIds
         });
 
         // Create a notification for the task
-        const notificationText = `New task created:\n${taskName}`; // Updated format
-        const userIds = [];
-        if (assignedUserId) userIds.push(assignedUserId);
-        if (createdByUserId) userIds.push(createdByUserId);
+        const notificationText = `New task created: ${taskName}`;
+        const userIds = [assignedUserId, createdByUserId].filter(Boolean); // Only include valid IDs
 
         let notificationId;
         if (userIds.length > 0) {
@@ -81,13 +88,16 @@ const createTask = async (req, res) => {
             notificationId = notification.id;
         }
 
-        // Update the task with the newly created notification ID
-        await newTask.update({ notificationIDs: [notificationId] }); // Store the notification ID
+        // Update the task with the notification ID
+        if (notificationId) {
+            await newTask.update({ notificationIDs: [notificationId] });
+        }
 
+        // Send success response
         return res.status(201).json({ message: 'Task created successfully.', newTask });
     } catch (error) {
         console.error('Error creating task:', error);
-        return res.status(500).json({ message: 'Error creating task.' });
+        return res.status(500).json({ message: 'Error creating task.', error: error.message });
     }
 };
 
@@ -314,6 +324,23 @@ const getCompletedTasks = async (req, res) => {
     }
 };
 
+// Get tasks with non-'Completed' status and non-deleted
+const getNonCompletedNonDeletedTasks = async (req, res) => {
+    try {
+        const tasks = await Task.findAll({
+            where: {
+                status: { [Op.ne]: 'Completed' }, // Not completed
+                isDelete: false // Not deleted
+            }
+        });
+        return res.status(200).json(tasks);
+    } catch (error) {
+        console.error('Error retrieving non-completed and non-deleted tasks:', error);
+        return res.status(500).json({ message: 'Error retrieving non-completed and non-deleted tasks.' });
+    }
+};
+
+
 // Get Tasks Assigned to a user by UserID
 const getAssignedTasksToUserByUserId = async (req, res) => {
     const { userId } = req.params;
@@ -386,5 +413,6 @@ module.exports = {
     getAssignedTasksToUserByUserId,
     getTasksByTaskName,
     getDeletedTasks,
-    restoreTaskById
+    restoreTaskById,
+    getNonCompletedNonDeletedTasks
 };

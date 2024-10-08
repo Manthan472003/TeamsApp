@@ -46,6 +46,9 @@ export const getAssignedTasks = (userId) => axios.get(`${API_URL}/assignedTasks/
 // Fetch deleted tasks
 export const getDeletedTasks = () => axios.get(`${API_URL}/tasks/bin`);
 
+// Fetch nondeleted noncompleted tasks
+export const getNonDeletedNonCompletedTasks = () => axios.get(`${API_URL}/nonCompleted/nonDeleted`);
+
 // Restore a deleted task
 export const restoreTask = async (taskId) => {
     try {

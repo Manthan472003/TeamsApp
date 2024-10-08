@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import jwtDecode from 'jwt-decode';
 import {
-    Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody, DrawerFooter,
+    Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody,
     Button, FormControl, FormLabel, Input, Select, useToast, SimpleGrid, Box
 } from '@chakra-ui/react';
 import UserDropdown from './UserDropdown';
@@ -119,59 +119,52 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
 
         const task = {
             taskName,
-            dueDate,
             taskAssignedToID: assignedTo,
             taskCreatedByID: parseInt(userId, 10),
             status,
             platformType,
             sectionID: selectedSection,
-            tagIDs: validTagIDs
+            tagIDs: validTagIDs,
         };
+
+        // Include dueDate only if it's provided
+        if (dueDate) {
+            task.dueDate = dueDate; // Only add if dueDate has a value
+        }
 
         try {
             const newTask = await saveTask(task);
             onSubmit(newTask);
 
             const notificationText = `New task created:\n${taskName}`;
-
-            // Ensure you are only including valid user IDs
             const userIds = [assignedTo, userId].filter(id => typeof id === 'number' && id > 0);
 
-            // Log the user IDs for debugging
             console.log("User IDs for notification:", userIds);
 
             if (userIds.length > 0) {
                 await createNotification({ notificationText, userIds });
             }
 
-            // toast({
-            //     title: "Task added.",
-            //     description: "The new task was successfully added.",
-            //     status: "success",
-            //     duration: 5000,
-            //     isClosable: true,
-            // });
             onClose();
             resetForm();
 
-            // Send email to the assigned user
             if (assignedUserEmail) {
                 const tagNames = getTagNamesByIds(validTagIDs).join(', ');
 
                 const emailContent = {
                     email: assignedUserEmail,
-                    subject: `New Task Assigned : ${taskName}`,
-                    text: `You have been assigned a new task : ${taskName}. Due date: ${dueDate}.`,
+                    subject: `New Task Assigned: ${taskName}`,
+                    text: `You have been assigned a new task: ${taskName}. Due date: ${dueDate || 'Not specified'}.`,
                     html: `
                         <div style="font-family: Arial, sans-serif; padding: 20px;">
                             <h1 style="color: #007BFF;">New Task Assigned</h1>
                             <p style="font-size: 16px;">You have been assigned a new task:</p>
-                            <h2 style="color: #333;">Task Name : <strong>${taskName}</strong></h2>
-                            <p><strong>Due Date :</strong> ${dueDate}</p>
-                            <p><strong>Created By :</strong> ${createdByUserName}</p> 
-                            <p><strong>Status :</strong> ${status}</p>
-                            <p><strong>Platform Type :</strong> ${platformType}</p>
-                            <p><strong>Tags :</strong> ${tagNames || 'None'}</p>
+                            <h2 style="color: #333;">Task Name: <strong>${taskName}</strong></h2>
+                            <p><strong>Due Date:</strong> ${dueDate || 'Not specified'}</p>
+                            <p><strong>Created By:</strong> ${createdByUserName}</p> 
+                            <p><strong>Status:</strong> ${status}</p>
+                            <p><strong>Platform Type:</strong> ${platformType}</p>
+                            <p><strong>Tags:</strong> ${tagNames || 'None'}</p>
                             <p style="margin-top: 20px;">Thank you!</p>
                         </div>
                     `,
@@ -191,7 +184,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             });
         }
     };
-
 
     const buttonStyles = {
         base: {
@@ -268,13 +260,13 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                             />
                         </FormControl>
                         <SimpleGrid columns={2} spacing={4}>
+
                             <FormControl mb={4}>
                                 <FormLabel>Due Date</FormLabel>
                                 <Input
                                     value={dueDate}
                                     type='date'
-                                    onChange={(e) => setDueDate(e.target.value)} // Ensure this is correct
-                                    required
+                                    onChange={(e) => setDueDate(e.target.value || '')} 
                                 />
                             </FormControl>
 
@@ -324,10 +316,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                         </Box>
                     </form>
                 </DrawerBody>
-
-                <DrawerFooter>
-                    {/* Any additional footer actions can go here */}
-                </DrawerFooter>
             </DrawerContent>
         </Drawer>
     );
