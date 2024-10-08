@@ -20,49 +20,53 @@ const VersionManagementTable = ({ entries, onEdit, onAccept }) => {
             </thead>
             <tbody>
                 {sortedEntries.length > 0 ? (
-                    sortedEntries.map((entry, index) => (
-                        <tr
-                            key={entry.id}
-                            style={{
-                                backgroundColor: index % 2 === 0 ? '#ebfff0' : '#d7f2ff'
-                            }}
-                        >
-                            <td style={{ padding: '10px' }}>{entry.applicationName}</td>
-                            <td style={{ padding: '10px' }}>{entry.liveVersion}</td>
-                            <td style={{ padding: '10px' }}>{entry.testVersion}</td>
-                            <td style={{ padding: '10px' }}>{entry.status}</td>
-                            <td style={{ padding: '10px' }}>
-                                <IconButton
-                                    icon={<FaEdit size={25} />}
-                                    onClick={() => onEdit(entry.id)}
-                                    variant="outline"
-                                    title='Edit'
-                                    colorScheme="green"
-                                    border={0}
-                                    mr={2}
-                                />
-                                <IconButton
-                                    icon={<IoMdCheckboxOutline size={27} />}
-                                    onClick={() => onAccept(entry.id)}
-                                    variant="outline"
-                                    title='Accepted'
-                                    border={0}
-                                    colorScheme="green"
-                                />
-                            </td>
-                            <td style={{ padding: '10px' }}>
-                                {entry.updatedAt && !isNaN(new Date(entry.updatedAt)) ? (
-                                    new Intl.DateTimeFormat('en-GB', {
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: 'numeric',
-                                    }).format(new Date(entry.updatedAt))
-                                ) : (
-                                    'Unknown'
-                                )}
-                            </td>
-                        </tr>
-                    ))
+                    sortedEntries.map((entry) => {
+                        const rowBackgroundColor = entry.testVersion ? '#d7f2ff' : '#ebfff0'; // Green if testVersion is null
+
+                        return (
+                            <tr
+                                key={entry.id}
+                                style={{
+                                    backgroundColor: rowBackgroundColor
+                                }}
+                            >
+                                <td style={{ padding: '10px' }}>{entry.applicationName}</td>
+                                <td style={{ padding: '10px' }}>{entry.liveVersion}</td>
+                                <td style={{ padding: '10px' }}>{entry.testVersion}</td>
+                                <td style={{ padding: '10px' }}>{entry.status}</td>
+                                <td style={{ padding: '10px' }}>
+                                    <IconButton
+                                        icon={<FaEdit size={25} />}
+                                        onClick={() => onEdit(entry.id)}
+                                        variant="outline"
+                                        title='Edit'
+                                        colorScheme="green"
+                                        border={0}
+                                        mr={2}
+                                    />
+                                    <IconButton
+                                        icon={<IoMdCheckboxOutline size={27} />}
+                                        onClick={() => onAccept(entry.id)}
+                                        variant="outline"
+                                        title='Accepted'
+                                        border={0}
+                                        colorScheme="green"
+                                    />
+                                </td>
+                                <td style={{ padding: '10px' }}>
+                                    {entry.updatedAt && !isNaN(new Date(entry.updatedAt)) ? (
+                                        new Intl.DateTimeFormat('en-GB', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                        }).format(new Date(entry.updatedAt))
+                                    ) : (
+                                        'Unknown'
+                                    )}
+                                </td>
+                            </tr>
+                        );
+                    })
                 ) : (
                     <tr>
                         <td colSpan={6} style={{ textAlign: 'center', color: '#a0aec0', padding: '10px' }}>

@@ -1,24 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { getAssignedTasks } from '../Services/TaskService'; // Adjust the import based on your file structure
-import { Heading, Box } from '@chakra-ui/react';
-import MyTasksTable from './MyTasksTable'; // Adjust the import based on your file structure
-import jwt_decode from 'jwt-decode'; // Import jwt-decode
+import { getAssignedTasks } from '../Services/TaskService'; 
+import { getSections } from '../Services/SectionService'; 
+import { Heading, Box, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, Text, Spacer } from '@chakra-ui/react';
+import MyTasksTable from './MyTasksTable'; 
+import jwt_decode from 'jwt-decode';
 
 const MyTasks = () => {
   const [tasks, setTasks] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [tasksBySection, setTasksBySection] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token'); // Get the token from local storage
-    console.log('Token:', token); // Log the token
-
+    const token = localStorage.getItem('token');
     if (token) {
       try {
-        const decoded = jwt_decode(token); // Decode the JWT token
-        setUserId(decoded.id); // Set the userId from the token
-        console.log('Decoded User ID:', decoded.id); // Log the decoded user ID
+        const decoded = jwt_decode(token);
+        setUserId(decoded.id);
       } catch (error) {
         console.error('Error decoding token:', error);
         setError('Invalid token');
@@ -31,12 +31,11 @@ const MyTasks = () => {
 
   useEffect(() => {
     const fetchTasks = async () => {
-      if (!userId) return; // If userId is not set, return early
+      if (!userId) return;
 
       try {
         const response = await getAssignedTasks(userId);
-        console.log('Fetched Tasks:', response.data); // Log the fetched tasks
-        setTasks(response.data); // Assuming response.data contains the tasks array
+        setTasks(response.data);
       } catch (err) {
         console.error('Error fetching assigned tasks:', err);
         setError('Failed to load tasks');
@@ -47,6 +46,32 @@ const MyTasks = () => {
 
     fetchTasks();
   }, [userId]);
+
+  useEffect(() => {
+    const fetchSections = async () => {
+      try {
+        const response = await getSections();
+        setSections(response.data);
+      } catch (error) {
+        console.error('Fetch Sections Error:', error);
+        setError('Failed to load sections');
+      }
+    };
+
+    fetchSections();
+  }, []);
+
+  useEffect(() => {
+    const groupedTasks = {};
+    tasks.forEach(task => {
+      const sectionId = task.sectionID || 'no-section'; 
+      if (!groupedTasks[sectionId]) {
+        groupedTasks[sectionId] = [];
+      }
+      groupedTasks[sectionId].push(task);
+    });
+    setTasksBySection(groupedTasks);
+  }, [tasks]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -69,8 +94,30 @@ const MyTasks = () => {
           display: 'inline-block',
       }}>
         My Tasks
-      </Heading>      
-      <MyTasksTable tasks={filterTasks(tasks)} users={[]} /> {/* Pass tasks to the table */}
+      </Heading>
+      
+      <Accordion mt={3} allowToggle>
+        {sections.map(section => {
+          const sectionTasks = tasksBySection[section.id] || [];
+          if (sectionTasks.length === 0) return null; // Skip rendering this section if no tasks
+
+          return (
+            <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
+              <AccordionButton>
+                <Box flex='1' textAlign='left'>
+                  <Text fontSize='xl' fontWeight='bold' color='#149edf'>{section.sectionName}</Text>
+                  <Text fontSize='md' color='gray.500'>{section.description}</Text>
+                </Box>
+                <Spacer />
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>
+                <MyTasksTable tasks={filterTasks(sectionTasks)} users={[]} />
+              </AccordionPanel>
+            </AccordionItem>
+          );
+        })}
+      </Accordion>
     </Box>
   );
 };

@@ -7,7 +7,7 @@ import ConfirmCompleteModal from './ConfirmCompleteModal';
 import ViewTaskDrawer from './ViewTaskDrawer';
 import { deleteTask } from '../Services/TaskService';
 
-const TaskTable = ({ tasks, onEdit, onStatusChange, users }) => {
+const TaskTable = ({ tasks, onStatusChange, users }) => {
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
     const { isOpen: isCompleteOpen, onClose: onCompleteClose } = useDisclosure();
     const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
@@ -111,6 +111,19 @@ const TaskTable = ({ tasks, onEdit, onStatusChange, users }) => {
         window.addEventListener('mouseup', onMouseUp);
     };
 
+    const getRowColorByStatus = (status) => {
+        switch (status) {
+            case 'Not Started':
+                return '#ffdede'; // light red
+            case 'In Progress':
+                return '#fffc8f'; // light yellow
+            case 'On Hold':
+                return '#ccffff'; // light blue
+            default:
+                return 'transparent';
+        }
+    };
+
     return (
         <>
             <style>
@@ -129,7 +142,7 @@ const TaskTable = ({ tasks, onEdit, onStatusChange, users }) => {
                         overflow: hidden;
                         text-overflow: ellipsis;
                         white-space: nowrap;
-                        border: 1px solid #9e9e9e; 
+                        border: 1px solid #ccc; 
                     }
                     .column_resize_table th {
                         background-color: #f1f1f1;
@@ -142,11 +155,13 @@ const TaskTable = ({ tasks, onEdit, onStatusChange, users }) => {
                         margin-right: 8px;
                     }
                     .status-select {
-                        padding: 4px;
-                        border-radius: 7px;
-                        border: 1px solid #ccc;
-                        background-color: #fff;
+                          padding: 4px;
+                          border-radius: 5px;
+                           border: 1px solid #9e9e9e;
+                          background-color: transparent; 
+                          width: 100%; 
                     }
+
                     .delete-button {
                         background-color: red;
                         color: white;
@@ -191,8 +206,8 @@ const TaskTable = ({ tasks, onEdit, onStatusChange, users }) => {
                     </thead>
                     <tbody>
                         {sortedTasks.length > 0 ? (
-                            sortedTasks.map((task, index) => (
-                                <tr key={task.id} style={{ backgroundColor: index % 2 === 0 ? '#ebfff0' : '#d7f2ff' }}>
+                            sortedTasks.map((task) => (
+                                <tr key={task.id} style={{ backgroundColor: getRowColorByStatus(task.status) }}>
                                     <td style={{ cursor: 'pointer' }} onClick={() => handleTaskClick(task)}>{task.taskName}</td>
                                     <td style={{ cursor: 'pointer' }} onClick={() => handleTaskClick(task)}>
                                         <div style={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -216,6 +231,7 @@ const TaskTable = ({ tasks, onEdit, onStatusChange, users }) => {
                                             value={task.status}
                                             onChange={(e) => handleStatusChange(task.id, e.target.value)}
                                             className="status-select"
+                                            style={{ width: '100%', fontSize: '15px', padding: '4px' }} 
                                         >
                                             <option value="Not Started">Not Started</option>
                                             <option value="In Progress">In Progress</option>
@@ -231,7 +247,6 @@ const TaskTable = ({ tasks, onEdit, onStatusChange, users }) => {
                                             border={0}
                                             colorScheme="red"
                                         />
-
                                     </td>
                                 </tr>
                             ))

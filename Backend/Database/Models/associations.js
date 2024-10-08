@@ -23,6 +23,10 @@ VersionManagement.belongsTo(User, {foreignKey : 'userID'});
 User.hasMany(DailyReports, { foreignKey: 'userId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 DailyReports.belongsTo(User, { foreignKey: 'userId' });
 
+// User to DailyReports
+Task.hasMany(DailyReports, { foreignKey: 'taskId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+DailyReports.belongsTo(Task, { foreignKey: 'taskId' });
+
 //Task to Media
 Task.hasMany(Media, {foreignKey: 'taskId'});
 Media.belongsTo(Task, {foreignKey: 'taskId'});

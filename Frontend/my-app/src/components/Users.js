@@ -42,6 +42,14 @@ const Users = () => {
         }
     };
 
+    // Define color mapping for each user type
+    const userTypeColors = {
+        Admin: '#d4fffc',         // Light turquoise
+        Developer: '#fadcec',     // Pale rose
+        FieldWorker: '#fff1d4',   // Light cream
+        Doctor: '#edd4ff'         // Soft lavender
+    };
+
     return (
         <Box p={5}>
             <Heading as='h2' size='xl' paddingLeft={3} mb={4}
@@ -64,8 +72,8 @@ const Users = () => {
                     </Tr>
                 </Thead>
                 <Tbody>
-                    {users.map((user, index) => (
-                        <Tr key={user.id} style={{ backgroundColor: index % 2 === 0 ? '#ebfff0' : '#d7f2ff' }}>
+                    {users.map((user) => (
+                        <Tr key={user.id} style={{ backgroundColor: userTypeColors[user.userType] || '#ffffff' }}>
                             <Td>{user.userName}</Td>
                             <Td>{user.email}</Td>
                             <Td>
@@ -77,7 +85,7 @@ const Users = () => {
                             </Td>
                             <Td>
                                 <Select
-                                 bg="white"
+                                    bg="white"
                                     defaultValue={user.userType}
                                     onChange={(e) => handleUserTypeChange(user.id, e.target.value)}
                                 >

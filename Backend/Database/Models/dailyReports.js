@@ -15,6 +15,10 @@ const DailyReports = sequelize.define('DailyReports', {
     type: DataTypes.STRING(255),
     allowNull: true
   },
+  taskId: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
   status: {
     type: DataTypes.ENUM('Completed', 'In Progress', 'On Hold', 'Research'),
     defaultValue: 'In Progress'

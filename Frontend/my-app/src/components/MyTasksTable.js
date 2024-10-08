@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getTags } from '../Services/TagService'; // Adjust import according to your file structure
-import { getSections } from '../Services/SectionService'; // Assuming you have a service to fetch sections
+import { getTags } from '../Services/TagService'; 
+import { getSections } from '../Services/SectionService'; 
 
 const MyTasksTable = ({ tasks, users }) => {
     const [tags, setTags] = useState([]);
-    const [sections, setSections] = useState([]);
+    const [, setSections] = useState([]);
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -43,11 +43,6 @@ const MyTasksTable = ({ tasks, users }) => {
         });
     };
 
-    const getSectionNameById = (sectionId) => {
-        const section = sections.find(sec => sec.id === sectionId);
-        return section ? section.sectionName : 'No Section';
-    };
-
     const sortedTasks = tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
     return (
@@ -55,10 +50,9 @@ const MyTasksTable = ({ tasks, users }) => {
             <table style={{ width: '100%', borderCollapse: 'collapse', borderRadius: '10px', overflow: 'hidden', marginTop: '16px', tableLayout: 'fixed' }}>
                 <thead style={{ backgroundColor: '#f7fafc' }}>
                     <tr>
-                        <th style={{ width: '48%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Task Name</th>
-                        <th style={{ width: '17%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left', whiteSpace: 'normal' }}>Tags</th>
+                        <th style={{ width: '50%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Task Name</th>
+                        <th style={{ width: '35%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left', whiteSpace: 'normal' }}>Tags</th>
                         <th style={{ width: '15%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Due Date</th>
-                        <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Section</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -94,7 +88,6 @@ const MyTasksTable = ({ tasks, users }) => {
                                         year: 'numeric'
                                     }).format(new Date(task.dueDate))}
                                 </td>
-                                <td style={{ padding: '10px' }}>{task.sectionID ? getSectionNameById(task.sectionID) : 'No Section'}</td>
                             </tr>
                         ))
                     ) : (

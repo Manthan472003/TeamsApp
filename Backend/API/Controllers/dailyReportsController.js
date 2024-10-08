@@ -1,9 +1,10 @@
 const DailyReports = require('../../Database/Models/dailyReports');
 const User = require('../../Database/Models/user');
+const Task = require('../../Database/Models/task');
 
 // Create a new DailyReports entry
 const createReport = async (req, res) => {
-  const { userId, taskName, status } = req.body;
+  const { userId, taskName, taskId, status } = req.body;
 
   try {
     //Checking if user exists
@@ -16,10 +17,21 @@ const createReport = async (req, res) => {
       }
     }
 
+    //Checking if task exists
+    if (taskId) {
+      const task = await Task.findOne({
+        where: { id: taskId }
+      });
+      if (!task) {
+        return res.status(404).json({ message: 'Task does not exist.' });
+      }
+    }
+
     //Create new entry
     const newReport = await DailyReports.create({
       userId,
       taskName,
+      taskId,
       status
     });
     res.status(201).json({ message: 'New Report Entry Created Successfully.', newReport });

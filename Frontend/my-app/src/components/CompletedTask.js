@@ -139,7 +139,7 @@ const CompletedTask = () => {
     return (
 
         <Box mt={5}>
-            <Heading as='h2' size='xl'paddingLeft={3} mb={3} sx={{
+            <Heading as='h2' size='xl' paddingLeft={3} mb={3} sx={{
                 background: 'linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)',
                 backgroundClip: 'text',
                 color: 'transparent',
@@ -147,11 +147,11 @@ const CompletedTask = () => {
             }}>
                 Completed Tasks
             </Heading>
-            <br/>
-            <Accordion>
+            <br />
+            <Accordion allowToggle>
                 {sections.map(section => (
                     <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
-                        <AccordionButton onClick={() => setSelectedSectionId(section.id)}>
+                        <AccordionButton onClick={() => setSelectedSectionId(selectedSectionId === section.id ? null : section.id)}>
                             <Box flex='1' textAlign='left'>
                                 <Text fontSize='xl' fontWeight='bold' color='#149edf'>{section.sectionName}</Text>
                                 <Text fontSize='md' color='gray.500'>{section.description}</Text>
@@ -164,7 +164,6 @@ const CompletedTask = () => {
                                 tasks={getCompletedTasksForSection(section.id)}
                                 users={users} // Pass users to CompletedTaskTable
                                 onStatusChange={handleStatusChange} // Ensure this is defined
-
                             />
                         </AccordionPanel>
                     </AccordionItem>
