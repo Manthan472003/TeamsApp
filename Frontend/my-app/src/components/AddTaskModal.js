@@ -10,11 +10,11 @@ import { getSections } from '../Services/SectionService';
 import { saveTask } from '../Services/TaskService';
 import { sendEmail } from '../Services/MailService';
 import { getUser } from '../Services/UserService';
-import { getTags } from '../Services/TagService'; // Import the service to get tags
+import { getTags } from '../Services/TagService';
 import { IoIosSave, IoMdCloseCircleOutline } from "react-icons/io";
 import { createNotification } from '../Services/NotificationService';
 
-const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID }) => {
+const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID, sectionName }) => {
     const initialRef = useRef(null);
     const [taskName, setTaskName] = useState('');
     const [dueDate, setDueDate] = useState('');
@@ -29,6 +29,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     const [selectedSection, setSelectedSection] = useState(sectionID || '');
     const [userId, setUserId] = useState(propUserId || '');
     const [, setAssignedUserName] = useState('');
+    
     const toast = useToast();
 
     useEffect(() => {
@@ -37,7 +38,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                 const response = await getSections();
                 if (response && response.data) {
                     setSections(response.data);
-                    console.log("Fetched sections:", response.data); // Debugging log
                 } else {
                     throw new Error('Unexpected response format');
                 }
@@ -45,7 +45,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                 console.error('Error fetching sections:', error);
             }
         };
-
 
         const fetchTags = async () => {
             try {
@@ -127,9 +126,8 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             tagIDs: validTagIDs,
         };
 
-        // Include dueDate only if it's provided
         if (dueDate) {
-            task.dueDate = dueDate; // Only add if dueDate has a value
+            task.dueDate = dueDate;
         }
 
         try {
@@ -138,8 +136,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
 
             const notificationText = `New task created:\n${taskName}`;
             const userIds = [assignedTo, userId].filter(id => typeof id === 'number' && id > 0);
-
-            console.log("User IDs for notification:", userIds);
 
             if (userIds.length > 0) {
                 await createNotification({ notificationText, userIds });
@@ -161,7 +157,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                             <p style="font-size: 16px;">You have been assigned a new task:</p>
                             <h2 style="color: #333;">Task Name: <strong>${taskName}</strong></h2>
                             <p><strong>Due Date:</strong> ${dueDate || 'Not specified'}</p>
-                            <p><strong>Created By:</strong> ${createdByUserName}</p> 
+                            <p><strong>Created By:</strong> ${createdByUserName}</p>
                             <p><strong>Status:</strong> ${status}</p>
                             <p><strong>Platform Type:</strong> ${platformType}</p>
                             <p><strong>Tags:</strong> ${tagNames || 'None'}</p>
@@ -229,7 +225,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                         </option>
                                     ))}
                                 </Select>
-
                             </FormControl>
 
                             <FormControl mb={4}>
@@ -260,7 +255,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                             />
                         </FormControl>
                         <SimpleGrid columns={2} spacing={4}>
-
                             <FormControl mb={4}>
                                 <FormLabel>Due Date</FormLabel>
                                 <Input
@@ -286,7 +280,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                     selectedTags={selectedTags}
                                     onTagSelect={handleTagSelect}
                                     taskId={null}
-                                    allTags={tags} // Pass all tags to the TagDropdown
+                                    allTags={tags}
                                 />
                             </FormControl>
 

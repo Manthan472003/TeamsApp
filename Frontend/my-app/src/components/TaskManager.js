@@ -375,6 +375,10 @@ const TaskManager = () => {
     const filterTasks = (tasks) => {
         return tasks.filter(task => task.status !== 'Completed');
     };
+    const handleAddTaskToSection = (section) => {
+        setSelectedSectionId(section.id); // Set selected section ID
+        onTaskOpen(); // Open the modal
+    };
 
     return (
         <Box mt={5}>
@@ -418,6 +422,7 @@ const TaskManager = () => {
                                     colorScheme='green'
                                     size='lg'
                                     ml={2}
+                                    height={6}
                                     border={0}
                                     variant="outline"
                                 />
@@ -425,7 +430,7 @@ const TaskManager = () => {
                             </AccordionButton>
                             <AccordionPanel pb={4}>
                                 <Button
-                                    onClick={onTaskOpen}
+                                    onClick={() => handleAddTaskToSection(section)}
                                     colorScheme='teal'
                                     textColor='Orange.500'
                                     border={2}
@@ -452,7 +457,10 @@ const TaskManager = () => {
                 isOpen={isTaskOpen}
                 onClose={onTaskClose}
                 onSubmit={(task) => addTaskToSection({ ...task, sectionID: selectedSectionId, createdBy: currentUserId })}
+                sectionID={selectedSectionId}
+                sectionName={sections.find(section => section.id === selectedSectionId)?.sectionName || 'Unnamed Section'} // Get the section name
             />
+
 
 
             {taskToEdit && (
