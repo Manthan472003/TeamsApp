@@ -16,8 +16,7 @@ const CompletedTask = () => {
     const [users, setUsers] = useState([]);
     const [selectedSectionId, setSelectedSectionId] = useState(null);
     const [searchQuery, setSearchQuery] = useState(''); // State for search query
-    const [selectedTask, setSelectedTask] = useState(null);
-
+    const [selectedTask, setSelectedTask] = useState(null); // State for selected task
 
     const toast = useToast();
 
@@ -104,6 +103,17 @@ const CompletedTask = () => {
         }
     }, [selectedSectionId, fetchTasksBySection]);
 
+    // Handle section selection from the search bar
+    const handleSectionSelect = (section) => {
+        setSelectedSectionId(section.id); // Set the selected section
+        setSelectedTask(null); // Clear any previously selected task
+    };
+
+    const handleTaskSelect = (task) => {
+        setSelectedTask(task); // Set the selected task
+        setSelectedSectionId(task.sectionID); // Automatically open the section containing the task
+    };
+
     // Filter only completed tasks based on search query
     const getCompletedTasksForSection = (sectionId) => {
         return (tasksBySection[sectionId] || []).filter(task =>
@@ -142,10 +152,6 @@ const CompletedTask = () => {
         }
     };
 
-    const handleTaskSelect = (task) => {
-        setSelectedTask(task);
-    };
-
     return (
         <Box mt={5}>
             <Heading as='h2' size='xl' paddingLeft={3} mb={3} sx={{
@@ -159,7 +165,9 @@ const CompletedTask = () => {
             <SearchBar
                 onApplyFilter={setSearchQuery}
                 tasks={completedTasks}
-                onTaskSelected={handleTaskSelect}
+                sections={sections} // Pass the sections to the search bar
+                onTaskSelected={handleTaskSelect} // Task selection handler
+                onSectionSelected={handleSectionSelect} // Section selection handler
             />
             <br />
             <Accordion allowToggle>
@@ -175,15 +183,16 @@ const CompletedTask = () => {
                         </AccordionButton>
                         {selectedSectionId === section.id && (
                             <AccordionPanel pb={4}>
+                                {/* Show only selected task if a task is selected */}
                                 {selectedTask && selectedTask.sectionID === section.id ? (
                                     <CompletedTaskTable
-                                        tasks={[selectedTask]}
+                                        tasks={[selectedTask]} // Show only the selected task
                                         users={users}
                                         onStatusChange={handleStatusChange}
                                     />
                                 ) : (
                                     <CompletedTaskTable
-                                        tasks={getCompletedTasksForSection(section.id)}
+                                        tasks={getCompletedTasksForSection(section.id)} // Show all tasks in this section
                                         users={users}
                                         onStatusChange={handleStatusChange}
                                     />
