@@ -1,6 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-    Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Spacer, Heading
+    Box,
+    Text,
+    Accordion,
+    AccordionItem,
+    AccordionButton,
+    AccordionPanel,
+    AccordionIcon,
+    useToast,
+    Spacer,
+    Heading,
+    useDisclosure,
 } from '@chakra-ui/react';
 
 import { getSections } from '../Services/SectionService';
@@ -8,6 +18,7 @@ import { getCompletedTasks, getTasksBySection, updateTask } from '../Services/Ta
 import { getUsers } from '../Services/UserService';
 import CompletedTaskTable from './CompletedTaskTable';
 import SearchBar from './SearchBar';
+import CompletedTaskDrawer from './CompletedTaskDrawer';
 
 const CompletedTask = () => {
     const [sections, setSections] = useState([]);
@@ -16,8 +27,10 @@ const CompletedTask = () => {
     const [users, setUsers] = useState([]);
     const [selectedSectionId, setSelectedSectionId] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedUser, setSelectedUser] = useState(''); // State for selected user filter
+    const [selectedUser, setSelectedUser] = useState('');
     const [selectedTask, setSelectedTask] = useState(null);
+    const [openSections, setOpenSections] = useState([]);
+    const { isOpen: isViewTaskOpen, onOpen: onViewTaskOpen, onClose: onViewTaskClose } = useDisclosure();
 
     const toast = useToast();
 
@@ -25,6 +38,7 @@ const CompletedTask = () => {
         try {
             const response = await getSections();
             setSections(response.data);
+            setOpenSections(response.data.map(section => section.id));
         } catch (error) {
             console.error('Fetch Sections Error:', error);
             toast({
@@ -103,19 +117,39 @@ const CompletedTask = () => {
     const handleSectionSelect = (section) => {
         setSelectedSectionId(section.id);
         setSelectedTask(null);
+        setOpenSections(prev => {
+            if (!prev.includes(section.id)) {
+                return [...prev, section.id];
+            }
+            return prev;
+        });
     };
 
-    const handleTaskSelect = (task) => {
+    const handleTaskSelected = (task) => {
         setSelectedTask(task);
-        setSelectedSectionId(task.sectionID);
+        onViewTaskOpen(); // Open the ViewTaskDrawer
     };
 
     const getCompletedTasksForSection = (sectionId) => {
         return (tasksBySection[sectionId] || []).filter(task => {
             const matchesSearch = task.taskName.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesUser = selectedUser ? task.userId === selectedUser : true; // Assuming task has a userId
+            const matchesUser = selectedUser ? task.userId === selectedUser : true;
             return task.status === 'Completed' && !task.isDelete && matchesSearch && matchesUser;
         });
+    };
+
+    const handleSearchQueryChange = (query, user) => {
+        setSearchQuery(query);
+        setSelectedUser(user);
+
+        // Open the drawer if a task matches the search
+        const matchingTask = completedTasks.find(task => task.taskName.toLowerCase().includes(query.toLowerCase()));
+        if (matchingTask) {
+            setSelectedTask(matchingTask);
+            onViewTaskOpen();
+        } else {
+            setSelectedTask(null); // Clear selected task if no match found
+        }
     };
 
     const handleStatusChange = async (taskId, newStatus) => {
@@ -124,11 +158,7 @@ const CompletedTask = () => {
             if (taskToUpdate) {
                 taskToUpdate.status = newStatus;
                 await updateTask(taskToUpdate);
-                if (taskToUpdate.sectionID !== null) {
-                    await fetchTasksBySection(taskToUpdate.sectionID);
-                } else {
-                    await fetchCompletedTasks();
-                }
+                taskToUpdate.sectionID ? await fetchTasksBySection(taskToUpdate.sectionID) : await fetchCompletedTasks();
                 toast({
                     title: "Task status updated.",
                     description: `Task status has been updated to ${newStatus}.`,
@@ -149,12 +179,14 @@ const CompletedTask = () => {
         }
     };
 
-    const filteredSections = sections.filter(section => {
-        const tasksInSection = tasksBySection[section.id] || [];
-        return tasksInSection.some(task => 
-            task.taskName.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    });
+    const filteredSections = useMemo(() => {
+        if (searchQuery) {
+            return sections.filter(section =>
+                section.sectionName.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+        return sections;
+    }, [sections, searchQuery]);
 
     return (
         <Box mt={5}>
@@ -167,20 +199,19 @@ const CompletedTask = () => {
                 Completed Tasks
             </Heading>
             <SearchBar
-                onApplyFilter={(query, user) => {
-                    setSearchQuery(query);
-                    setSelectedUser(user);
-                }}
+                onApplyFilter={handleSearchQueryChange} // Updated to handle search change
                 tasks={completedTasks}
                 sections={sections}
-                users={users} // Pass users to the search bar
-                onTaskSelected={handleTaskSelect}
+                users={users}
+                onTaskSelected={handleTaskSelected}
                 onSectionSelected={handleSectionSelect}
+                placeholder="Search Completed Tasks... "
+
             />
             <Accordion allowToggle>
                 {filteredSections.length > 0 ? filteredSections.map(section => (
                     <AccordionItem key={section.id} borderWidth={1} borderRadius="md" mb={4}>
-                        <AccordionButton onClick={() => setSelectedSectionId(selectedSectionId === section.id ? null : section.id)}>
+                        <AccordionButton onClick={() => handleSectionSelect(section)}>
                             <Box flex='1' textAlign='left'>
                                 <Text fontSize='xl' fontWeight='bold' color='#149edf'>{section.sectionName}</Text>
                                 <Text fontSize='md' color='gray.500'>{section.description}</Text>
@@ -188,21 +219,13 @@ const CompletedTask = () => {
                             <Spacer />
                             <AccordionIcon />
                         </AccordionButton>
-                        {selectedSectionId === section.id && (
+                        {openSections.includes(section.id) && (
                             <AccordionPanel pb={4}>
-                                {selectedTask && selectedTask.sectionID === section.id ? (
-                                    <CompletedTaskTable
-                                        tasks={[selectedTask]}
-                                        users={users}
-                                        onStatusChange={handleStatusChange}
-                                    />
-                                ) : (
-                                    <CompletedTaskTable
-                                        tasks={getCompletedTasksForSection(section.id)}
-                                        users={users}
-                                        onStatusChange={handleStatusChange}
-                                    />
-                                )}
+                                <CompletedTaskTable
+                                    tasks={getCompletedTasksForSection(section.id)}
+                                    users={users}
+                                    onStatusChange={handleStatusChange}
+                                />
                             </AccordionPanel>
                         )}
                     </AccordionItem>
@@ -210,6 +233,14 @@ const CompletedTask = () => {
                     <Text>No sections found.</Text>
                 )}
             </Accordion>
+
+            <CompletedTaskDrawer
+                isOpen={isViewTaskOpen}
+                onClose={onViewTaskClose}
+                task={selectedTask} // Pass the selected task to the drawer
+                onUpdateTask={handleStatusChange} // Pass the function to update task directly
+                users={users}
+            />
         </Box>
     );
 };

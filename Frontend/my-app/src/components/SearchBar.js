@@ -18,14 +18,13 @@ import { getTags } from '../Services/TagService';
 import { getSections } from '../Services/SectionService';
 import { Search2Icon } from '@chakra-ui/icons';
 
-function SearchBar({ onApplyFilter, onSectionSelected, onTaskSelected, tasks }) {
+function SearchBar({ onApplyFilter, onSectionSelected, onTaskSelected, tasks, placeholder = "Search Tasks or Sections" }) {
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
     const [allTags, setAllTags] = useState([]); // Store all tags fetched from backend
 
-
-    // Fetch suggestions (tasks, tags, and sections) when the query changes
+    // Fetch suggestions (tasks and sections) when the query changes
     useEffect(() => {
         const fetchSuggestions = async () => {
             if (query.length < 2) {
@@ -41,18 +40,12 @@ function SearchBar({ onApplyFilter, onSectionSelected, onTaskSelected, tasks }) 
 
                 setAllTags(tagsRes.data); // Save all tags for later use
 
-
                 const allSuggestions = [
                     ...tasks.map(task => ({
                         id: task.id,
                         name: task.taskName,
                         type: 'task',
                         fullData: task,
-                    })),
-                    ...tagsRes.data.map(tag => ({
-                        id: tag.id,
-                        name: tag.tagName,
-                        type: 'tag',
                     })),
                     ...sectionsRes.data.map(section => ({
                         id: section.id,
@@ -74,7 +67,7 @@ function SearchBar({ onApplyFilter, onSectionSelected, onTaskSelected, tasks }) 
         fetchSuggestions();
     }, [query, tasks]); // Update dependency array to include tasks
 
-    // Handle selection of items (tasks, sections, or tags)
+    // Handle selection of items (tasks or sections)
     const handleSelect = (item) => {
         if (!selectedItems.some(selected => selected.id === item.id)) {
             setSelectedItems(prev => [...prev, item]);
@@ -103,8 +96,6 @@ function SearchBar({ onApplyFilter, onSectionSelected, onTaskSelected, tasks }) 
         switch (type) {
             case 'task':
                 return 'teal';
-            case 'tag':
-                return 'orange';
             case 'section':
                 return 'blue';
             default:
@@ -113,50 +104,48 @@ function SearchBar({ onApplyFilter, onSectionSelected, onTaskSelected, tasks }) 
     };
 
     return (
-        <>
-            <Flex alignContent="end" justifyContent="flex-end" mb={5}>
-                <FormControl w="500">
-                    <HStack spacing={0}>
-                        <AutoComplete openOnFocus>
-                            <AutoCompleteInput
-                                width={400}
-                                placeholder="Search Tasks, Tags or Sections"
-                                variant="outline"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                            />
-                            <AutoCompleteList>
-                                {suggestions.map(item => (
-                                    <AutoCompleteItem
-                                        key={`${item.id}-${item.type}`} // Use a combination of id and type as the key
-                                        value={item.name}
-                                        textTransform="capitalize"
-                                        onClick={() => handleSelect(item)}
-                                    >
-                                        <Flex justify="space-between" width="full">
-                                            <Box>{item.name}</Box>
-                                            <Tag size="md" colorScheme={getTagColor(item.type)}>
-                                                <TagLabel>{item.type}</TagLabel>
-                                            </Tag>
-                                        </Flex>
-                                    </AutoCompleteItem>
-                                ))}
-                            </AutoCompleteList>
-                        </AutoComplete>
-
-                        <Button
-                            onClick={handleApply}
-                            disabled={selectedItems.length === 0}
-                            textColor='Orange.500'
+        <Flex alignContent="end" justifyContent="flex-end" mb={5}>
+            <FormControl w="500">
+                <HStack spacing={0}>
+                    <AutoComplete openOnFocus>
+                        <AutoCompleteInput
+                            width={400}
+                            placeholder={placeholder} 
                             variant="outline"
-                            leftIcon={<Search2Icon />}
-                        >
-                            Search
-                        </Button>
-                    </HStack>
-                </FormControl>
-            </Flex>
-        </>
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                        />
+                        <AutoCompleteList>
+                            {suggestions.map(item => (
+                                <AutoCompleteItem
+                                    key={`${item.id}-${item.type}`} // Use a combination of id and type as the key
+                                    value={item.name}
+                                    textTransform="capitalize"
+                                    onClick={() => handleSelect(item)}
+                                >
+                                    <Flex justify="space-between" width="full">
+                                        <Box>{item.name}</Box>
+                                        <Tag size="md" colorScheme={getTagColor(item.type)}>
+                                            <TagLabel>{item.type}</TagLabel>
+                                        </Tag>
+                                    </Flex>
+                                </AutoCompleteItem>
+                            ))}
+                        </AutoCompleteList>
+                    </AutoComplete>
+
+                    <Button
+                        onClick={handleApply}
+                        disabled={selectedItems.length === 0}
+                        textColor='Orange.500'
+                        variant="outline"
+                        leftIcon={<Search2Icon />}
+                    >
+                        Search
+                    </Button>
+                </HStack>
+            </FormControl>
+        </Flex>
     );
 }
 
