@@ -114,11 +114,11 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
     const getRowColorByStatus = (status) => {
         switch (status) {
             case 'Not Started':
-                return '#FEFFD2'; // light red
+                return '#CDF5FD'; // light red
             case 'In Progress':
-                return '#FFEEA9'; // light yellow
+                return '#A0E9FF'; // light yellow
             case 'On Hold':
-                return '#FFBF78'; // light blue
+                return '#89CFF3'; // light blue
             default:
                 return 'transparent';
         }
@@ -142,10 +142,10 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
                         overflow: hidden;
                         text-overflow: ellipsis;
                         white-space: nowrap;
-                        border: 1px solid #ccc; 
+                        border: 1px solid #EFFFFD; 
                     }
                     .column_resize_table th {
-                        background-color: #f1f1f1;
+                        background-color: #ECF9FF;
                     }
                     .tag {
                         background-color: green;

@@ -40,6 +40,17 @@ export const deleteTask = async (taskId) => {
     }
 };
 
+// Delete a task permanently
+export const deleteTaskPermanently = async (taskId) => {
+    try {
+        const response = await axios.delete(`${API_URL}/deletePermanently/${taskId}`);
+        return response.data; // Return the success message
+    } catch (error) {
+        console.error('Failed to delete task:', error.response ? error.response.data : error.message);
+        throw error; // Rethrow error to be handled by the caller
+    }
+};
+
 // Fetch tasks assigned to a user
 export const getAssignedTasks = (userId) => axios.get(`${API_URL}/assignedTasks/${userId}`);
 

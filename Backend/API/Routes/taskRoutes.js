@@ -41,4 +41,7 @@ router.post('/tasks/bin/:id/restore', taskController.restoreTaskById);
 //Get Non Deleted Non Completed Task
 router.get('/nonCompleted/nonDeleted', taskController.getNonCompletedNonDeletedTasks);
 
+//Delete Task Permanently
+router.delete('/deletePermanently/:id', taskController.deleteTaskPermanently);
+
 module.exports = router;

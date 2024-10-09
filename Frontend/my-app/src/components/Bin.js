@@ -1,17 +1,23 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getDeletedTasks, restoreTask } from '../Services/TaskService';
-import { Button, useToast, Heading, Box } from '@chakra-ui/react';
+import { useToast, Heading, Box, IconButton , useDisclosure} from '@chakra-ui/react';
 import { TbRestore } from 'react-icons/tb';
 import { getUsers } from '../Services/UserService';
 import ConfirmRestoreModal from './ConfirmRestoreModal';
-import { getTags } from '../Services/TagService'; 
+import { getTags } from '../Services/TagService';
+import { deleteTaskPermanently } from '../Services/TaskService';
+import { ImBin2 } from "react-icons/im";
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 
 const Bin = () => {
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+
   const [deletedTasks, setDeletedTasks] = useState([]);
   const [error, setError] = useState(null);
   const [users, setUsers] = useState([]);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [taskToRestore, setTaskToRestore] = useState(null);
+  const [taskToPermanentlyDelete, setTaskToPermanentlyDelete] = useState(null);
   const [tags, setTags] = useState([]);
   const toast = useToast();
 
@@ -34,7 +40,7 @@ const Bin = () => {
   const fetchTags = async () => {
     try {
       const response = await getTags();
-      setTags(response.data); 
+      setTags(response.data);
     } catch (error) {
       console.error('Error fetching tags:', error);
     }
@@ -83,6 +89,23 @@ const Bin = () => {
     }
   };
 
+  const handleDeleteClick = (task) => {
+    setTaskToPermanentlyDelete(task);
+    onDeleteOpen();
+  };
+
+  const confirmDelete = async () => {
+    if (taskToPermanentlyDelete) {
+      try {
+        await deleteTaskPermanently(taskToPermanentlyDelete.id); // Call deleteTask API
+        setTaskToPermanentlyDelete(null);
+        onDeleteClose();
+      } catch (error) {
+        console.error('Error deleting task:', error);
+      }
+    }
+  };
+
   const getTagNamesByIds = (tagIds) => {
     const tagMap = new Map(tags.map(tag => [tag.id, tag.tagName]));
 
@@ -116,10 +139,10 @@ const Bin = () => {
         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px', variant: 'simple' }}>
           <thead>
             <tr>
-              <th style={{ width: '40%', padding: '10px', textAlign: 'left', backgroundColor: '#f7fafc' }}>Task Name</th>
+              <th style={{ width: '50%', padding: '10px', textAlign: 'left', backgroundColor: '#f7fafc' }}>Task Name</th>
               <th style={{ width: '20%', padding: '10px', textAlign: 'left', backgroundColor: '#f7fafc' }}>Tags</th>
               <th style={{ width: '20%', padding: '10px', textAlign: 'left', backgroundColor: '#f7fafc' }}>Assigned To</th>
-              <th style={{ width: '20%', padding: '10px', textAlign: 'left', backgroundColor: '#f7fafc' }}>Action</th>
+              <th style={{ width: '10%', padding: '10px', textAlign: 'left', backgroundColor: '#f7fafc' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -145,13 +168,22 @@ const Bin = () => {
                   </td>
                   <td style={{ padding: '10px' }}>{getUserNameById(task.taskAssignedToID)}</td>
                   <td style={{ padding: '10px' }}>
-                    <Button
-                      colorScheme="teal"
+                    <IconButton
+                      icon={<TbRestore size={20} />}
+                      variant="outline"
+                      title='Restore'
+                      border={0}
+                      colorScheme="green"
                       onClick={() => openRestoreModal(task)}
-                      leftIcon={<TbRestore size={20} />}
-                    >
-                      Restore
-                    </Button>
+                    />
+                    <IconButton
+                      icon={<ImBin2 size={20} />}
+                      onClick={() => handleDeleteClick(task)}
+                      variant="outline"
+                      title='Delete'
+                      border={0}
+                      colorScheme="red"
+                    />
                   </td>
                 </tr>
               ))
@@ -165,6 +197,13 @@ const Bin = () => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={isDeleteOpen}
+        onClose={onDeleteClose}
+        onConfirm={confirmDelete}
+        itemName={taskToPermanentlyDelete ? taskToPermanentlyDelete.taskName : ''}
+      />
 
       <ConfirmRestoreModal
         isOpen={isRestoreModalOpen}

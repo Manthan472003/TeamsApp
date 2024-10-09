@@ -8,17 +8,17 @@ const { DataTypes } = require('sequelize');
 
 // Create a new task (with user, section, and tag existence checks)
 const createTask = async (req, res) => {
-    const { 
-        taskName, 
-        description, 
-        dueDate, 
-        subTask, 
-        taskAssignedToID, 
-        taskCreatedByID, 
-        status, 
-        sectionID, 
-        platformType, 
-        tagIDs 
+    const {
+        taskName,
+        description,
+        dueDate,
+        subTask,
+        taskAssignedToID,
+        taskCreatedByID,
+        status,
+        sectionID,
+        platformType,
+        tagIDs
     } = req.body;
 
     // // Validate required fields
@@ -237,6 +237,24 @@ const deleteTaskById = async (req, res) => {
     }
 };
 
+//Delete task permanently
+const deleteTaskPermanently = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const task = await Task.findOne({
+            where: { id }
+        });
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found.' });
+        }
+        await task.destroy();
+        return res.status(200).json({ message: 'Task deleted successfully.' });
+    } catch (error) {
+        console.error('Error deleting task:', error);
+        return res.status(500).json({ message: 'Error deleting task.', error });
+    }
+};
+
 //Get all soft deleted Task
 const getDeletedTasks = async (req, res) => {
     try {
@@ -414,5 +432,6 @@ module.exports = {
     getTasksByTaskName,
     getDeletedTasks,
     restoreTaskById,
-    getNonCompletedNonDeletedTasks
+    getNonCompletedNonDeletedTasks,
+    deleteTaskPermanently
 };
