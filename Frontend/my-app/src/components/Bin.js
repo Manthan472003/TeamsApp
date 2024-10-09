@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getDeletedTasks, restoreTask } from '../Services/TaskService';
-import { useToast, Heading, Box, IconButton , useDisclosure} from '@chakra-ui/react';
+import { useToast, Heading, Box, IconButton, useDisclosure } from '@chakra-ui/react';
 import { TbRestore } from 'react-icons/tb';
 import { getUsers } from '../Services/UserService';
 import ConfirmRestoreModal from './ConfirmRestoreModal';
@@ -98,13 +98,24 @@ const Bin = () => {
     if (taskToPermanentlyDelete) {
       try {
         await deleteTaskPermanently(taskToPermanentlyDelete.id); // Call deleteTask API
+        setDeletedTasks(prevTasks =>
+          prevTasks.filter(task => task.id !== taskToPermanentlyDelete.id) // Update state to remove deleted task
+        );
         setTaskToPermanentlyDelete(null);
         onDeleteClose();
+        toast({
+          title: "Task Deleted",
+          description: "The task has been deleted permanently.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
       } catch (error) {
         console.error('Error deleting task:', error);
       }
     }
   };
+
 
   const getTagNamesByIds = (tagIds) => {
     const tagMap = new Map(tags.map(tag => [tag.id, tag.tagName]));
