@@ -484,7 +484,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
       <Drawer onClose={onClose} isOpen={isOpen} size={size}>
         <DrawerOverlay />
         <DrawerContent>
-          <DrawerCloseButton />
+          <DrawerCloseButton color={'white'} size={10} padding='10 3' />
           <DrawerHeader>Task Details</DrawerHeader>
           <DrawerBody>
             <Text fontSize="lg">No task selected.</Text>
@@ -534,7 +534,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
       <Drawer onClose={onClose} isOpen={isOpen} size={size} closeOnOverlayClick={false}>
         <DrawerOverlay />
         <DrawerContent>
-          <DrawerCloseButton />
+          <DrawerCloseButton color={'white'} size={10} padding='10 3' />
           <DrawerHeader sx={buttonStyles.base}>TASK DETAILS</DrawerHeader>
           <DrawerBody>
             <VStack spacing={4} align="stretch">

@@ -3,7 +3,7 @@ import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton,
   Button, FormControl, FormLabel, Input, Select, useToast
 } from '@chakra-ui/react';
-import jwt_decode from 'jwt-decode'; 
+import jwt_decode from 'jwt-decode';
 import { getAssignedTasks } from '../Services/TaskService';
 
 const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) => {
@@ -22,7 +22,7 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
       if (token) {
         try {
           const decodedToken = jwt_decode(token);
-          setUserId(decodedToken.id); 
+          setUserId(decodedToken.id);
         } catch (error) {
           console.error('Failed to decode token:', error);
         }
@@ -57,16 +57,30 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+  
+    // Check if taskName is empty
+    if (!taskName) {
+      toast({
+        title: "Task Name is required.",
+        description: "Please enter a task name before submitting.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return; // Exit the function if taskName is empty
+    }
+  
+    // If taskId is null, don't include it in the report object
     const report = {
       userId: parseInt(userId, 10),
-      taskId, // Include taskId here
-      taskName, // Optional: If you need to send task name as well
+      taskId: parseInt(taskId, 10), // This will be null if no task is selected
+      taskName, // Send task name as well
       status,
     };
-
+  
     if (typeof onSubmit === 'function') {
       try {
+        // Omit taskId if it is null
         await onSubmit(report);
         toast({
           title: "New Report Saved.",
@@ -91,6 +105,8 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
       console.error('onSubmit is not a function');
     }
   };
+  
+
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
@@ -99,15 +115,6 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
         <ModalHeader>Add Daily Report</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {/* Task Name Input (Optional, if you want to display task name) */}
-          <FormControl id="taskname" mb={4}>
-            <FormLabel>Task Name</FormLabel>
-            <Input
-              value={taskName}
-              onChange={(e) => setTaskName(e.target.value)}
-              placeholder="Enter task name"
-            />
-          </FormControl>
 
           {/* Dropdown for Assigned Tasks */}
           <FormControl id="assignedTasks" mb={4}>
@@ -115,8 +122,10 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
             <Select
               placeholder="Select a task"
               onChange={(e) => {
-                const selectedTask = assignedTasks.find(task => task.id === e.target.value);
-                setTaskId(e.target.value); // Set selected task ID in taskId state
+                const selectedValue = e.target.value;
+                const selectedTask = assignedTasks.find(task => task.id === selectedValue);
+
+                setTaskId(selectedValue === '' ? null : parseInt(selectedValue, 10));
                 setTaskName(selectedTask ? selectedTask.taskName : ''); // Optionally set task name for display
               }}
             >
@@ -127,6 +136,19 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
               ))}
             </Select>
           </FormControl>
+
+
+          {/* Task Name Input (Optional, if you want to display task name) */}
+          <FormControl id="taskname" mb={4}>
+            <FormLabel>Task Name</FormLabel>
+            <Input
+              value={taskName}
+              onChange={(e) => setTaskName(e.target.value)}
+              placeholder="Enter task name"
+            />
+          </FormControl>
+
+
 
           {/* Status Dropdown */}
           <FormControl id="status" mb={4}>

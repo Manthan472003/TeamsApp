@@ -1,9 +1,13 @@
 import React from 'react';
 
-const DailyReportsTable = ({ reports, users }) => {
+const DailyReportsTable = ({ reports, users, tasks }) => {
     const getUserNameById = (userId) => {
         const user = users.find(user => user.id === userId);
         return user ? user.userName : 'Unknown';
+    };
+    const getTaskNameById = (taskId) => {
+        const task = tasks.find(task => task.id === taskId);
+        return task ? task.taskName : '  ';
     };
 
     const colorPalette = [
@@ -49,10 +53,11 @@ const DailyReportsTable = ({ reports, users }) => {
         <table style={{ width: '100%', borderCollapse: 'collapse', borderRadius: '10px', overflow: 'hidden' }}>
             <thead style={{ backgroundColor: '#f7fafc' }}>
                 <tr>
-                    <th style={{ width: '25%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Task</th>
-                    <th style={{ width: '25%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Created By</th>
-                    <th style={{ width: '25%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Status</th>
-                    <th style={{ width: '25%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Created At</th>
+                    <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Task</th>
+                    <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Working On</th>
+                    <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Created By</th>
+                    <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Status</th>
+                    <th style={{ width: '20%', color: '#4a5568', fontWeight: 800, fontSize: '15px', padding: '10px', textAlign: 'left' }}>Created At</th>
                 </tr>
             </thead>
             <tbody>
@@ -65,6 +70,7 @@ const DailyReportsTable = ({ reports, users }) => {
                             }}
                         >
                             <td style={{ padding: '10px' }}>{report.taskName}</td>
+                            <td style={{ padding: '10px' }}>{getTaskNameById(report.taskId)}</td>
                             <td style={{ padding: '10px' }}>{getUserNameById(report.userId)}</td>
                             <td style={{ padding: '10px' }}>{report.status}</td>
                             <td style={{ padding: '10px' }}>
