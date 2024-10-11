@@ -20,4 +20,8 @@ router.delete('/:id', userController.deleteUserById);
 // Login route
 router.post('/login', userController.loginUser);
 
+//Changed Password
+router.put('/changePassword/:id',  userController.changePassword);
+
+
 module.exports = router;

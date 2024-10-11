@@ -21,26 +21,20 @@ const Users = () => {
 
     const handleUserTypeChange = async (userId, newUserType) => {
         try {
-            const userToUpdate = users.find(user => user.id === userId);
-
-            // Create an updated user object, preserving other fields
+            // Create a minimal update object
             const updatedUser = {
-                ...userToUpdate,
-                userType: newUserType
-                // Ensure that email and other fields remain unchanged
+                userType: newUserType,
             };
-
-            console.log('Updating user:', updatedUser); // Log the updated user
-
-            // Call the updateUser service
+    
+            // Call the updateUser service with the minimal update
             const response = await updateUser(userId, updatedUser);
-
+    
             if (response.status === 200) {
                 // Update the local state immediately
                 setUsers(users.map(user =>
-                    user.id === userId ? updatedUser : user
+                    user.id === userId ? { ...user, userType: newUserType } : user
                 ));
-
+    
                 toast({
                     title: "User Type Updated",
                     description: "The user type has been successfully updated.",
@@ -62,6 +56,7 @@ const Users = () => {
             });
         }
     };
+    
 
 
 

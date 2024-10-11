@@ -347,7 +347,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         <Flex width="113%" align="center">
           <Menu>
             <MenuButton as={Button} rightIcon={<FaAngleUp size={20} />} colorScheme="#086F83" width="100%" backgroundImage="linear-gradient(288deg, rgba(0,85,255,1) 1.5%, rgba(4,56,115,1) 91.6%)" color="white">
-              Hi, {userName || 'User'}
+              Hi, {userName.split(' ')[0] || 'User'}
             </MenuButton>
             <MenuList>
               <MenuItem onClick={() => navigate('/profile')}>Profile Settings</MenuItem>

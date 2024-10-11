@@ -473,27 +473,19 @@ const TaskManager = () => {
                                         <Tbody>
                                             <Tr>
                                                 <Td style={{ backgroundColor: '#CDF5FD', padding: '2px', lineHeight: '1', width: '50px' }}></Td>
-                                                <Td style={{ padding: '2px', lineHeight: '1' }}><b>Not Started</b></Td>
+                                                <Td style={{ padding: '2px', lineHeight: '1' }}>Not Started</Td>
                                             </Tr>
                                             <Tr>
                                                 <Td style={{ backgroundColor: '#A0E9FF', padding: '2px', lineHeight: '1', width: '50px' }}></Td>
-                                                <Td style={{ padding: '2px', lineHeight: '1' }}><b>In Progress</b></Td>
+                                                <Td style={{ padding: '2px', lineHeight: '1' }}>In Progress</Td>
                                             </Tr>
                                             <Tr>
                                                 <Td style={{ backgroundColor: '#89CFF3', padding: '2px', lineHeight: '1', width: '50px' }}></Td>
-                                                <Td style={{ padding: '2px', lineHeight: '1' }}><b>On Hold</b></Td>
+                                                <Td style={{ padding: '2px', lineHeight: '1' }}>On Hold</Td>
                                             </Tr>
                                         </Tbody>
                                     </Table>
                                 </Box>
-
-
-
-
-
-
-
-
 
                                 <TaskTable
                                     tasks={filterTasks(tasksToShow)} // Use filtered tasks

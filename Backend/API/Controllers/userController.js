@@ -132,8 +132,6 @@ const updateUserById = async (req, res) => {
     }
 };
 
-
-
 // Delete user by ID
 const deleteUserById = async (req, res) => {
     try {
@@ -209,6 +207,32 @@ const loginUser = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    const { id } = req.params;
+    const {currentPassword, newPassword} = req.body;
+
+    const currentPasswordHash = bcrypt.hash(currentPassword,10);
+
+    try {
+        const user = await User.findOne({ where: { id } });
+        if (user.password === currentPasswordHash) {
+            return res.status(401).json({ message: 'Invalid Current Password.' });
+        }
+        const newPasswordHash = bcrypt.hash(newPassword,10);
+        user.password = newPasswordHash;
+        
+        await user.save();
+
+        return res.status(200).json({ message: 'Password updated successfully.' });
+
+    } catch (error) {
+        return res.status(500).json({ message: 'Error updating password.', error });
+        
+    }
+
+
+}
+
 
 
 
@@ -218,5 +242,6 @@ module.exports = {
     getUserById,
     updateUserById,
     deleteUserById,
-    loginUser
+    loginUser,
+    changePassword
 };
