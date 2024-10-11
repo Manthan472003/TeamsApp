@@ -14,7 +14,7 @@ import { getTags } from '../Services/TagService';
 import { IoIosSave, IoMdCloseCircleOutline } from "react-icons/io";
 import { createNotification } from '../Services/NotificationService';
 
-const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID, sectionName }) => {
+const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID, sectionName, taskId: propTaskId }) => {
     const initialRef = useRef(null);
     const [taskName, setTaskName] = useState('');
     const [dueDate, setDueDate] = useState('');
@@ -29,7 +29,8 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     const [selectedSection, setSelectedSection] = useState(sectionID || '');
     const [userId, setUserId] = useState(propUserId || '');
     const [, setAssignedUserName] = useState('');
-    
+    const [taskId] = useState(propTaskId || null); // Add taskId here
+
     const toast = useToast();
 
     useEffect(() => {
@@ -103,8 +104,10 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     };
 
     const handleTagSelect = (tags) => {
-        setSelectedTags(tags);
+        console.log('Selected Tags:', tags);
+        setSelectedTags(tags); // Ensure this updates correctly
     };
+
 
     const getTagNamesByIds = (tagIds) => {
         const tagMap = new Map(tags.map(tag => [tag.id, tag.tagName]));
@@ -260,7 +263,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                 <Input
                                     value={dueDate}
                                     type='date'
-                                    onChange={(e) => setDueDate(e.target.value || '')} 
+                                    onChange={(e) => setDueDate(e.target.value || '')}
                                 />
                             </FormControl>
 
@@ -279,10 +282,11 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                 <TagDropdown
                                     selectedTags={selectedTags}
                                     onTagSelect={handleTagSelect}
-                                    taskId={null}
+                                    taskId={taskId} // Now taskId is defined
                                     allTags={tags}
                                 />
                             </FormControl>
+
 
                             <FormControl mb={4}>
                                 <FormLabel>Status</FormLabel>

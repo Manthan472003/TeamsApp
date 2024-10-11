@@ -149,33 +149,36 @@ const TagDropdown = ({ selectedTags, onTagSelect, taskId }) => {
     };
 
     const handleTagRemove = async (tagId) => {
-        console.log("TagID : ", tagId);
-        console.log("TaskID : ", taskId);
-        try {
-            await removeTagFromTask(tagId, taskId);
+        console.log("TagID:", tagId);
+        console.log("TaskID:", taskId);
+    
+        if (taskId) {
+            try {
+                await removeTagFromTask(tagId, taskId);
+                setSelectedTagIds(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(tagId);
+                    const updatedTags = Array.from(newSet);
+                    onTagSelect(updatedTags); // Notify parent
+                    return newSet;
+                });
+                // Notify user about removal
+            } catch (error) {
+                console.error('Error removing tag:', error);
+                // Handle error
+            }
+        } else {
+            // Handle case where taskId is null
+            console.warn('No task ID to remove tag from. Updating local state only.');
             setSelectedTagIds(prev => {
                 const newSet = new Set(prev);
                 newSet.delete(tagId);
+                const updatedTags = Array.from(newSet);
+                onTagSelect(updatedTags); // Notify parent
                 return newSet;
             });
-            toast({
-                title: "Tag Removed",
-                description: "The tag has been successfully removed from the task.",
-                status: "success",
-                duration: 5000,
-                isClosable: true,
-            });
-        } catch (error) {
-            console.error('Error removing tag:', error);
-            toast({
-                title: "Error Removing Tag",
-                description: "There was an error removing the tag. Please try again.",
-                status: "error",
-                duration: 5000,
-                isClosable: true,
-            });
         }
-    };
+    };    
 
     return (
         <Box width="100%" p={4}>
