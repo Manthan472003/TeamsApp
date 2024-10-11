@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-    Button, useDisclosure, Spacer, IconButton, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading,
+    Button, useDisclosure, Spacer, IconButton, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading, Table, Tbody, Tr, Td
 } from '@chakra-ui/react';
 import { EditIcon } from '@chakra-ui/icons';
 
@@ -441,7 +441,6 @@ const TaskManager = () => {
                             <AccordionButton onClick={() => handleSectionClick(section.id)}>
                                 <Box flex='1' textAlign='left'>
                                     <Text fontSize='xl' fontWeight='bold' color='#149edf'>{section.sectionName}</Text>
-                                    <Text fontSize='md' color='gray.500'>{section.description}</Text>
                                 </Box>
                                 <Spacer />
                                 <IconButton
@@ -457,17 +456,45 @@ const TaskManager = () => {
                                 <AccordionIcon />
                             </AccordionButton>
                             <AccordionPanel pb={4}>
-                                <Button
-                                    onClick={() => handleAddTaskToSection(section)}
-                                    colorScheme='teal'
-                                    textColor='Orange.500'
-                                    border={2}
-                                    variant='outline'
-                                    sx={{ borderStyle: 'dotted' }}
-                                    mb={3}
-                                >
-                                    Add Task to {section.sectionName || 'Unnamed Section'}
-                                </Button>
+                                <Box display="flex" alignItems="center" mb={3} justifyContent="space-between">
+                                    <Button
+                                        onClick={() => handleAddTaskToSection(section)}
+                                        colorScheme='teal'
+                                        textColor='Orange.500'
+                                        border={2}
+                                        variant='outline'
+                                        sx={{ borderStyle: 'dotted' }}
+                                        mr={4} // Margin to the right of the button
+                                    >
+                                        Add Task to {section.sectionName || 'Unnamed Section'}
+                                    </Button>
+
+                                    <Table size="sm" variant="simple" width="auto" borderSpacing={0}>
+                                        <Tbody>
+                                            <Tr>
+                                                <Td style={{ backgroundColor: '#CDF5FD', padding: '2px', lineHeight: '1', width: '50px' }}></Td>
+                                                <Td style={{ padding: '2px', lineHeight: '1' }}><b>Not Started</b></Td>
+                                            </Tr>
+                                            <Tr>
+                                                <Td style={{ backgroundColor: '#A0E9FF', padding: '2px', lineHeight: '1', width: '50px' }}></Td>
+                                                <Td style={{ padding: '2px', lineHeight: '1' }}><b>In Progress</b></Td>
+                                            </Tr>
+                                            <Tr>
+                                                <Td style={{ backgroundColor: '#89CFF3', padding: '2px', lineHeight: '1', width: '50px' }}></Td>
+                                                <Td style={{ padding: '2px', lineHeight: '1' }}><b>On Hold</b></Td>
+                                            </Tr>
+                                        </Tbody>
+                                    </Table>
+                                </Box>
+
+
+
+
+
+
+
+
+
                                 <TaskTable
                                     tasks={filterTasks(tasksToShow)} // Use filtered tasks
                                     onEdit={handleEdit}

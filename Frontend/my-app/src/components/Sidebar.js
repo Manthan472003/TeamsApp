@@ -5,7 +5,7 @@ import {
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircleIcon, DeleteIcon } from '@chakra-ui/icons';
-import { MdAddTask, MdDashboard, MdPermDeviceInformation  } from "react-icons/md";
+import { MdAddTask, MdDashboard, MdPermDeviceInformation } from "react-icons/md";
 import { FaTasks } from "react-icons/fa";
 import { HiOutlineFolderAdd } from "react-icons/hi";
 import { RiInformationFill } from "react-icons/ri";
@@ -360,6 +360,8 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
               isOpen={isNotificationOpen}
               onToggle={() => setNotificationOpen(!isNotificationOpen)}
               userId={userId}
+              setUnreadCount={setUnreadCount} // Pass setUnreadCount here
+              unreadCount = {unreadCount}
             />
             {unreadCount > 0 && (
               <Badge
@@ -376,6 +378,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
             )}
           </Box>
         </Flex>
+
 
         <ConfirmLogoutModal
           isOpen={isLogoutOpen}

@@ -12,7 +12,6 @@ import { sendEmail } from '../Services/MailService';
 import { getUser } from '../Services/UserService';
 import { getTags } from '../Services/TagService';
 import { IoIosSave, IoMdCloseCircleOutline } from "react-icons/io";
-import { createNotification } from '../Services/NotificationService';
 
 const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID, sectionName, taskId: propTaskId }) => {
     const initialRef = useRef(null);

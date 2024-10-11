@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Drawer,
   DrawerOverlay,
@@ -23,28 +23,28 @@ import {
   useDisclosure
 } from '@chakra-ui/react';
 import { FaBell, FaTimes } from 'react-icons/fa';
-import { getNotificationsByUserId, markNotificationSeen, getUnreadNotifications, getUnreadNotificationsCount } from '../Services/NotificationService';
+import { getNotificationsByUserId, markNotificationSeen, getUnreadNotifications } from '../Services/NotificationService';
 
 const colorPalette = [
   "#ffddd6", // Color for unread notifications
   "#dcfce2"  // Color for read notifications
 ];
 
-const NotificationPopover = ({ userId }) => {
+const NotificationPopover = ({ userId, setUnreadCount, unreadCount }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [notifications, setNotifications] = useState([]);
   const [, setError] = useState(null);
   const [unreadNotifications, setUnreadNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  // const [unreadCount, setUnreadCount] = useState(0);
 
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const response = await getUnreadNotificationsCount(userId);
-      setUnreadCount(response.data.count);
-    } catch (error) {
-      console.error('Error fetching unread notifications count:', error);
-    }
-  }, [userId]);
+  // const fetchUnreadCount = useCallback(async () => {
+  //   try {
+  //     const response = await getUnreadNotificationsCount(userId);
+  //     setUnreadCount(response.data.count);
+  //   } catch (error) {
+  //     console.error('Error fetching unread notifications count:', error);
+  //   }
+  // }, [userId]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -87,13 +87,9 @@ const NotificationPopover = ({ userId }) => {
       fetchUnreadNotifications();
     }
     if (userId) {
-      fetchUnreadCount();
-      const intervalId = setInterval(() => {
-        fetchUnreadCount();
-      }, 3000);
-      return () => clearInterval(intervalId);
+
     }
-  }, [userId, isOpen, fetchUnreadCount]);
+  }, [userId, isOpen]);
 
   const onMarkUnreadAsRead = async (notificationId) => {
     try {
@@ -101,6 +97,9 @@ const NotificationPopover = ({ userId }) => {
       setUnreadNotifications((prevUnreadNotifications) =>
         prevUnreadNotifications.filter(notification => notification.id !== notificationId)
       );
+
+      // Decrement the unread count by 1 and ensure it doesn't go below 0
+      setUnreadCount((prevCount) => Math.max(prevCount - 1, 0));
     } catch (err) {
       setError('Failed to mark notification as read.');
       console.error(err);
@@ -148,17 +147,16 @@ const NotificationPopover = ({ userId }) => {
                   <Tab flex="1" _selected={{ color: 'white', bg: 'blue.500' }} textAlign="center">All</Tab>
                 </TabList>
               </Flex>
-              <TabPanels>
-                
-                <TabPanel>
-                  <Box overflowY="auto" maxHeight="1000px">
-                    {sortedUnreadNotifications.length === 0 ? (
-                      <Text color="gray.500">No new notifications</Text>
-                    ) : (
-                      <VStack spacing={3} align="start">
-                        {sortedUnreadNotifications.map((notification) => {
+              <Box overflowY="auto" maxHeight="calc(100vh - 200px)"> {/* Adjust this value as needed */}
+                <TabPanels>
+                  <TabPanel>
+                    <VStack spacing={3} align="start">
+                      {sortedUnreadNotifications.length === 0 ? (
+                        <Text color="gray.500">No new notifications</Text>
+                      ) : (
+                        sortedUnreadNotifications.map((notification) => {
                           let heading = "Notification";
-
+                          // Determine heading based on notification text
                           if (notification.notificationText.includes("New task created")) {
                             heading = "Task Created";
                           } else if (notification.notificationText.includes("reassigned")) {
@@ -190,11 +188,11 @@ const NotificationPopover = ({ userId }) => {
                                   onClick={() => onMarkUnreadAsRead(notification.id)}
                                   aria-label="Mark as read"
                                   border="2px solid transparent"
-                                  _hover={{ 
+                                  _hover={{
                                     borderColor: 'red.500',
                                     bg: 'transparent',
                                   }}
-                                  _focus={{ 
+                                  _focus={{
                                     outline: 'none',
                                   }}
                                 >
@@ -215,20 +213,19 @@ const NotificationPopover = ({ userId }) => {
                               </Box>
                             </Box>
                           );
-                        })}
-                      </VStack>
-                    )}
-                  </Box>
-                </TabPanel>
+                        })
+                      )}
+                    </VStack>
+                  </TabPanel>
 
-                <TabPanel>
-                  <Box overflowY="auto" maxHeight="1000px">
-                    {sortedNotifications.length === 0 ? (
-                      <Text color="gray.500">No new notifications</Text>
-                    ) : (
-                      <VStack spacing={3} align="start">
-                        {sortedNotifications.map((notification) => {
+                  <TabPanel>
+                    <VStack spacing={3} align="start">
+                      {sortedNotifications.length === 0 ? (
+                        <Text color="gray.500">No new notifications</Text>
+                      ) : (
+                        sortedNotifications.map((notification) => {
                           let heading = "Notification";
+                          // Determine heading based on notification text
                           if (notification.notificationText.includes("New task created")) {
                             heading = "Task Created";
                           } else if (notification.notificationText.includes("reassigned")) {
@@ -262,15 +259,15 @@ const NotificationPopover = ({ userId }) => {
                               </Box>
                             </Box>
                           );
-                        })}
-                      </VStack>
-                    )}
-                  </Box>
-                </TabPanel>
-
-              </TabPanels>
+                        })
+                      )}
+                    </VStack>
+                  </TabPanel>
+                </TabPanels>
+              </Box>
             </Tabs>
           </DrawerBody>
+
         </DrawerContent>
       </Drawer>
     </>
