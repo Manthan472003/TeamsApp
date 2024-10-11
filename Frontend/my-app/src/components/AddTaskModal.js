@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import jwtDecode from 'jwt-decode';
 import {
     Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody,
-    Button, FormControl, FormLabel, Input, Select, useToast, SimpleGrid, Box
+    Button, FormControl, FormLabel, Input, Select, useToast, SimpleGrid, Box, Text
 } from '@chakra-ui/react';
 import UserDropdown from './UserDropdown';
 import TagDropdown from './TagDropdown';
@@ -117,6 +117,18 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
     const handleSubmit = async (event) => {
         event.preventDefault();
 
+        const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+        if (dueDate < today) {
+            toast({
+                title: "Invalid Due Date.",
+                description: "Due date cannot be in the past.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+            return;
+        }
+
         const validTagIDs = selectedTags.filter(id => id != null);
 
         const task = {
@@ -137,12 +149,12 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
             const newTask = await saveTask(task);
             onSubmit(newTask);
 
-            const notificationText = `New task created:\n${taskName}`;
-            const userIds = [assignedTo, userId].filter(id => typeof id === 'number' && id > 0);
+            // const notificationText = `New task created:\n${taskName}`;
+            // const userIds = [assignedTo, userId].filter(id => typeof id === 'number' && id > 0);
 
-            if (userIds.length > 0) {
-                await createNotification({ notificationText, userIds });
-            }
+            // if (userIds.length > 0) {
+            //     await createNotification({ notificationText, userIds });
+            // }
 
             onClose();
             resetForm();
@@ -263,8 +275,15 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID
                                 <Input
                                     value={dueDate}
                                     type='date'
+                                    min={new Date().toISOString().split('T')[0]} // Set min to today
                                     onChange={(e) => setDueDate(e.target.value || '')}
                                 />
+                                <Text
+                                    fontSize={"xs"}
+                                    marginLeft={4}
+                                >
+                                    Format : MM-DD-YYYY
+                                </Text>
                             </FormControl>
 
                             <FormControl mb={4}>
