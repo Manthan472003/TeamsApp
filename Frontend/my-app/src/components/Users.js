@@ -21,26 +21,49 @@ const Users = () => {
 
     const handleUserTypeChange = async (userId, newUserType) => {
         try {
-            await updateUser(userId, newUserType);
-            toast({
-                title: "User Type Updated",
-                description: "The user type has been successfully updated.",
-                status: "success",
-                duration: 3000,
-                isClosable: true,
-            });
-            fetchUsers(); // Refresh the user list
+            const userToUpdate = users.find(user => user.id === userId);
+
+            // Create an updated user object, preserving other fields
+            const updatedUser = {
+                ...userToUpdate,
+                userType: newUserType
+                // Ensure that email and other fields remain unchanged
+            };
+
+            console.log('Updating user:', updatedUser); // Log the updated user
+
+            // Call the updateUser service
+            const response = await updateUser(userId, updatedUser);
+
+            if (response.status === 200) {
+                // Update the local state immediately
+                setUsers(users.map(user =>
+                    user.id === userId ? updatedUser : user
+                ));
+
+                toast({
+                    title: "User Type Updated",
+                    description: "The user type has been successfully updated.",
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                });
+            } else {
+                throw new Error('Failed to update user');
+            }
         } catch (error) {
             console.error('Error updating user type:', error);
             toast({
                 title: "Error Updating User Type",
-                description: "There was an error updating the user type.",
+                description: error.response?.data?.message || "There was an error updating the user type.",
                 status: "error",
                 duration: 3000,
                 isClosable: true,
             });
         }
     };
+
+
 
     // Define color mapping for each user type
     const userTypeColors = {

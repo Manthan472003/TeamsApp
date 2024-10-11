@@ -12,8 +12,8 @@ export const getUser = (userId) => axios.get(`${API_URL}/${userId}`);
 export const saveUser = (user) => axios.post(API_URL, user);
 
 // Update an existing User (allowing partial updates)
-export const updateUser = (userId, userType) => {
-    return axios.put(`${API_URL}/${userId}`, { userType });
+export const updateUser = (userId, user) => {
+    return axios.put(`${API_URL}/${userId}`, user);
 };
 
 // Delete a User

@@ -11,7 +11,7 @@ app.use(cookieParser());
 // Create a new user (with email existence check)
 const createUser = async (req, res) => {
     try {
-        const { userName, email, password, userType } = req.body;
+        const { userName, email, password, userType, phoneNumber, bio, workingAs } = req.body;
 
         if (!userName || !email || !password) {
             return res.status(400).json({ message: 'User name, email, and password are required.' });
@@ -27,7 +27,8 @@ const createUser = async (req, res) => {
         const encryptedPassword = await bcrypt.hash(password, 10);
 
         // Create a new user
-        const newUser = await User.create({ userName, email, password: encryptedPassword, userType });
+        const newUser = await User.create({ userName, email, password: encryptedPassword, userType, phoneNumber, bio, workingAs });
+
 
         // Generating Token with user details
         const token = jwt.sign(
@@ -82,7 +83,7 @@ const getUserById = async (req, res) => {
 const updateUserById = async (req, res) => {
     try {
         const { id } = req.params;
-        const { userName, email, password, userType } = req.body;
+        const { userName, email, password, userType, phoneNumber, bio, workingAs } = req.body;
 
         // Check if the user exists
         const user = await User.findOne({ where: { id } });
@@ -103,6 +104,9 @@ const updateUserById = async (req, res) => {
         // Update fields only if they are provided
         if (userName) user.userName = userName;
         if (userType) user.userType = userType;
+        if (phoneNumber) user.phoneNumber = phoneNumber;
+        if (bio) user.bio = bio;
+        if (workingAs) user.workingAs = workingAs;
 
         // Hash the password if it has been updated
         if (password) {

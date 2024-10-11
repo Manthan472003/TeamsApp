@@ -30,6 +30,15 @@ const User = sequelize.define('User', {
     type: DataTypes.TEXT,
     defaultValue: null
   },
+  phoneNumber: {
+    type: DataTypes.STRING(10),
+  },
+  bio: {
+    type: DataTypes.TEXT
+  },
+  workingAs: {
+    type: DataTypes.TEXT
+  },
   createdAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
