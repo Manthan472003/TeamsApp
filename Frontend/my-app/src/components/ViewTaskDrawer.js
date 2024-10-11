@@ -33,6 +33,7 @@ import { sendEmail } from '../Services/MailService';
 import ConfirmCompleteModal from './ConfirmCompleteModal';
 import { createNotification } from '../Services/NotificationService';
 
+
 const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onStatusChange }) => {
   const [size] = useState('xl');
   const toast = useToast();
@@ -554,9 +555,15 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
                       <Input
                         mt={2}
                         type="date"
-                        value={localTask.dueDate || ''}
+                        value={localTask.dueDate ? localTask.dueDate.split('T')[0] : ''}
                         onChange={(e) => handleFieldChange('dueDate', e.target.value)}
                       />
+                      <Text
+                        fontSize={"xs"}
+                        marginLeft={4}
+                        >
+                        Format : MM-DD-YYYY
+                      </Text>
                     </Box>
 
                     <Box>
@@ -584,6 +591,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
                       </Select>
                     </Box>
                   </SimpleGrid>
+
 
                   <SimpleGrid columns={2} spacing={4}>
                     <Box>

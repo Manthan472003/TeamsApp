@@ -121,7 +121,6 @@ const AppVersionManagementModal = ({ isOpen, onClose, onSubmit, userId: propUser
                             value={status}
                             onChange={(e) => setStatus(e.target.value)}
                         >
-                            <option value="Not Started">Not Started</option>
                             <option value="Working On">Working On</option   >
                             <option value="Submitted">Submitted</option>
                             <option value="In Review">In Review</option>
