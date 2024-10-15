@@ -5,15 +5,17 @@ import { getTags } from '../Services/TagService';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmCompleteModal from './ConfirmCompleteModal';
 import ViewTaskDrawer from './ViewTaskDrawer';
-import { deleteTask } from '../Services/TaskService';
+import { deleteTask, sendToQA } from '../Services/TaskService';
 import { LuSendToBack } from "react-icons/lu";
 
 const TaskTable = ({ tasks, onStatusChange, users }) => {
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+    const { isOpen: isSendToQAOpen, onOpen: onSendToQAOpen, onClose: onSendToQAClose } = useDisclosure();
     const { isOpen: isCompleteOpen, onClose: onCompleteClose } = useDisclosure();
     const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
 
     const [taskToDelete, setTaskToDelete] = useState(null);
+    const [taskToSendToQA, setTaskToSendToQA] = useState(null);
     const [taskToComplete, setTaskToComplete] = useState(null);
     const [tags, setTags] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
@@ -53,11 +55,6 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
         onDeleteOpen();
     };
 
-    const handleSendToQA = (task) => {
-        setTaskToDelete(task);
-        onDeleteOpen();
-    };
-
     const confirmDelete = async () => {
         if (taskToDelete) {
             try {
@@ -71,69 +68,88 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
         }
     };
 
-    const confirmComplete = () => {
-        if (onStatusChange && taskToComplete) {
-            onStatusChange(taskToComplete.id, 'Completed');
-            setTaskToComplete(null);
-            onCompleteClose();
-        }
+
+    const handleSendToQA = (task) => {
+        setTaskToSendToQA(task);
+        onSendToQAOpen();
     };
 
-    const getUserNameById = (userId) => {
-        const user = users.find(user => user.id === userId);
-        return user ? user.userName : 'Unknown';
-    };
-
-    const sortedTasks = filteredTasks
-        .filter(task => task.status !== 'Completed')
-        .filter(task => !task.isDelete)
-        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-
-    const handleTaskClick = (task) => {
-        setSelectedTask(task);
-        onDrawerOpen();
-    };
-
-    const startResize = (index, e) => {
-        e.preventDefault();
-        const startX = e.clientX;
-        const startWidth = columnWidths[index] === '5%' ? 40 : columnWidths[index];
-
-        const onMouseMove = (moveEvent) => {
-            const newWidth = startWidth + (moveEvent.clientX - startX);
-            setColumnWidths((prevWidths) => {
-                const updatedWidths = [...prevWidths];
-                updatedWidths[index] = Math.max(newWidth, 50);
-                return updatedWidths;
-            });
+    const confirmSendToQA = async () => {
+        if (taskToSendToQA) {
+            try {
+                await sendToQA(taskToSendToQA.id)
+                setFilteredTasks(filteredTasks.filter(task => task.id !== taskToSendToQA.id));
+                setTaskToSendToQA(null);
+                onSendToQAClose();
+            } catch (error) {
+                console.error('Error sending to QA:', error);
+            }
         };
 
-        const onMouseUp = () => {
-            window.removeEventListener('mousemove', onMouseMove);
-            window.removeEventListener('mouseup', onMouseUp);
+
+        const confirmComplete = () => {
+            if (onStatusChange && taskToComplete) {
+                onStatusChange(taskToComplete.id, 'Completed');
+                setTaskToComplete(null);
+                onCompleteClose();
+            }
         };
 
-        window.addEventListener('mousemove', onMouseMove);
-        window.addEventListener('mouseup', onMouseUp);
-    };
+        const getUserNameById = (userId) => {
+            const user = users.find(user => user.id === userId);
+            return user ? user.userName : 'Unknown';
+        };
 
-    const getRowColorByStatus = (status) => {
-        switch (status) {
-            case 'Not Started':
-                return '#CDF5FD'; // light red
-            case 'In Progress':
-                return '#A0E9FF'; // light yellow
-            case 'On Hold':
-                return '#89CFF3'; // light blue
-            default:
-                return 'transparent';
-        }
-    };
+        const sortedTasks = filteredTasks
+            .filter(task => task.status !== 'Completed')
+            .filter(task => !task.isDelete)
+            .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-    return (
-        <>
-            <style>
-                {`
+        const handleTaskClick = (task) => {
+            setSelectedTask(task);
+            onDrawerOpen();
+        };
+
+        const startResize = (index, e) => {
+            e.preventDefault();
+            const startX = e.clientX;
+            const startWidth = columnWidths[index] === '5%' ? 40 : columnWidths[index];
+
+            const onMouseMove = (moveEvent) => {
+                const newWidth = startWidth + (moveEvent.clientX - startX);
+                setColumnWidths((prevWidths) => {
+                    const updatedWidths = [...prevWidths];
+                    updatedWidths[index] = Math.max(newWidth, 50);
+                    return updatedWidths;
+                });
+            };
+
+            const onMouseUp = () => {
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+            };
+
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+        };
+
+        const getRowColorByStatus = (status) => {
+            switch (status) {
+                case 'Not Started':
+                    return '#CDF5FD'; // light red
+                case 'In Progress':
+                    return '#A0E9FF'; // light yellow
+                case 'On Hold':
+                    return '#89CFF3'; // light blue
+                default:
+                    return 'transparent';
+            }
+        };
+
+        return (
+            <>
+                <style>
+                    {`
                     .table-container {
                         overflow-x: auto;
                     }
@@ -192,114 +208,115 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
                         z-index: 1;
                     }
                 `}
-            </style>
-            <div className="table-container">
-                <table className="column_resize_table">
-                    <thead>
-                        <tr>
-                            {['Task Name', 'Tags', 'Due Date', 'Assigned To', 'Status', 'Action'].map((header, index) => (
-                                <th key={index} style={{ position: 'relative', width: (index < 2 ? columnWidths[index] : (index === 5 ? '5%' : (index === 2 ? 150 : 100))) }}>
-                                    {header}
-                                    {index < 2 && (
-                                        <span
-                                            className="resizer"
-                                            onMouseDown={(e) => startResize(index, e)}
-                                        />
-                                    )}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {sortedTasks.length > 0 ? (
-                            sortedTasks.map((task) => (
-                                <tr key={task.id} style={{ backgroundColor: getRowColorByStatus(task.status) }}>
-                                    <td style={{ cursor: 'pointer' }} onClick={() => handleTaskClick(task)}>{task.taskName}</td>
-                                    <td style={{ cursor: 'pointer' }} onClick={() => handleTaskClick(task)}>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                                            {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (
-                                                <span key={idx} className="tag">
-                                                    {tagName}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {task.dueDate ? new Intl.DateTimeFormat('en-GB', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric'
-                                        }).format(new Date(task.dueDate)) : ''}
-                                    </td>
-                                    <td>{getUserNameById(task.taskAssignedToID)}</td>
-                                    <td>
-                                        <select
-                                            value={task.status}
-                                            onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                                            className="status-select"
-                                            style={{ width: '100%', fontSize: '15px', padding: '4px' }}
-                                        >
-                                            <option value="Not Started">Not Started</option>
-                                            <option value="In Progress">In Progress</option>
-                                            <option value="On Hold">On Hold</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <IconButton
-                                            icon={<ImBin2 size={20} />}
-                                            onClick={() => handleDeleteClick(task)}
-                                            variant="outline"
-                                            title='Delete'
-                                            border={0}
-                                            colorScheme="red"
-                                        />
+                </style>
+                <div className="table-container">
+                    <table className="column_resize_table">
+                        <thead>
+                            <tr>
+                                {['Task Name', 'Tags', 'Due Date', 'Assigned To', 'Status', 'Action'].map((header, index) => (
+                                    <th key={index} style={{ position: 'relative', width: (index < 2 ? columnWidths[index] : (index === 5 ? '5%' : (index === 2 ? 150 : 100))) }}>
+                                        {header}
+                                        {index < 2 && (
+                                            <span
+                                                className="resizer"
+                                                onMouseDown={(e) => startResize(index, e)}
+                                            />
+                                        )}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {sortedTasks.length > 0 ? (
+                                sortedTasks.map((task) => (
+                                    <tr key={task.id} style={{ backgroundColor: getRowColorByStatus(task.status) }}>
+                                        <td style={{ cursor: 'pointer' }} onClick={() => handleTaskClick(task)}>{task.taskName}</td>
+                                        <td style={{ cursor: 'pointer' }} onClick={() => handleTaskClick(task)}>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+                                                {getTagNamesByIds(task.tagIDs || []).map((tagName, idx) => (
+                                                    <span key={idx} className="tag">
+                                                        {tagName}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {task.dueDate ? new Intl.DateTimeFormat('en-GB', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric'
+                                            }).format(new Date(task.dueDate)) : ''}
+                                        </td>
+                                        <td>{getUserNameById(task.taskAssignedToID)}</td>
+                                        <td>
+                                            <select
+                                                value={task.status}
+                                                onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                                                className="status-select"
+                                                style={{ width: '100%', fontSize: '15px', padding: '4px' }}
+                                            >
+                                                <option value="Not Started">Not Started</option>
+                                                <option value="In Progress">In Progress</option>
+                                                <option value="On Hold">On Hold</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <IconButton
+                                                icon={<ImBin2 size={20} />}
+                                                onClick={() => handleDeleteClick(task)}
+                                                variant="outline"
+                                                title='Delete'
+                                                border={0}
+                                                colorScheme="red"
+                                            />
 
-                                        <IconButton
-                                            icon={<LuSendToBack size={20} />}
-                                            onClick={() => handleSendToQA(task)}
-                                            variant="outline"
-                                            title='Send to QA'
-                                            border={0}
-                                            colorScheme="gray.800"
-                                        />
+                                            <IconButton
+                                                icon={<LuSendToBack size={20} />}
+                                                onClick={() => handleSendToQA(task)}
+                                                variant="outline"
+                                                title='Send to QA'
+                                                border={0}
+                                                colorScheme="gray.800"
+                                            />
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={6} className="no-tasks">
+                                        No tasks available
                                     </td>
                                 </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={6} className="no-tasks">
-                                    No tasks available
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
-            <ConfirmDeleteModal
-                isOpen={isDeleteOpen}
-                onClose={onDeleteClose}
-                onConfirm={confirmDelete}
-                itemName={taskToDelete ? taskToDelete.taskName : ''}
-            />
+                <ConfirmDeleteModal
+                    isOpen={isDeleteOpen}
+                    onClose={onDeleteClose}
+                    onConfirm={confirmDelete}
+                    itemName={taskToDelete ? taskToDelete.taskName : ''}
+                />
 
-            <ConfirmCompleteModal
-                isOpen={isCompleteOpen}
-                onClose={onCompleteClose}
-                onConfirm={confirmComplete}
-                itemName={taskToComplete ? taskToComplete.taskName : ''}
-            />
+                <ConfirmCompleteModal
+                    isOpen={isCompleteOpen}
+                    onClose={onCompleteClose}
+                    onConfirm={confirmComplete}
+                    itemName={taskToComplete ? taskToComplete.taskName : ''}
+                />
 
-            <ViewTaskDrawer
-                isOpen={isDrawerOpen}
-                onClose={onDrawerClose}
-                task={selectedTask}
-                users={users}
-                tags={tags}
-                onStatusChange={handleStatusChange}
-            />
-        </>
-    );
-};
+                <ViewTaskDrawer
+                    isOpen={isDrawerOpen}
+                    onClose={onDrawerClose}
+                    task={selectedTask}
+                    users={users}
+                    tags={tags}
+                    onStatusChange={handleStatusChange}
+                />
+            </>
+        );
+    };
+}
 
 export default TaskTable;
