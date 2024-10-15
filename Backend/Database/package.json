@@ -5,11 +5,11 @@
   "main": "index.js",
   "dependencies": {
     "cors": "^2.8.5",
+    "Database": "file:",
     "express": "^4.20.0",
     "mysql2": "^3.11.0",
     "sequelize": "^6.37.3"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
