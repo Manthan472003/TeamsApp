@@ -52,6 +52,10 @@ const Task = sequelize.define('Task', {
        type:DataTypes.BOOLEAN,
        defaultValue : false
     },
+    sentToQA:{
+        type:DataTypes.BOOLEAN,
+        defaultValue : false
+    },
     createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,

@@ -419,6 +419,26 @@ const getTasksByTaskName = async (req, res) => {
     }
 };
 
+//Send Task To QA
+const sendTaskToQA = async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({ message: 'Task ID parameter is required.' });
+    }
+    try {
+        const task = await Task.findOne({ where: { id } });
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found.' });
+        }
+        task.sentToQA = true;
+        await task.save();
+        return res.status(200).json({ message: 'Task sent To QA successfully.' });
+    } catch (error) {
+        console.error('Error sending task to QA :', error);
+        return res.status(500).json({ message: 'Error sending task to QA.' });
+    }
+}
+
 module.exports = {
     createTask,
     getAllTasks,
@@ -433,5 +453,6 @@ module.exports = {
     getDeletedTasks,
     restoreTaskById,
     getNonCompletedNonDeletedTasks,
-    deleteTaskPermanently
+    deleteTaskPermanently,
+    sendTaskToQA
 };

@@ -44,4 +44,7 @@ router.get('/nonCompleted/nonDeleted', taskController.getNonCompletedNonDeletedT
 //Delete Task Permanently
 router.delete('/deletePermanently/:id', taskController.deleteTaskPermanently);
 
+//Send Task to QA
+router.put('/sendToQA/:id', taskController.sendTaskToQA);
+
 module.exports = router;
