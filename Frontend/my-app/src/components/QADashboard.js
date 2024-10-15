@@ -11,7 +11,7 @@ import { saveTask, getTasksBySection, deleteTask, updateTask, getTasksWithoutSec
 import { getUsers } from '../Services/UserService';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
-import TaskTable from './TaskTable';
+import QADashboardTable from './QADashboardTable';
 import EditSectionModal from './EditSectionModal';
 import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
@@ -487,7 +487,7 @@ const QADashboard = () => {
                                     </Table>
                                 </Box>
 
-                                <TaskTable
+                                <QADashboardTable
                                     tasks={filterTasks(tasksToShow)} // Use filtered tasks
                                     onEdit={handleEdit}
                                     onDelete={handleDelete}

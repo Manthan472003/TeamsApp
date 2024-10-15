@@ -107,7 +107,7 @@ const TaskManager = () => {
         fetchTasks();
     }, []);
     useEffect(() => {
-        const filteredTasks = tasks.filter(task => task.status !== 'Completed' && !task.isDelete);
+        const filteredTasks = tasks.filter(task => task.status !== 'Completed' && !task.isDelete && task.sentToQA === false);
         setFilteredTasks(filteredTasks);
     }, [tasks]);
 
@@ -401,7 +401,7 @@ const TaskManager = () => {
 
     // Helper function to filter out completed tasks
     const filterTasks = (tasks) => {
-        return tasks.filter(task => task.status !== 'Completed');
+        return tasks.filter(task => task.status !== 'Completed' && task.sentToQA === false);
     };
     const handleAddTaskToSection = (section) => {
         setSelectedSectionId(section.id); // Set selected section ID

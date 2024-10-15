@@ -6,9 +6,8 @@ import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmCompleteModal from './ConfirmCompleteModal';
 import ViewTaskDrawer from './ViewTaskDrawer';
 import { deleteTask } from '../Services/TaskService';
-import { LuSendToBack } from "react-icons/lu";
 
-const TaskTable = ({ tasks, onStatusChange, users }) => {
+const QADashboardTable = ({ tasks, onStatusChange, users }) => {
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
     const { isOpen: isCompleteOpen, onClose: onCompleteClose } = useDisclosure();
     const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
@@ -49,11 +48,6 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
     };
 
     const handleDeleteClick = (task) => {
-        setTaskToDelete(task);
-        onDeleteOpen();
-    };
-
-    const handleSendToQA = (task) => {
         setTaskToDelete(task);
         onDeleteOpen();
     };
@@ -253,15 +247,6 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
                                             border={0}
                                             colorScheme="red"
                                         />
-
-                                        <IconButton
-                                            icon={<LuSendToBack size={20} />}
-                                            onClick={() => handleSendToQA(task)}
-                                            variant="outline"
-                                            title='Send to QA'
-                                            border={0}
-                                            colorScheme="gray.800"
-                                        />
                                     </td>
                                 </tr>
                             ))
@@ -302,4 +287,4 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
     );
 };
 
-export default TaskTable;
+export default QADashboardTable;
