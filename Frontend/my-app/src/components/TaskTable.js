@@ -6,6 +6,7 @@ import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmCompleteModal from './ConfirmCompleteModal';
 import ViewTaskDrawer from './ViewTaskDrawer';
 import { deleteTask } from '../Services/TaskService';
+import { LuSendToBack } from "react-icons/lu";
 
 const TaskTable = ({ tasks, onStatusChange, users }) => {
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
@@ -246,6 +247,15 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
                                             title='Delete'
                                             border={0}
                                             colorScheme="red"
+                                        />
+
+                                        <IconButton
+                                            icon={<LuSendToBack size={20} />}
+                                            onClick={() => handleDeleteClick(task)}
+                                            variant="outline"
+                                            title='Send to QA'
+                                            border={0}
+                                            colorScheme="gray.800"
                                         />
                                     </td>
                                 </tr>

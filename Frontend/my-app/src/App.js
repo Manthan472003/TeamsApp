@@ -5,15 +5,16 @@ import Login from './screen/login';
 import Signup from './screen/signup';
 import MainScreen from './screen1/mainScreen';
 import TaskManager from './components/TaskManager';
-import CompletedTask from './components/CompletedTask'; 
-import Bin from './components/Bin'; 
-import VersionManagement from './components/VersionManagement'; 
+import CompletedTask from './components/CompletedTask';
+import Bin from './components/Bin';
+import VersionManagement from './components/VersionManagement';
 import MyTasks from './components/MyTasks';
 import DailyReports from './components/DailyReports';
 import Sections from './components/Sections';
 import Users from './components/Users';
 import Profile from './components/Profile'
 import AppVersionManagement from './components/AppVersionManagement';
+import QADashboard from './components/QADashboard';
 
 function App() {
   return (
@@ -26,6 +27,11 @@ function App() {
           <Route path="/home" element={<MainScreen />}>
             <Route index element={<TaskManager />} />
           </Route>
+
+          <Route path="/QA-tester" element={<MainScreen />}>
+            <Route index element={<QADashboard />} />
+          </Route>
+
           <Route path="/completed-tasks" element={<MainScreen />}>
             <Route index element={<CompletedTask />} />
           </Route>

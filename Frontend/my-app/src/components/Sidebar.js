@@ -19,6 +19,8 @@ import jwt_decode from 'jwt-decode'; // Import jwt-decode
 import NotificationPopover from './NotificationPopover';
 import { FaAngleUp, FaList, FaUserCheck } from "react-icons/fa"; // Import the notification icon
 import { getUnreadNotificationsCount } from '../Services/NotificationService'; // Add this import
+import { GrTestDesktop } from "react-icons/gr";
+
 
 const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
   const navigate = useNavigate();
@@ -244,13 +246,23 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         </SimpleGrid>
 
         <Button
-          leftIcon={<MdDashboard size={20} />}
+          leftIcon={<GrTestDesktop size={20} />}
           {...buttonStyles.base}
           {...(activeButton === '/Home' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
           onClick={() => handleNavigation('/Home')}
         >
           Dashboard
+        </Button>
+
+        <Button
+          leftIcon={<MdDashboard size={20} />}
+          {...buttonStyles.base}
+          {...(activeButton === '/QA-tester' && buttonStyles.active)}
+          _hover={{ ...buttonStyles.hover }}
+          onClick={() => handleNavigation('/QA-tester')}
+        >
+          QA / Tester
         </Button>
 
         <Button
@@ -361,7 +373,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
               onToggle={() => setNotificationOpen(!isNotificationOpen)}
               userId={userId}
               setUnreadCount={setUnreadCount} // Pass setUnreadCount here
-              unreadCount = {unreadCount}
+              unreadCount={unreadCount}
             />
             {unreadCount > 0 && (
               <Badge
