@@ -7,8 +7,7 @@ import ConfirmCompleteModal from './ConfirmCompleteModal';
 import ConfirmSentToQAModal from './ConfirmSentToQAModal';
 import ViewTaskDrawer from './ViewTaskDrawer';
 import { deleteTask, sendToQA } from '../Services/TaskService';
-import { LuSendToBack } from "react-icons/lu";
-
+import { FaComputer } from "react-icons/fa6";
 const TaskTable = ({ tasks, onStatusChange, users }) => {
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
     const { isOpen: isSendToQAOpen, onOpen: onSendToQAOpen, onClose: onSendToQAClose } = useDisclosure();
@@ -215,7 +214,7 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
                 <table className="column_resize_table">
                     <thead>
                         <tr>
-                            {['Task Name', 'Tags', 'Due Date', 'Assigned To', 'Status', 'Action'].map((header, index) => (
+                            {['Task Name', 'Tags', 'Due Date', 'Assigned To', 'Status', 'Actions'].map((header, index) => (
                                 <th key={index} style={{ position: 'relative', width: (index < 2 ? columnWidths[index] : (index === 5 ? '5%' : (index === 2 ? 150 : 100))) }}>
                                     {header}
                                     {index < 2 && (
@@ -273,12 +272,13 @@ const TaskTable = ({ tasks, onStatusChange, users }) => {
                                         />
 
                                         <IconButton
-                                            icon={<LuSendToBack size={20} />}
+                                            icon={<FaComputer size={24}/>}
                                             onClick={() => handleSendToQA(task)}
-                                            variant="outline"
+                                            variant="outline" // Add variant for consistent hover style
                                             title='Send to QA'
                                             border={0}
-                                            colorScheme="gray.800"
+                                            colorScheme="black"
+                                            _hover={{ bg: 'white' }} // Customize hover background color
                                         />
                                     </td>
                                 </tr>

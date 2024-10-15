@@ -256,7 +256,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         </Button>
 
         <Button
-          leftIcon={<GrTestDesktop size={20} />}
+          leftIcon={<GrTestDesktop size={18.5} />}
           {...buttonStyles.base}
           {...(activeButton === '/QA-tester' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}

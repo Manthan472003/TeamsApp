@@ -6,10 +6,12 @@ const ConfirmSentToQAModal = ({ isOpen, onClose, onConfirm, itemName }) => {
         <Modal isOpen={isOpen} onClose={onClose}>
             <ModalOverlay />
             <ModalContent>
-                <ModalHeader>Confirm Send to QA Modal</ModalHeader>
+                <ModalHeader>Confirm Send to QA Dashboard</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
-                    <Text>Are you sure you want to send the Task "{itemName}" to QA ?</Text>
+                    <Text>
+                        Are you sure you want to send the Task "{itemName}" to QA? This action is irreversible.
+                    </Text>
                 </ModalBody>
                 <ModalFooter>
                     <Button variant='outline' mr={3} onClick={onClose}>
