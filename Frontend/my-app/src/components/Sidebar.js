@@ -246,7 +246,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         </SimpleGrid>
 
         <Button
-          leftIcon={<GrTestDesktop size={20} />}
+          leftIcon={<MdDashboard size={20} />}
           {...buttonStyles.base}
           {...(activeButton === '/Home' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
@@ -256,7 +256,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         </Button>
 
         <Button
-          leftIcon={<MdDashboard size={20} />}
+          leftIcon={<GrTestDesktop size={20} />}
           {...buttonStyles.base}
           {...(activeButton === '/QA-tester' && buttonStyles.active)}
           _hover={{ ...buttonStyles.hover }}
