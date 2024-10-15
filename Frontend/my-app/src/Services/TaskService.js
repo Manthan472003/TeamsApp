@@ -70,3 +70,14 @@ export const restoreTask = async (taskId) => {
         throw error; // Rethrow error to be handled by the caller
     }
 };
+
+//Send Task To QA
+export const sendToQA = async (taskId) => {
+    try {
+        const response = await axios.put(`${API_URL}/sendToQA/${taskId}`);
+        return response.data; // Return the success message
+    } catch (error) {
+        console.error('Failed to send task to QA:', error.response ? error.response.data : error.message);
+        throw error; // Rethrow error to be handled by the caller
+    }
+};
