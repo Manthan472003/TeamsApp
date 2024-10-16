@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-    Button, useDisclosure, Spacer, IconButton, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading, Table, Tbody, Tr, Td
+    Button, useDisclosure, HStack, Spacer, IconButton, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading,
 } from '@chakra-ui/react';
 import { EditIcon } from '@chakra-ui/icons';
 
@@ -469,22 +469,16 @@ const TaskManager = () => {
                                         Add Task to {section.sectionName || 'Unnamed Section'}
                                     </Button>
 
-                                    <Table size="sm" variant="simple" width="auto" borderSpacing={0}>
-                                        <Tbody>
-                                            <Tr>
-                                                <Td style={{ backgroundColor: '#CDF5FD', padding: '2px', lineHeight: '1', width: '50px' }}></Td>
-                                                <Td style={{ padding: '2px', lineHeight: '1' }}>Not Started</Td>
-                                            </Tr>
-                                            <Tr>
-                                                <Td style={{ backgroundColor: '#A0E9FF', padding: '2px', lineHeight: '1', width: '50px' }}></Td>
-                                                <Td style={{ padding: '2px', lineHeight: '1' }}>In Progress</Td>
-                                            </Tr>
-                                            <Tr>
-                                                <Td style={{ backgroundColor: '#89CFF3', padding: '2px', lineHeight: '1', width: '50px' }}></Td>
-                                                <Td style={{ padding: '2px', lineHeight: '1' }}>On Hold</Td>
-                                            </Tr>
-                                        </Tbody>
-                                    </Table>
+                                    <HStack spacing={2}>
+                                        <div style={{ backgroundColor: '#CDF5FD', padding: '6px', width: '30px', }}></div>
+                                        <span>Not Started</span>
+
+                                        <div style={{ backgroundColor: '#A0E9FF', padding: '6px', width: '30px', }}></div>
+                                        <span>In Progress</span>
+
+                                        <div style={{ backgroundColor: '#89CFF3', padding: '6px', width: '30px', }}></div>
+                                        <span>On Hold</span>
+                                    </HStack>
                                 </Box>
 
                                 <TaskTable

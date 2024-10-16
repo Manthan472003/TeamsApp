@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-    Button, useDisclosure, Spacer, IconButton, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading, Table, Tbody, Tr, Td
+    useDisclosure, Spacer, Box, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useToast, Heading,
+    HStack
 } from '@chakra-ui/react';
-import { EditIcon } from '@chakra-ui/icons';
 
 import ViewTaskDrawer from './ViewTaskDrawer';
 
@@ -18,9 +18,9 @@ import SearchBar from './SearchBar';
 
 
 const QADashboard = () => {
-    const { isOpen: isTaskOpen, onOpen: onTaskOpen, onClose: onTaskClose } = useDisclosure();
+    const { isOpen: isTaskOpen, onClose: onTaskClose } = useDisclosure();
     const { isOpen: isEditTaskOpen, onOpen: onEditTaskOpen, onClose: onEditTaskClose } = useDisclosure();
-    const { isOpen: isEditSectionOpen, onOpen: onEditSectionOpen, onClose: onEditSectionClose } = useDisclosure();
+    const { isOpen: isEditSectionOpen, onClose: onEditSectionClose } = useDisclosure();
     const { isOpen: isViewTaskOpen, onOpen: onViewTaskOpen, onClose: onViewTaskClose } = useDisclosure();
 
 
@@ -31,18 +31,13 @@ const QADashboard = () => {
     const [selectedSectionId, setSelectedSectionId] = useState(null);
     const [taskToEdit, setTaskToEdit] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
-    const [sectionToEdit, setSectionToEdit] = useState(null);
+    const [sectionToEdit,] = useState(null);
     const [filteredItems, setFilteredItems] = useState([]);
     const [openSections, setOpenSections] = useState([]); // State to manage open sections
     const [selectedSection, setSelectedSection] = useState(null); // New state for selected section
     const [selectedTask, setSelectedTask] = useState(null); // State to store selected task for the drawer
     const [tasks, setTasks] = useState([]); // assuming tasksBySection is an object with section IDs as keys and taskToEdit arrays as values
     const [filteredTasks, setFilteredTasks] = useState([]);
-
-
-
-
-
     const toast = useToast();
 
     const applyFilter = (filterItems) => {
@@ -336,11 +331,6 @@ const QADashboard = () => {
         setSelectedSectionId(sectionId);
     };
 
-    const handleEditSection = (section) => {
-        setSectionToEdit(section);
-        onEditSectionOpen();
-    };
-
     const handleDelete = async (task) => {
         try {
             await deleteTask(task.id);
@@ -403,16 +393,12 @@ const QADashboard = () => {
     const filterTasks = (tasks) => {
         return tasks.filter(task => task.status !== 'Completed' && task.sentToQA === true);
     };
-    const handleAddTaskToSection = (section) => {
-        setSelectedSectionId(section.id); // Set selected section ID
-        onTaskOpen(); // Open the modal
-    };
 
     return (
         <Box mt={5}>
             <Sidebar
                 onSectionAdded={fetchSections}
-                onTaskAdded={refreshTasks} // Pass refreshTasks function here
+                onTaskAdded={refreshTasks}
             />
             <Heading as='h2' size='xl' paddingLeft={3}
                 sx={{
@@ -443,49 +429,24 @@ const QADashboard = () => {
                                     <Text fontSize='xl' fontWeight='bold' color='#149edf'>{section.sectionName}</Text>
                                 </Box>
                                 <Spacer />
-                                <IconButton
-                                    icon={<EditIcon />}
-                                    onClick={() => handleEditSection(section)}
-                                    colorScheme='green'
-                                    size='lg'
-                                    ml={2}
-                                    height={6}
-                                    border={0}
-                                    variant="outline"
-                                />
                                 <AccordionIcon />
                             </AccordionButton>
                             <AccordionPanel pb={4}>
-                                <Box display="flex" alignItems="center" mb={3} justifyContent="space-between">
-                                    <Button
-                                        onClick={() => handleAddTaskToSection(section)}
-                                        colorScheme='teal'
-                                        textColor='Orange.500'
-                                        border={2}
-                                        variant='outline'
-                                        sx={{ borderStyle: 'dotted' }}
-                                        mr={4} // Margin to the right of the button
-                                    >
-                                        Add Task to {section.sectionName || 'Unnamed Section'}
-                                    </Button>
 
-                                    <Table size="sm" variant="simple" width="auto" borderSpacing={0}>
-                                        <Tbody>
-                                            <Tr>
-                                                <Td style={{ backgroundColor: '#CDF5FD', padding: '2px', lineHeight: '1', width: '50px' }}></Td>
-                                                <Td style={{ padding: '2px', lineHeight: '1' }}>Not Started</Td>
-                                            </Tr>
-                                            <Tr>
-                                                <Td style={{ backgroundColor: '#A0E9FF', padding: '2px', lineHeight: '1', width: '50px' }}></Td>
-                                                <Td style={{ padding: '2px', lineHeight: '1' }}>In Progress</Td>
-                                            </Tr>
-                                            <Tr>
-                                                <Td style={{ backgroundColor: '#89CFF3', padding: '2px', lineHeight: '1', width: '50px' }}></Td>
-                                                <Td style={{ padding: '2px', lineHeight: '1' }}>On Hold</Td>
-                                            </Tr>
-                                        </Tbody>
-                                    </Table>
+                                <Box display="flex" alignItems="center" mb={3} justifyContent="flex-end">
+                                    <HStack spacing={2}>
+                                        <div style={{ backgroundColor: '#CDF5FD', padding: '6px', width: '30px', }}></div>
+                                        <span>Not Started</span>
+
+                                        <div style={{ backgroundColor: '#A0E9FF', padding: '6px', width: '30px', }}></div>
+                                        <span>In Progress</span>
+
+                                        <div style={{ backgroundColor: '#89CFF3', padding: '6px', width: '30px', }}></div>
+                                        <span>On Hold</span>
+                                    </HStack>
                                 </Box>
+
+
 
                                 <QADashboardTable
                                     tasks={filterTasks(tasksToShow)} // Use filtered tasks
