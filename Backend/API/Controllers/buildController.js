@@ -3,9 +3,9 @@ const TasksChecked = require('../../Database/Models/tasksChecked');
 const Section = require('../../Database/Models/section');
 const User = require('../../Database/Models/user');
 const Task = require('../../Database/Models/task');
-const { Op } = require('sequelize');
 
 
+//Create Build Entry
 const createEntry = async (req, res) => {
     const { appId, deployedOn, versionName, mediaLink } = req.body;
     if (!appId) {
@@ -40,6 +40,7 @@ const createEntry = async (req, res) => {
     }
 };
 
+// Mark Task is Working
 const markTaskWorking = async (req, res) => {
     const { buildId, taskId, userId } = req.body;
 
@@ -64,6 +65,20 @@ const markTaskWorking = async (req, res) => {
             return res.status(404).json({ message: 'User does not exist.' });
         }
 
+        // Check if an entry already exists for this taskId
+        const existingEntry = await TasksChecked.findOne({ where: { taskId, checkedByUserId: userId } });
+        
+        if (existingEntry) {
+            if (existingEntry.isWorking) {
+                return res.status(400).json({ message: 'Task is already marked as working.' });
+            } else {
+                // Update the existing entry to set isWorking to true
+                existingEntry.isWorking = true;
+                await existingEntry.save();
+                return res.status(200).json({ message: 'Task status updated to working.', existingEntry });
+            }
+        }
+
         // Create a new entry in TasksChecked
         const newEntry = await TasksChecked.create({
             taskId,
@@ -79,27 +94,19 @@ const markTaskWorking = async (req, res) => {
 
         // Initialize checkedIds as an array
         let currentCheckedIds = [];
-
-        // If checkedIds is not null or an empty string, parse it
         if (buildEntry.checkedIds) {
             try {
-                // Check if the value is a valid JSON string
                 currentCheckedIds = JSON.parse(buildEntry.checkedIds);
             } catch (error) {
                 console.error('Error parsing checkedIds:', error);
                 return res.status(500).json({ message: 'Error parsing checked IDs.' });
             }
         }
-
-        // Ensure currentCheckedIds is an array
         if (!Array.isArray(currentCheckedIds)) {
             currentCheckedIds = [];
         }
 
-        // Add the new checked ID
         currentCheckedIds.push(newEntry.id);
-
-        // Store the array back as a JSON string
         await buildEntry.update({ checkedIds: JSON.stringify(currentCheckedIds) });
 
         return res.status(201).json({
@@ -112,6 +119,7 @@ const markTaskWorking = async (req, res) => {
     }
 };
 
+// Mark Task is Not Working
 const markTaskNotWorking = async (req, res) => {
     const { buildId, taskId, userId } = req.body;
 
@@ -136,6 +144,20 @@ const markTaskNotWorking = async (req, res) => {
             return res.status(404).json({ message: 'User does not exist.' });
         }
 
+        // Check if an entry already exists for this taskId
+        const existingEntry = await TasksChecked.findOne({ where: { taskId, checkedByUserId: userId } });
+
+        if (existingEntry) {
+            if (!existingEntry.isWorking) {
+                return res.status(400).json({ message: 'Task is already marked as not working.' });
+            } else {
+                // Update the existing entry to set isWorking to false
+                existingEntry.isWorking = false;
+                await existingEntry.save();
+                return res.status(200).json({ message: 'Task status updated to not working.', existingEntry });
+            }
+        }
+
         // Create a new entry in TasksChecked
         const newEntry = await TasksChecked.create({
             taskId,
@@ -151,36 +173,28 @@ const markTaskNotWorking = async (req, res) => {
 
         // Initialize checkedIds as an array
         let currentCheckedIds = [];
-
-        // If checkedIds is not null or an empty string, parse it
         if (buildEntry.checkedIds) {
             try {
-                // Check if the value is a valid JSON string
                 currentCheckedIds = JSON.parse(buildEntry.checkedIds);
             } catch (error) {
                 console.error('Error parsing checkedIds:', error);
                 return res.status(500).json({ message: 'Error parsing checked IDs.' });
             }
         }
-
-        // Ensure currentCheckedIds is an array
         if (!Array.isArray(currentCheckedIds)) {
             currentCheckedIds = [];
         }
 
-        // Add the new checked ID
         currentCheckedIds.push(newEntry.id);
-
-        // Store the array back as a JSON string
         await buildEntry.update({ checkedIds: JSON.stringify(currentCheckedIds) });
 
         return res.status(201).json({
-            message: 'Task marked as working successfully.',
+            message: 'Task marked as not working successfully.',
             newEntry
         });
     } catch (error) {
-        console.error('Error marking task as working:', error);
-        return res.status(500).json({ message: 'Error marking task as working.', error: error.message });
+        console.error('Error marking task as not working:', error);
+        return res.status(500).json({ message: 'Error marking task as not working.', error: error.message });
     }
 };
 
@@ -210,51 +224,10 @@ const getBuildEntry = async (req, res) => {
     }
 }
 
-
-
-
-
-
-
-
-
-// const createEntry = async (req, res) => {
-//   try {
-//     const { taskId, checkedByUserId, buildId } = req.body; // Expecting these values in the request body
-
-//     // Step 1: Create a new entry in tasks_checked_table
-//     const taskCheckedEntry = await TasksChecked.create({
-//       taskId,
-//       checkedByUserId,
-//     });
-
-//     // Step 2: Find the corresponding build entry to update
-//     const buildEntry = await Build.findByPk(buildId);
-//     if (!buildEntry) {
-//       return res.status(404).json({ message: 'Build not found' });
-//     }
-
-//     // Step 3: Update the taskIds field in the build_table
-//     const currentTaskIds = buildEntry.taskIds ? JSON.parse(buildEntry.taskIds) : [];
-//     currentTaskIds.push(taskCheckedEntry.id); // Add the new checked ID
-
-//     await buildEntry.update({ taskIds: JSON.stringify(currentTaskIds) });
-
-//     return res.status(201).json({
-//       message: 'Task checked entry created successfully',
-//       taskCheckedEntry,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: 'An error occurred', error });
-//   }
-// };
-
 module.exports = {
     createEntry,
     markTaskWorking,
     markTaskNotWorking,
     getAllBuildEntries,
     getBuildEntry
-
 };

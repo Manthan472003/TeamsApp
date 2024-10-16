@@ -35,7 +35,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "theme": "chakra-cli tokens path/to/theme.ts",
+    "theme:watch": "chakra-cli tokens path/to/theme.ts --watch"
   },
   "eslintConfig": {
     "extends": "react-app"
