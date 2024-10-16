@@ -13,7 +13,7 @@ import { getUser } from '../Services/UserService';
 import { getTags } from '../Services/TagService';
 import { IoIosSave, IoMdCloseCircleOutline } from "react-icons/io";
 
-const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID, sectionName, taskId: propTaskId }) => {
+const AddTaskModal = ({ isOpen, onClose, onSubmit, userId: propUserId, sectionID, taskId: propTaskId }) => {
     const initialRef = useRef(null);
     const [taskName, setTaskName] = useState('');
     const [dueDate, setDueDate] = useState('');
