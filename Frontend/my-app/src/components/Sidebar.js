@@ -5,7 +5,7 @@ import {
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircleIcon, DeleteIcon } from '@chakra-ui/icons';
-import { MdAddTask, MdDashboard, MdPermDeviceInformation } from "react-icons/md";
+import { MdAddTask, MdDashboard, MdPermDeviceInformation, MdOutlineBuildCircle } from "react-icons/md";
 import { FaTasks } from "react-icons/fa";
 import { HiOutlineFolderAdd } from "react-icons/hi";
 import { RiInformationFill } from "react-icons/ri";
@@ -179,10 +179,9 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
       display="flex"
       flexDirection="column"
     >
-      <Flex direction="row" align="center" mb={4} onClick={handleReload} cursor="pointer"
-
+      <Flex direction="row" align="center" mb={2} onClick={handleReload} cursor="pointer"
       >
-        <Image ml={8} src={logo} alt="App Logo" width="60px" height={10} />
+        <Image ml={5} src={logo} alt="App Logo" width="60px" height={10} />
         <Text
           color="#2D5BA8"
           fontSize="1.4rem"
@@ -197,7 +196,7 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
         spacing={2}
         align="start"
         background="#FFFFFF"
-        padding={4}
+        padding={2.5}
         borderRadius="md"
         flex="1"
         position="relative"
@@ -263,6 +262,16 @@ const Sidebar = ({ onSectionAdded, onTaskAdded }) => {
           onClick={() => handleNavigation('/QA-tester')}
         >
           QA / Tester
+        </Button>
+
+        <Button
+          leftIcon={<MdOutlineBuildCircle size={23} />}
+          {...buttonStyles.base}
+          {...(activeButton === '/build' && buttonStyles.active)}
+          _hover={{ ...buttonStyles.hover }}
+          onClick={() => handleNavigation('/build')}
+        >
+          Builds
         </Button>
 
         <Button

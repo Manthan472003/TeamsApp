@@ -15,6 +15,7 @@ import Users from './components/Users';
 import Profile from './components/Profile'
 import AppVersionManagement from './components/AppVersionManagement';
 import QADashboard from './components/QADashboard';
+import BuildDashboard from './components/BuildDashboard';
 
 function App() {
   return (
@@ -30,6 +31,10 @@ function App() {
 
           <Route path="/QA-tester" element={<MainScreen />}>
             <Route index element={<QADashboard />} />
+          </Route>
+
+          <Route path="/build" element={<MainScreen />}>
+            <Route index element={<BuildDashboard />} />
           </Route>
 
           <Route path="/completed-tasks" element={<MainScreen />}>
