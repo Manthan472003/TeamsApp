@@ -146,3 +146,33 @@ CREATE TABLE `app_version_management_table` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
+CREATE TABLE `build_table` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `appId` int NOT NULL,
+  `deployedOn` enum('Stage','Production') DEFAULT 'Production',
+  `versionName` varchar(45) DEFAULT NULL,
+  `mediaLink` longtext,
+  `checkedIds` json DEFAULT NULL,
+  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  KEY `applicationId_idx` (`appId`),
+  CONSTRAINT `applicationId` FOREIGN KEY (`appId`) REFERENCES `section_table` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+CREATE TABLE `tasks_checked_table` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `taskId` int NOT NULL,
+  `checkedByUserId` int NOT NULL,
+  `isWorking` tinyint DEFAULT NULL,
+  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  KEY `fk_taskId` (`taskId`),
+  KEY `fk_checkedByUserId` (`checkedByUserId`),
+  CONSTRAINT `fk_checkedByUserId` FOREIGN KEY (`checkedByUserId`) REFERENCES `user_table` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_taskId` FOREIGN KEY (`taskId`) REFERENCES `tasks_table` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
