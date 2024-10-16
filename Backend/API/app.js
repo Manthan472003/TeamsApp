@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const sequelize  = require('../Database/Config/config');
+const sequelize = require('../Database/Config/config');
 const userRoutes = require('./Routes/userRoutes');
 const taskRoutes = require('./Routes/taskRoutes');
 const sectionRoutes = require('./Routes/sectionRoutes');
@@ -12,8 +12,9 @@ const notificationRoutes = require('./Routes/notificationRoutes');
 const commentRoutes = require('./Routes/commentRoutes');
 const sendMailRoute = require('./Routes/sendMailRoute');
 const appVersionManagementRoutes = require('./Routes/appVersionManagementRoutes');
+const buildRoutes = require('./Routes/buildRoutes');
 
-require('./Controllers/deletePermanentlyController'); 
+require('./Controllers/deletePermanentlyController');
 
 
 const app = express();
@@ -32,7 +33,8 @@ app.use('/versionManagement', versionManagementRoutes);
 app.use('/notifications', notificationRoutes);
 app.use('/comment', commentRoutes);
 app.use('/sendMail', sendMailRoute);
-app.use('/appVersionManagement', appVersionManagementRoutes)
+app.use('/appVersionManagement', appVersionManagementRoutes);
+app.use('/build', buildRoutes);
 
 sequelize.sync().then(() => {
   app.listen(PORT, () => {
