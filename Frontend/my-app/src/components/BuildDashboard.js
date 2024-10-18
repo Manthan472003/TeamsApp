@@ -117,6 +117,7 @@ const BuildDashboard = () => {
                             <BuildEntryTable
                                 build={build}
                                 sections={sections}
+                                
                             />
                         </CardBody>
                     </Card>

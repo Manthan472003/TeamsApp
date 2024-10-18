@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, Button, Box } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Button, Box, Text } from '@chakra-ui/react';
 import { getTasksBySection } from '../Services/TaskService';
 import { getUsers } from '../Services/UserService'; // Importing getUsers
 import { markTaskWorking, markTaskNotWorking } from '../Services/BuildService';
+import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
 
 const BuildEntryTable = ({ build, sections, currentUserId }) => {
     const [tasks, setTasks] = useState([]);
@@ -45,29 +46,44 @@ const BuildEntryTable = ({ build, sections, currentUserId }) => {
     };
 
     const handleMarkWorking = async (taskId) => {
-        const payload = { taskId, userId: currentUserId, applicationId: build.appId }; // Use currentUserId
-        console.log('Payload:', payload);
-
+        const payload = { 
+            taskId, 
+            userId: currentUserId, 
+            buildId: build.appId 
+        };
+        console.log('Payload for Mark Working:', payload);
+    
         try {
             await markTaskWorking(payload);
             const username = getUserNameById(currentUserId);
             setUsernames(prev => ({ ...prev, [taskId]: username }));
         } catch (error) {
-            console.error('Error marking task as working:', error.response.data);
+            console.error('Error marking task as working:', error.response ? error.response.data : error);
         }
     };
-
+    
     const handleMarkNotWorking = async (taskId) => {
-        const payload = { taskId, userId: currentUserId, applicationId: build.appId }; // Use currentUserId
-        console.log('Payload:', payload);
-
+        const payload = { 
+            taskId, 
+            userId: currentUserId, 
+            buildId: build.appId 
+        };
+        console.log('Payload for Mark Not Working:', payload);
+    
         try {
             await markTaskNotWorking(payload);
             const username = getUserNameById(currentUserId);
             setUsernames(prev => ({ ...prev, [taskId]: username }));
         } catch (error) {
-            console.error('Error marking task as not working:', error.response.data);
+            console.error('Error marking task as not working:', error.response ? error.response.data : error);
         }
+    };
+    
+
+    const [clickedTaskId, setClickedTaskId] = useState(null);
+
+    const handleClick = (taskId) => {
+        setClickedTaskId(taskId);
     };
 
     return (
@@ -118,34 +134,57 @@ const BuildEntryTable = ({ build, sections, currentUserId }) => {
                 </Table>
             </div>
             <Box className="task-list">
-                <h3>Tasks:</h3>
+                <Text fontSize='xl' fontWeight='bold' color='#149edf'>Tasks :</Text>
                 {filteredTasks.length > 0 ? (
                     filteredTasks.map(task => (
-                        <div key={task.id}>
+                        <div
+                            key={task.id}
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                backgroundColor: clickedTaskId === task.id ? '#e0f7fa' : 'transparent', 
+                                transition: 'background-color 0.1s', 
+                            }}
+                            onClick={() => handleClick(task.id)} 
+                        >
                             <span>{task.taskName}</span>
-                            <Button
-                                onClick={() => handleMarkWorking(task.id)}
-                                colorScheme={usernames[task.id] === getUserNameById(currentUserId) ? 'green' : 'blue'}
-                                variant="outline"
-                                ml={2}
-                            >
-                                Mark as Working
-                            </Button>
-                            <Button
-                                onClick={() => handleMarkNotWorking(task.id)}
-                                colorScheme={usernames[task.id] === getUserNameById(currentUserId) ? 'red' : 'orange'}
-                                variant="outline"
-                                ml={2}
-                            >
-                                Mark as Not Working
-                            </Button>
-                            {usernames[task.id] && <div>Clicked by: {usernames[task.id]}</div>}
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <Button
+                                    onClick={(e) => { e.stopPropagation(); handleMarkWorking(task.id); }}
+                                    colorScheme={usernames[task.id] === getUserNameById(currentUserId) ? 'green' : 'blue'}
+                                    variant="outline"
+                                    ml={2}
+                                    mb={2}
+                                    leftIcon={<CheckIcon size={15} />}
+                                    height={7}
+                                    width={110}
+                                    borderRadius={4}
+                                >
+                                    Working
+                                </Button>
+                                <Button
+                                    onClick={(e) => { e.stopPropagation(); handleMarkNotWorking(task.id); }}
+                                    colorScheme={usernames[task.id] === getUserNameById(currentUserId) ? 'red' : 'orange'}
+                                    variant="outline"
+                                    ml={2}
+                                    mb={2}
+                                    leftIcon={<CloseIcon size={9} />}
+                                    height={7}
+                                    width={140}
+                                    borderRadius={4}
+                                >
+                                    Not Working
+                                </Button>
+                                {usernames[task.id] && <div style={{ marginLeft: '8px' }}>Clicked by: {usernames[task.id]}</div>}
+                            </div>
                         </div>
                     ))
                 ) : (
                     <div>No tasks available</div>
                 )}
             </Box>
+
         </>
     );
 };
