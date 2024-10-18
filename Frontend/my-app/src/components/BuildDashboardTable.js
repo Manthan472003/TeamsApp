@@ -159,7 +159,7 @@ const BuildDashboardTable = ({ tasks, sectionId }) => {
                 <HStack>
                     <Button
                         onClick={handleSave}
-                        colorScheme="blue"
+                        colorScheme="blue.200"
                         width="20%"
                         mr={2}
                         mt={2}
@@ -168,7 +168,7 @@ const BuildDashboardTable = ({ tasks, sectionId }) => {
                     </Button>
                     <Button
                         onClick={handlePostToQA}
-                        colorScheme="green"
+                        colorScheme="green.200"
                         width="20%"
                         mt={2}
                     >
