@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Thead, Tbody, Tr, Th, Td, Button, Box, Text } from '@chakra-ui/react';
 import { getTasksBySection } from '../Services/TaskService';
-import { getUsers } from '../Services/UserService'; // Importing getUsers
+import { getUsers } from '../Services/UserService'; 
 import { markTaskWorking, markTaskNotWorking } from '../Services/BuildService';
 import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import jwt_decode from 'jwt-decode';
-
 
 const BuildEntryTable = ({ build, sections }) => {
     const [tasks, setTasks] = useState([]);
@@ -13,6 +12,7 @@ const BuildEntryTable = ({ build, sections }) => {
     const [usernames, setUsernames] = useState({});
     const [users, setUsers] = useState([]);
     const [userId, setUserId] = useState('');
+    const [rowColors, setRowColors] = useState({}); // Manage row colors
 
     useEffect(() => {
         const fetchTasksAndUsers = async () => {
@@ -38,21 +38,27 @@ const BuildEntryTable = ({ build, sections }) => {
         const filteredTasks = tasks.filter(task => task.status !== 'Completed' && !task.isDelete && !task.sentToQA);
         setFilteredTasks(filteredTasks);
     }, [tasks]);
-    
+
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-          try {
-            const decodedToken = jwt_decode(token);
-            setUserId(decodedToken.id);
-          } catch (error) {
-            console.error('Failed to decode token:', error);
-          }
+            try {
+                const decodedToken = jwt_decode(token);
+                setUserId(decodedToken.id);
+            } catch (error) {
+                console.error('Failed to decode token:', error);
+            }
         } else {
-          console.error('No token found in local storage');
+            console.error('No token found in local storage');
         }
-    
-      }, []);
+    }, []);
+
+    useEffect(() => {
+        const savedUsernames = JSON.parse(localStorage.getItem('usernames')) || {};
+        const savedRowColors = JSON.parse(localStorage.getItem('rowColors')) || {};
+        setUsernames(savedUsernames);
+        setRowColors(savedRowColors);
+    }, []);
 
     const getSectionNameById = (sectionId) => {
         const section = sections.find(section => section.id === sectionId);
@@ -65,44 +71,55 @@ const BuildEntryTable = ({ build, sections }) => {
     };
 
     const handleMarkWorking = async (taskId) => {
-        const payload = { 
-            taskId, 
-            userId: userId, 
-            buildId: build.id 
+        const payload = {
+            taskId,
+            userId: userId,
+            buildId: build.id
         };
         console.log('Payload for Mark Working:', payload);
-    
+
         try {
             await markTaskWorking(payload);
             const username = getUserNameById(userId);
-            setUsernames(prev => ({ ...prev, [taskId]: username }));
+            setUsernames(prev => {
+                const newUsernames = { ...prev, [taskId]: username };
+                localStorage.setItem('usernames', JSON.stringify(newUsernames)); // Save to localStorage
+                return newUsernames;
+            });
+            setRowColors(prev => {
+                const newRowColors = { ...prev, [taskId]: '#88E788' }; // Light green for working
+                localStorage.setItem('rowColors', JSON.stringify(newRowColors)); // Save to localStorage
+                return newRowColors;
+            });
         } catch (error) {
             console.error('Error marking task as working:', error.response ? error.response.data : error);
         }
     };
-    
+
     const handleMarkNotWorking = async (taskId) => {
-        const payload = { 
-            taskId, 
-            userId: userId, 
-            buildId: build.id 
+        const payload = {
+            taskId,
+            userId: userId,
+            buildId: build.id
         };
         console.log('Payload for Mark Not Working:', payload);
-    
+
         try {
             await markTaskNotWorking(payload);
             const username = getUserNameById(userId);
-            setUsernames(prev => ({ ...prev, [taskId]: username }));
+            setUsernames(prev => {
+                const newUsernames = { ...prev, [taskId]: username };
+                localStorage.setItem('usernames', JSON.stringify(newUsernames)); // Save to localStorage
+                return newUsernames;
+            });
+            setRowColors(prev => {
+                const newRowColors = { ...prev, [taskId]: '#ffcccb' }; // Light red for not working
+                localStorage.setItem('rowColors', JSON.stringify(newRowColors)); // Save to localStorage
+                return newRowColors;
+            });
         } catch (error) {
             console.error('Error marking task as not working:', error.response ? error.response.data : error);
         }
-    };
-    
-
-    const [clickedTaskId, setClickedTaskId] = useState(null);
-
-    const handleClick = (taskId) => {
-        setClickedTaskId(taskId);
     };
 
     return (
@@ -152,6 +169,7 @@ const BuildEntryTable = ({ build, sections }) => {
                     </Tbody>
                 </Table>
             </div>
+
             <Box className="task-list">
                 <Text fontSize='xl' fontWeight='bold' color='#149edf'>Tasks :</Text>
                 {filteredTasks.length > 0 ? (
@@ -162,18 +180,18 @@ const BuildEntryTable = ({ build, sections }) => {
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
-                                backgroundColor: clickedTaskId === task.id ? '#e0f7fa' : 'transparent', 
-                                transition: 'background-color 0.1s', 
+                                backgroundColor: rowColors[task.id] || 'transparent',
+                                transition: 'background-color 0.1s',
                             }}
-                            onClick={() => handleClick(task.id)} 
                         >
                             <span>{task.taskName}</span>
                             <div style={{ display: 'flex', alignItems: 'center' }}>
                                 <Button
                                     onClick={(e) => { e.stopPropagation(); handleMarkWorking(task.id); }}
-                                    colorScheme={usernames[task.id] === getUserNameById(userId) ? 'green' : 'blue'}
+                                    colorScheme="blue"
                                     variant="outline"
                                     ml={2}
+                                    mt={2}
                                     mb={2}
                                     leftIcon={<CheckIcon size={15} />}
                                     height={7}
@@ -184,10 +202,11 @@ const BuildEntryTable = ({ build, sections }) => {
                                 </Button>
                                 <Button
                                     onClick={(e) => { e.stopPropagation(); handleMarkNotWorking(task.id); }}
-                                    colorScheme={usernames[task.id] === getUserNameById(userId) ? 'red' : 'orange'}
+                                    colorScheme="red"
                                     variant="outline"
                                     ml={2}
                                     mb={2}
+                                    mt={2}
                                     leftIcon={<CloseIcon size={9} />}
                                     height={7}
                                     width={140}
@@ -203,7 +222,6 @@ const BuildEntryTable = ({ build, sections }) => {
                     <div>No tasks available</div>
                 )}
             </Box>
-
         </>
     );
 };
