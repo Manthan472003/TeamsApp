@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useDisclosure, Box, Heading, Button, useToast, Stack, Card, CardBody } from '@chakra-ui/react';
 import { createBuildEntry, fetchAllBuildEntries } from '../Services/BuildService';
 import AddBuildModal from './AddBuildModal';
 import { IoMdAddCircleOutline } from "react-icons/io";
 import BuildEntryTable from './BuildEntryTable'; // Import the new table component
+import { getSections } from '../Services/SectionService';
 
 const BuildDashboard = () => {
     const toast = useToast();
     const { isOpen: isAddTaskOpen, onOpen: onAddTaskOpen, onClose: onAddTaskClose } = useDisclosure();
     const [buildEntries, setBuildEntries] = useState([]); // Ensure this is initialized as an array
+    const [sections, setSections] = useState([]);
 
     const handleEntrySubmit = async (data) => {
         try {
@@ -34,7 +36,7 @@ const BuildDashboard = () => {
         }
     };
 
-    const fetchBuildEntries = async () => {
+    const fetchBuildEntries = useCallback(async () => {
         try {
             const response = await fetchAllBuildEntries();
             console.log(response.data);
@@ -54,11 +56,33 @@ const BuildDashboard = () => {
                 isClosable: true,
             });
         }
-    };
+    }, [toast]);
+    
+    const fetchSections = useCallback(async () => {
+        // Define your logic to fetch sections here
+        try {
+            const response = await getSections(); // Replace with your API call
+            if (Array.isArray(response.data)) {
+                setSections(response.data);
+            } else {
+                throw new Error('Unexpected sections response format');
+            }
+        } catch (error) {
+            console.error('Error fetching sections:', error);
+            toast({
+                title: "Error fetching sections.",
+                description: "There was a problem fetching the sections. Please try again.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+    }, [toast]);
 
     useEffect(() => {
         fetchBuildEntries();
-    }, []);
+        fetchSections();
+    }, [fetchBuildEntries, fetchSections]);
 
     return (
         <Box mt={5}>
@@ -89,7 +113,10 @@ const BuildDashboard = () => {
                 {buildEntries.map((build, index) => (
                     <Card key={index} variant="outline">
                         <CardBody>
-                            <BuildEntryTable build={build} /> {/* Use the new table component */}
+                            <BuildEntryTable
+                                build={build}
+                                sections={sections}
+                            />
                         </CardBody>
                     </Card>
                 ))}
