@@ -6,31 +6,28 @@ import {
 import jwt_decode from 'jwt-decode';
 import { getAssignedTasks } from '../Services/TaskService';
 
-const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) => {
+const AddDailyReportModal = ({ isOpen, onClose, onSubmit }) => {
   const [taskId, setTaskId] = useState(''); // New state for task ID
   const [taskName, setTaskName] = useState(''); // Optional: Use to display task name
   const [status, setStatus] = useState('');
-  const [userId, setUserId] = useState(propUserId || '');
+  const [userId, setUserId] = useState('');
   const [assignedTasks, setAssignedTasks] = useState([]);
   const toast = useToast();
 
   useEffect(() => {
-    if (propUserId) {
-      setUserId(propUserId);
-    } else {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const decodedToken = jwt_decode(token);
-          setUserId(decodedToken.id);
-        } catch (error) {
-          console.error('Failed to decode token:', error);
-        }
-      } else {
-        console.error('No token found in local storage');
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decodedToken = jwt_decode(token);
+        setUserId(decodedToken.id);
+      } catch (error) {
+        console.error('Failed to decode token:', error);
       }
+    } else {
+      console.error('No token found in local storage');
     }
-  }, [propUserId]);
+
+  }, []);
 
   useEffect(() => {
     if (userId) {
@@ -57,7 +54,7 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-  
+
     // Check if taskName is empty
     if (!taskName) {
       toast({
@@ -69,7 +66,7 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
       });
       return; // Exit the function if taskName is empty
     }
-  
+
     // If taskId is null, don't include it in the report object
     const report = {
       userId: parseInt(userId, 10),
@@ -77,7 +74,7 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
       taskName, // Send task name as well
       status,
     };
-  
+
     if (typeof onSubmit === 'function') {
       try {
         // Omit taskId if it is null
@@ -105,7 +102,7 @@ const AddDailyReportModal = ({ isOpen, onClose, onSubmit, userId: propUserId }) 
       console.error('onSubmit is not a function');
     }
   };
-  
+
 
 
   return (

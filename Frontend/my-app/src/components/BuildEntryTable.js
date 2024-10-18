@@ -4,12 +4,16 @@ import { getTasksBySection } from '../Services/TaskService';
 import { getUsers } from '../Services/UserService'; // Importing getUsers
 import { markTaskWorking, markTaskNotWorking } from '../Services/BuildService';
 import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
+import jwt_decode from 'jwt-decode';
 
-const BuildEntryTable = ({ build, sections, currentUserId }) => {
+
+const BuildEntryTable = ({ build, sections }) => {
     const [tasks, setTasks] = useState([]);
     const [filteredTasks, setFilteredTasks] = useState([]);
     const [usernames, setUsernames] = useState({});
     const [users, setUsers] = useState([]);
+    const [userId, setUserId] = useState('');
+
     useEffect(() => {
         const fetchTasksAndUsers = async () => {
             if (build && build.appId) {
@@ -34,6 +38,21 @@ const BuildEntryTable = ({ build, sections, currentUserId }) => {
         const filteredTasks = tasks.filter(task => task.status !== 'Completed' && !task.isDelete && !task.sentToQA);
         setFilteredTasks(filteredTasks);
     }, [tasks]);
+    
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const decodedToken = jwt_decode(token);
+            setUserId(decodedToken.id);
+          } catch (error) {
+            console.error('Failed to decode token:', error);
+          }
+        } else {
+          console.error('No token found in local storage');
+        }
+    
+      }, []);
 
     const getSectionNameById = (sectionId) => {
         const section = sections.find(section => section.id === sectionId);
@@ -48,14 +67,14 @@ const BuildEntryTable = ({ build, sections, currentUserId }) => {
     const handleMarkWorking = async (taskId) => {
         const payload = { 
             taskId, 
-            userId: currentUserId, 
-            buildId: build.appId 
+            userId: userId, 
+            buildId: build.id 
         };
         console.log('Payload for Mark Working:', payload);
     
         try {
             await markTaskWorking(payload);
-            const username = getUserNameById(currentUserId);
+            const username = getUserNameById(userId);
             setUsernames(prev => ({ ...prev, [taskId]: username }));
         } catch (error) {
             console.error('Error marking task as working:', error.response ? error.response.data : error);
@@ -65,14 +84,14 @@ const BuildEntryTable = ({ build, sections, currentUserId }) => {
     const handleMarkNotWorking = async (taskId) => {
         const payload = { 
             taskId, 
-            userId: currentUserId, 
-            buildId: build.appId 
+            userId: userId, 
+            buildId: build.id 
         };
         console.log('Payload for Mark Not Working:', payload);
     
         try {
             await markTaskNotWorking(payload);
-            const username = getUserNameById(currentUserId);
+            const username = getUserNameById(userId);
             setUsernames(prev => ({ ...prev, [taskId]: username }));
         } catch (error) {
             console.error('Error marking task as not working:', error.response ? error.response.data : error);
@@ -152,7 +171,7 @@ const BuildEntryTable = ({ build, sections, currentUserId }) => {
                             <div style={{ display: 'flex', alignItems: 'center' }}>
                                 <Button
                                     onClick={(e) => { e.stopPropagation(); handleMarkWorking(task.id); }}
-                                    colorScheme={usernames[task.id] === getUserNameById(currentUserId) ? 'green' : 'blue'}
+                                    colorScheme={usernames[task.id] === getUserNameById(userId) ? 'green' : 'blue'}
                                     variant="outline"
                                     ml={2}
                                     mb={2}
@@ -165,7 +184,7 @@ const BuildEntryTable = ({ build, sections, currentUserId }) => {
                                 </Button>
                                 <Button
                                     onClick={(e) => { e.stopPropagation(); handleMarkNotWorking(task.id); }}
-                                    colorScheme={usernames[task.id] === getUserNameById(currentUserId) ? 'red' : 'orange'}
+                                    colorScheme={usernames[task.id] === getUserNameById(userId) ? 'red' : 'orange'}
                                     variant="outline"
                                     ml={2}
                                     mb={2}

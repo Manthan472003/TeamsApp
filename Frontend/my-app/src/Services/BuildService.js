@@ -12,7 +12,7 @@ export const fetchAllBuildEntries = () => axios.get(API_URL);
 export const getBuildEntryById = (buildId) => axios.get(`${API_URL}/${buildId}`);
 
 //Mark Task Working
-export const markTaskWorking = (taskDetails) => axios.post(API_URL, taskDetails);
+export const markTaskWorking = (taskDetails) => axios.post(`${API_URL}/markWorking`, taskDetails);
 
 //Mark Task Not Working
-export const markTaskNotWorking = (taskDetails) => axios.post(API_URL, taskDetails);
+export const markTaskNotWorking = (taskDetails) => axios.post(`${API_URL}/markNotWorking`, taskDetails);
