@@ -11,9 +11,6 @@ const createEntry = async (req, res) => {
     if (!appId) {
         return res.status(400).json({ message: 'Application ID is required.' });
     }
-    if (!deployedOn) {
-        return res.status(400).json({ message: 'deployedOn is required.' });
-    }
     if (!versionName) {
         return res.status(400).json({ message: 'versionName is required.' });
     }

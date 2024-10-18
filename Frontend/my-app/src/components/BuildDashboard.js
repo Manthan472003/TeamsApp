@@ -13,17 +13,18 @@ const BuildDashboard = () => {
     const { onOpen: onEditTaskOpen } = useDisclosure();
     const { onOpen: onViewTaskOpen } = useDisclosure();
     const [sections, setSections] = useState([]);
-    const [tasksBySection,] = useState({});
+    const [tasksBySection, setTasksBySection] = useState({});
     const [users, setUsers] = useState([]);
     const [, setTaskToEdit] = useState(null);
     const [, setCurrentUserId] = useState(null);
     const [filteredItems, setFilteredItems] = useState([]);
     const [selectedSection, setSelectedSection] = useState(null);
     const [, setSelectedTask] = useState(null);
-    const [tasks, setTasks] = useState([]); 
+    const [tasks, setTasks] = useState([]);
     const [filteredTasks, setFilteredTasks] = useState([]);
     const toast = useToast();
     const { isOpen: isAddTaskOpen, onOpen: onAddTaskOpen, onClose: onAddTaskClose } = useDisclosure();
+
     const applyFilter = (filterItems) => {
         setFilteredItems(filterItems);
     };
@@ -107,14 +108,16 @@ const BuildDashboard = () => {
         fetchSections();
         fetchUsers();
         fetchAllBuildEntries();
-    }, [fetchSections, fetchUsers,]);
+    }, [fetchSections, fetchUsers]);
 
     const handleEntrySubmit = async (data) => {
         try {
-            await createBuildEntry(data); // Ensure createBuildEntry is correctly imported
-            const response = await fetchAllBuildEntries(); // Refresh the tasks after adding a new entry
-            onAddTaskClose(); 
+            await createBuildEntry(data);
+            const response = await fetchAllBuildEntries();
             setTasks(response.data);
+            // Group tasks by section after fetching
+            const groupedTasks = groupTasksBySection(response.data);
+            setTasksBySection(groupedTasks);
             onAddTaskClose();
             toast({
                 title: "Build Entry Created",
@@ -135,11 +138,20 @@ const BuildDashboard = () => {
         }
     };
 
+    const groupTasksBySection = (tasks) => {
+        return tasks.reduce((acc, task) => {
+            const sectionId = task.sectionID;
+            if (!acc[sectionId]) {
+                acc[sectionId] = [];
+            }
+            acc[sectionId].push(task);
+            return acc;
+        }, {});
+    };
+
     return (
         <Box mt={5}>
-            <Sidebar
-                onSectionAdded={fetchSections}
-            />
+            <Sidebar onSectionAdded={fetchSections} />
             <Heading as='h2' size='xl' paddingLeft={3}
                 sx={{
                     background: 'linear-gradient(288deg, rgba(0,85,255,0.8) 1.5%, rgba(4,56,115,0.8) 91.6%)',

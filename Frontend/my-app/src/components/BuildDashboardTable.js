@@ -1,34 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { useDisclosure, IconButton, Checkbox, Button, HStack } from '@chakra-ui/react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useDisclosure, IconButton, Checkbox, Button, HStack, useToast } from '@chakra-ui/react';
 import { ImBin2 } from "react-icons/im";
-import { getTags } from '../Services/TagService';
+import { getTasksBySection } from '../Services/TaskService';
 
-const BuildDashboardTable = ({ tasks, onStatusChange, users }) => {
+const BuildDashboardTable = ({ tasks, sectionId }) => {
     const { onOpen: onDeleteOpen } = useDisclosure();
     const [, setTaskToDelete] = useState(null);
-    const [, setTags] = useState([]);
-    const [columnWidths] = useState([200, 200, 150, 100, 100]); // Adjust as needed
+    const [columnWidths] = useState([200, 150, 150, 100, 100]);
     const [filteredTasks, setFilteredTasks] = useState(tasks);
-    const [selectedTags, setSelectedTags] = useState([]);
+    const [selectedTask, setSelectedTask] = useState([]);
     const [, setMenuOpen] = useState(false);
+    const toast = useToast();
+    const [, setTasksBySection] = useState({}); // Define the state for tasks by section
 
     const handleSave = () => {
-        console.log('Selected Tags:', selectedTags);
-        setMenuOpen(false); // Close the dropdown after saving
+        console.log('selectedTasks:', selectedTask);
+        setMenuOpen(false);
     };
 
-    useEffect(() => {
-        const fetchTags = async () => {
-            try {
-                const response = await getTags();
-                setTags(response.data);
-            } catch (error) {
-                console.error('Error fetching tags:', error);
+    const fetchTasksBySection = useCallback(async (sectionId) => {
+        try {
+            const response = await getTasksBySection(sectionId);
+            if (response && response.data) {
+                setTasksBySection(prev => ({ ...prev, [sectionId]: response.data }));
+                setFilteredTasks(response.data); // Update filtered tasks with the fetched data
+            } else {
+                throw new Error('Unexpected response format');
             }
-        };
+        } catch (error) {
+            console.error('Fetch Tasks Error:', error);
+            toast({
+                title: "Error fetching tasks.",
+                description: "Unable to fetch tasks. Please try again.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+    }, [toast]);
 
-        fetchTags();
-    }, []);
+    useEffect(() => {
+        if (sectionId) {
+            fetchTasksBySection(sectionId);
+        }
+    }, [sectionId, fetchTasksBySection]);
 
     useEffect(() => {
         setFilteredTasks(tasks);
@@ -41,18 +56,10 @@ const BuildDashboardTable = ({ tasks, onStatusChange, users }) => {
 
     const sortedTasks = filteredTasks
         .filter(task => task.status !== 'Completed' && !task.isDelete)
-        .sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt)); // Sort by updated date
-
-    const handleTagChange = (tag) => {
-        setSelectedTags(prevSelected =>
-            prevSelected.includes(tag)
-                ? prevSelected.filter(t => t !== tag)
-                : [...prevSelected, tag]
-        );
-    };
+        .sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt));
 
     const handlePostToQA = () => {
-        console.log("Post to QA:", selectedTags);
+        console.log("Post to QA:", selectedTask);
     };
 
     return (
@@ -89,7 +96,7 @@ const BuildDashboardTable = ({ tasks, onStatusChange, users }) => {
                 <table className="column_resize_table">
                     <thead>
                         <tr>
-                            {['Application Name', 'Deployed on', 'Version Management', 'Media', 'Updated At'].map((header, index) => (
+                            {['Application Name', 'Deployed On', 'Version Management', 'Media', 'Updated At'].map((header, index) => (
                                 <th key={index} style={{ width: columnWidths[index] }}>
                                     {header}
                                 </th>
@@ -102,11 +109,7 @@ const BuildDashboardTable = ({ tasks, onStatusChange, users }) => {
                             sortedTasks.map((task) => (
                                 <tr key={task.id}>
                                     <td>{task.applicationName}</td>
-                                    <td>{new Intl.DateTimeFormat('en-GB', {
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: 'numeric'
-                                    }).format(new Date(task.deployedOn))}</td>
+                                    <td>{task.deployedOn}</td>
                                     <td>{task.versionManagement}</td>
                                     <td>{task.media}</td>
                                     <td>{new Intl.DateTimeFormat('en-GB', {
@@ -137,13 +140,19 @@ const BuildDashboardTable = ({ tasks, onStatusChange, users }) => {
                 </table>
             </div>
             <div>
-                {['Tag 1', 'Tag 2', 'Tag 3'].map(tag => (
-                    <div key={tag}>
+                {tasks.map(task => (
+                    <div key={task.id}>
                         <Checkbox
-                            isChecked={selectedTags.includes(tag)}
-                            onChange={() => handleTagChange(tag)}
+                            isChecked={selectedTask.includes(task.taskName)} 
+                            onChange={() => {
+                                setSelectedTask(prev => 
+                                    prev.includes(task.taskName)
+                                        ? prev.filter(name => name !== task.taskName)
+                                        : [...prev, task.taskName]
+                                );
+                            }}
                         >
-                            {tag}
+                            {task.taskName} 
                         </Checkbox>
                     </div>
                 ))}
