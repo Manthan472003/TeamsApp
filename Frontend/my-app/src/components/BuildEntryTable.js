@@ -87,7 +87,7 @@ const BuildEntryTable = ({ build, sections }) => {
                 return newUsernames;
             });
             setRowColors(prev => {
-                const newRowColors = { ...prev, [taskId]: '#88E788' }; // Light green for working
+                const newRowColors = { ...prev, [taskId]: '#ebfff0' }; // Light green for working
                 localStorage.setItem('rowColors', JSON.stringify(newRowColors)); // Save to localStorage
                 return newRowColors;
             });
@@ -113,7 +113,7 @@ const BuildEntryTable = ({ build, sections }) => {
                 return newUsernames;
             });
             setRowColors(prev => {
-                const newRowColors = { ...prev, [taskId]: '#ffcccb' }; // Light red for not working
+                const newRowColors = { ...prev, [taskId]: '#ffcccc' }; // Light red for not working
                 localStorage.setItem('rowColors', JSON.stringify(newRowColors)); // Save to localStorage
                 return newRowColors;
             });
