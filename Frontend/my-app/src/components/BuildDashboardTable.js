@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDisclosure, IconButton, Menu, MenuButton, MenuList, MenuItem, Checkbox, Button } from '@chakra-ui/react';
+import { useDisclosure, IconButton, Checkbox, Button, HStack } from '@chakra-ui/react';
 import { ImBin2 } from "react-icons/im";
 import { getTags } from '../Services/TagService';
 
@@ -10,18 +10,13 @@ const BuildDashboardTable = ({ tasks, onStatusChange, users }) => {
     const [columnWidths] = useState([200, 200, 150, 100, 100]); // Adjust as needed
     const [filteredTasks, setFilteredTasks] = useState(tasks);
     const [selectedTags, setSelectedTags] = useState([]);
-    const [menuOpen, setMenuOpen] = useState(false);
-
-
+    const [, setMenuOpen] = useState(false);
 
     const handleSave = () => {
         console.log('Selected Tags:', selectedTags);
         setMenuOpen(false); // Close the dropdown after saving
     };
 
-    const closeMenu = () => {
-        setMenuOpen(false);
-    };
     useEffect(() => {
         const fetchTags = async () => {
             try {
@@ -141,42 +136,37 @@ const BuildDashboardTable = ({ tasks, onStatusChange, users }) => {
                     </tbody>
                 </table>
             </div>
-            <Menu isOpen={menuOpen} onClose={closeMenu}>
-                <MenuButton as={Button} mt={4} onClick={() => setMenuOpen(!menuOpen)}>
-                    Show all Builds
-                </MenuButton>
-                <MenuList>
-                    {['Tag 1', 'Tag 2', 'Tag 3'].map(tag => (
-                        <MenuItem key={tag}>
-                            <Checkbox
-                                isChecked={selectedTags.includes(tag)}
-                                onChange={() => handleTagChange(tag)}
-                            >
-                                {tag}
-                            </Checkbox>
-                        </MenuItem>
-                    ))}
-                    <MenuItem>
-                        <Button
-                            onClick={handleSave}
-                            colorScheme="blue"
-                            width="100%"
-                            mr={2}
-                            mt={2}
+            <div>
+                {['Tag 1', 'Tag 2', 'Tag 3'].map(tag => (
+                    <div key={tag}>
+                        <Checkbox
+                            isChecked={selectedTags.includes(tag)}
+                            onChange={() => handleTagChange(tag)}
                         >
-                            Save
-                        </Button>
-                        <Button
-                            onClick={handlePostToQA}
-                            colorScheme="green"
-                            width="100%"
-                            mt={2}
-                        >
-                            Post to QA
-                        </Button>
-                    </MenuItem>
-                </MenuList>
-            </Menu>
+                            {tag}
+                        </Checkbox>
+                    </div>
+                ))}
+                <HStack>
+                    <Button
+                        onClick={handleSave}
+                        colorScheme="blue"
+                        width="20%"
+                        mr={2}
+                        mt={2}
+                    >
+                        Save
+                    </Button>
+                    <Button
+                        onClick={handlePostToQA}
+                        colorScheme="green"
+                        width="20%"
+                        mt={2}
+                    >
+                        Post to QA
+                    </Button>
+                </HStack>
+            </div>
         </>
     );
 };

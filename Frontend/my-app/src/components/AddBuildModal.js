@@ -14,18 +14,17 @@ import {
 
 const AddBuildModal = ({ isOpen, onClose, onSubmit, taskToEdit }) => {
     const [newTask, setNewTask] = useState({
-        applicationName: '',
+        appId: '',
         deployedOn: '',
-        versionManagement: '',
-        media: '',
-        sectionID: null,
+        versionName: '',
+        mediaLink: '',
     });
 
     useEffect(() => {
         if (taskToEdit) {
             setNewTask(taskToEdit);
         } else {
-            setNewTask({ applicationName: '', deployedOn: '', versionManagement: '', media: '', sectionID: null });
+            setNewTask({ appId: '', deployedOn: '', versionName: '', mediaLink: '' });
         }
     }, [taskToEdit]);
 
@@ -38,13 +37,13 @@ const AddBuildModal = ({ isOpen, onClose, onSubmit, taskToEdit }) => {
         <Modal isOpen={isOpen} onClose={onClose}>
             <ModalOverlay />
             <ModalContent>
-                <ModalHeader>{taskToEdit ? "Edit Task" : "Add Task"}</ModalHeader>
+                <ModalHeader>{taskToEdit ? "Edit Build" : "Add Build"}</ModalHeader>
                 <ModalBody>
                     <FormControl>
-                        <FormLabel>Application Name</FormLabel>
+                        <FormLabel>Application ID</FormLabel>
                         <Input
-                            value={newTask.applicationName}
-                            onChange={(e) => setNewTask({ ...newTask, applicationName: e.target.value })}
+                            value={newTask.appId}
+                            onChange={(e) => setNewTask({ ...newTask, appId: e.target.value })}
                         />
                     </FormControl>
                     <FormControl mt={4}>
@@ -56,25 +55,17 @@ const AddBuildModal = ({ isOpen, onClose, onSubmit, taskToEdit }) => {
                         />
                     </FormControl>
                     <FormControl mt={4}>
-                        <FormLabel>Version Management</FormLabel>
+                        <FormLabel>Version Name</FormLabel>
                         <Input
-                            value={newTask.versionManagement}
-                            onChange={(e) => setNewTask({ ...newTask, versionManagement: e.target.value })}
+                            value={newTask.versionName}
+                            onChange={(e) => setNewTask({ ...newTask, versionName: e.target.value })}
                         />
                     </FormControl>
                     <FormControl mt={4}>
-                        <FormLabel>Media</FormLabel>
+                        <FormLabel>Media Link</FormLabel>
                         <Input
-                            value={newTask.media}
-                            onChange={(e) => setNewTask({ ...newTask, media: e.target.value })}
-                        />
-                    </FormControl>
-                    <FormControl mt={4}>
-                        <FormLabel>Section ID</FormLabel>
-                        <Input
-                            type="number"
-                            value={newTask.sectionID || ''}
-                            onChange={(e) => setNewTask({ ...newTask, sectionID: e.target.value ? parseInt(e.target.value, 10) : null })}
+                            value={newTask.mediaLink}
+                            onChange={(e) => setNewTask({ ...newTask, mediaLink: e.target.value })}
                         />
                     </FormControl>
                 </ModalBody>

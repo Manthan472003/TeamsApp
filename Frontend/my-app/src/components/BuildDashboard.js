@@ -1,16 +1,13 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDisclosure, Box, Text, Heading, HStack, Card, CardHeader, CardBody, Stack, Spacer, useToast, Button } from '@chakra-ui/react';
 import { getSections } from '../Services/SectionService';
-
-import { createDailyReport, getAllReports } from '../Services/DailyReportsService';
-
+import { createBuildEntry, fetchAllBuildEntries } from '../Services/BuildService';
 import { getUsers } from '../Services/UserService';
 import BuildDashboardTable from './BuildDashboardTable';
 import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
 import AddBuildModal from './AddBuildModal';
 import { IoMdAddCircleOutline } from "react-icons/io";
-
 
 const BuildDashboard = () => {
     const { onOpen: onEditTaskOpen } = useDisclosure();
@@ -23,14 +20,10 @@ const BuildDashboard = () => {
     const [filteredItems, setFilteredItems] = useState([]);
     const [selectedSection, setSelectedSection] = useState(null);
     const [, setSelectedTask] = useState(null);
-    const [tasks,] = useState([]);
+    const [tasks, setTasks] = useState([]); 
     const [filteredTasks, setFilteredTasks] = useState([]);
     const toast = useToast();
     const { isOpen: isAddTaskOpen, onOpen: onAddTaskOpen, onClose: onAddTaskClose } = useDisclosure();
-
-    const [, setReports] = useState([]); //modify this line
-    const { onClose } = useDisclosure();  //modify this line
-
     const applyFilter = (filterItems) => {
         setFilteredItems(filterItems);
     };
@@ -113,17 +106,32 @@ const BuildDashboard = () => {
     useEffect(() => {
         fetchSections();
         fetchUsers();
-    }, [fetchSections, fetchUsers]);
+        fetchAllBuildEntries();
+    }, [fetchSections, fetchUsers,]);
 
     const handleEntrySubmit = async (data) => {
         try {
-            await createDailyReport(data);
-            console.log(data);
-            const response = await getAllReports();
-            setReports(response.data);
-            onClose();
+            await createBuildEntry(data); // Ensure createBuildEntry is correctly imported
+            const response = await fetchAllBuildEntries(); // Refresh the tasks after adding a new entry
+            onAddTaskClose(); 
+            setTasks(response.data);
+            onAddTaskClose();
+            toast({
+                title: "Build Entry Created",
+                description: "The build entry has been successfully created.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
         } catch (error) {
             console.error('Error adding entry:', error);
+            toast({
+                title: "Error creating build entry.",
+                description: "There was a problem creating the build entry. Please try again.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
         }
     };
 
