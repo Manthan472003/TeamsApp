@@ -12,6 +12,7 @@ const BuildDashboard = () => {
     const [buildEntries, setBuildEntries] = useState([]); // Ensure this is initialized as an array
     const [sections, setSections] = useState([]);
 
+
     const handleEntrySubmit = async (data) => {
         try {
             await createBuildEntry(data);

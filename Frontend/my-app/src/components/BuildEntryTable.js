@@ -1,29 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, Checkbox, Box } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Button, Box } from '@chakra-ui/react';
 import { getTasksBySection } from '../Services/TaskService';
+import { getUsers } from '../Services/UserService'; // Importing getUsers
+import { markTaskWorking, markTaskNotWorking } from '../Services/BuildService';
 
-const BuildEntryTable = ({ build, sections }) => {
+const BuildEntryTable = ({ build, sections, currentUserId }) => {
     const [tasks, setTasks] = useState([]);
     const [filteredTasks, setFilteredTasks] = useState([]);
-
+    const [usernames, setUsernames] = useState({});
+    const [users, setUsers] = useState([]);
     useEffect(() => {
-        const fetchTasks = async () => {
+        const fetchTasksAndUsers = async () => {
             if (build && build.appId) {
                 try {
-                    const response = await getTasksBySection(build.appId);
-                    if (response && response.data) {
-                        setTasks(response.data); // Assuming response.data is an array of tasks
-                    } else {
-                        setTasks([]); // Handle unexpected response
-                    }
+                    const [tasksResponse, usersResponse] = await Promise.all([
+                        getTasksBySection(build.appId),
+                        getUsers()
+                    ]);
+                    setTasks(tasksResponse.data || []);
+                    setUsers(usersResponse.data || []);
                 } catch (error) {
-                    console.error('Error fetching tasks:', error);
-                    setTasks([]); // Handle errors by clearing tasks
+                    console.error('Error fetching tasks or users:', error);
+                    setTasks([]);
                 }
             }
         };
 
-        fetchTasks();
+        fetchTasksAndUsers();
     }, [build]);
 
     useEffect(() => {
@@ -31,15 +34,40 @@ const BuildEntryTable = ({ build, sections }) => {
         setFilteredTasks(filteredTasks);
     }, [tasks]);
 
-    // Ensure sections is an array
-    if (!Array.isArray(sections)) {
-        console.error('Sections data is not available', sections);
-        return null; // Render nothing if sections are not provided
-    }
-
     const getSectionNameById = (sectionId) => {
         const section = sections.find(section => section.id === sectionId);
         return section ? section.sectionName : '-//-';
+    };
+
+    const getUserNameById = (userId) => {
+        const user = users.find(user => user.id === userId);
+        return user ? user.userName : 'Unknown';
+    };
+
+    const handleMarkWorking = async (taskId) => {
+        const payload = { taskId, userId: currentUserId, applicationId: build.appId }; // Use currentUserId
+        console.log('Payload:', payload);
+
+        try {
+            await markTaskWorking(payload);
+            const username = getUserNameById(currentUserId);
+            setUsernames(prev => ({ ...prev, [taskId]: username }));
+        } catch (error) {
+            console.error('Error marking task as working:', error.response.data);
+        }
+    };
+
+    const handleMarkNotWorking = async (taskId) => {
+        const payload = { taskId, userId: currentUserId, applicationId: build.appId }; // Use currentUserId
+        console.log('Payload:', payload);
+
+        try {
+            await markTaskNotWorking(payload);
+            const username = getUserNameById(currentUserId);
+            setUsernames(prev => ({ ...prev, [taskId]: username }));
+        } catch (error) {
+            console.error('Error marking task as not working:', error.response.data);
+        }
     };
 
     return (
@@ -57,9 +85,6 @@ const BuildEntryTable = ({ build, sections }) => {
                     .styled_table td {
                         padding: 8px;
                         text-align: left;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        white-space: nowrap;
                         border: 1px solid #EFFFFD; 
                     }
                     .styled_table th {
@@ -97,7 +122,24 @@ const BuildEntryTable = ({ build, sections }) => {
                 {filteredTasks.length > 0 ? (
                     filteredTasks.map(task => (
                         <div key={task.id}>
-                            <Checkbox>{task.taskName}</Checkbox> {/* Adjust property based on your task structure */}
+                            <span>{task.taskName}</span>
+                            <Button
+                                onClick={() => handleMarkWorking(task.id)}
+                                colorScheme={usernames[task.id] === getUserNameById(currentUserId) ? 'green' : 'blue'}
+                                variant="outline"
+                                ml={2}
+                            >
+                                Mark as Working
+                            </Button>
+                            <Button
+                                onClick={() => handleMarkNotWorking(task.id)}
+                                colorScheme={usernames[task.id] === getUserNameById(currentUserId) ? 'red' : 'orange'}
+                                variant="outline"
+                                ml={2}
+                            >
+                                Mark as Not Working
+                            </Button>
+                            {usernames[task.id] && <div>Clicked by: {usernames[task.id]}</div>}
                         </div>
                     ))
                 ) : (
