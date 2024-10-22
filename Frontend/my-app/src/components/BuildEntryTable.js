@@ -4,11 +4,14 @@ import { getUsers } from '../Services/UserService';
 import { markTaskWorking, markTaskNotWorking } from '../Services/BuildService';
 import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import jwt_decode from 'jwt-decode';
+import { useToast } from "@chakra-ui/react";
 
 const BuildEntryTable = ({ build, sections }) => {
     const [, setUsernames] = useState({});
     const [, setUsers] = useState([]);
     const [userId, setUserId] = useState('');
+    const [taskStatus, setTaskStatus] = useState({});
+    const toast = useToast();
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -45,23 +48,61 @@ const BuildEntryTable = ({ build, sections }) => {
         return section ? section.sectionName : '-//-';
     };
 
-    const handleMarkWorking = async (taskId) => {
-        const payload = { taskId, userId, buildId: build.id };
+    const handleMarkWorking = async (taskName) => {
+        const payload = { taskName, userId, buildId: build.id };
         try {
             await markTaskWorking(payload);
+            setTaskStatus((prev) => ({ ...prev, [taskName]: 'working' }));
+            toast({
+                title: "Task marked as working.",
+                description: `You have marked "${taskName}" as working.`,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
         } catch (error) {
-            console.error('Error marking task as working:', error.response ? error.response.data : error);
+            console.error('Error marking task as working:', error);
+            const errorMessage = error.response ? error.response.data.message || "An unexpected error occurred." : "An unexpected error occurred.";
+            toast({
+                title: "Error marking task as working.",
+                description: String(errorMessage),
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
         }
     };
 
-    const handleMarkNotWorking = async (taskId) => {
-        const payload = { taskId, userId, buildId: build.id };
+    const handleMarkNotWorking = async (taskName) => {
+        const payload = { taskName, userId, buildId: build.id };
         try {
             await markTaskNotWorking(payload);
+            setTaskStatus((prev) => ({ ...prev, [taskName]: 'not working' }));
+            toast({
+                title: "Task marked as not working.",
+                description: `You have marked "${taskName}" as not working.`,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
         } catch (error) {
-            console.error('Error marking task as not working:', error.response ? error.response.data : error);
+            console.error('Error marking task as not working:', error);
+            const errorMessage = error.response ? error.response.data.message || "An unexpected error occurred." : "An unexpected error occurred.";
+            toast({
+                title: "Error marking task as not working.",
+                description: String(errorMessage),
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
         }
-    }
+    };
+
+    const getRowColor = (taskName) => {
+        if (taskStatus[taskName] === 'working') return 'green.100'; 
+        if (taskStatus[taskName] === 'not working') return 'red.100'; 
+        return 'white';
+    };
 
     return (
         <>
@@ -122,13 +163,13 @@ const BuildEntryTable = ({ build, sections }) => {
                     <Tbody>
                         {build.tasksForBuild && build.tasksForBuild.length > 0 ? (
                             build.tasksForBuild.map((taskName, index) => (
-                                <Tr key={index}>
+                                <Tr key={index} bg={getRowColor(taskName)}>
                                     <Td style={{ whiteSpace: 'pre-wrap' }}>{taskName}</Td>
                                     <Td>
                                         <Box>
                                             <Button
                                                 leftIcon={<CheckIcon />}
-                                                onClick={() => handleMarkWorking(taskName)}
+                                                onClick={() => handleMarkWorking(taskName)} // This passes the taskName
                                                 colorScheme="blue"
                                                 variant="outline"
                                                 ml={2}>
@@ -136,7 +177,7 @@ const BuildEntryTable = ({ build, sections }) => {
                                             </Button>
                                             <Button
                                                 leftIcon={<CloseIcon />}
-                                                onClick={() => handleMarkNotWorking(taskName)}
+                                                onClick={() => handleMarkNotWorking(taskName)} // This passes the taskName
                                                 colorScheme="red"
                                                 variant="outline"
                                                 ml={2}>

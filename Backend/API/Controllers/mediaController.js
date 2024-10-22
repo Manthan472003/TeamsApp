@@ -17,7 +17,6 @@ const upload = multer({
     limits: { fieldSize: 5 * 1024 * 1024 }
 });
 
-
 // Helper function to compress video
 const compressVideo = (mediaFile) => {
     return new Promise((resolve, reject) => {
@@ -78,7 +77,6 @@ const getMediaByTaskId = async (req, res) => {
 
     }
 };
-
 
 const createMedia = async (req, res) => {
     try {
@@ -152,10 +150,6 @@ const createMedia = async (req, res) => {
     }
 };
 
-
-
-
-
 // Get all medias
 const getAllMedias = async (req, res) => {
     try {
@@ -198,7 +192,6 @@ const deleteMediaById = async (req, res) => {
         return res.status(500).json({ message: 'Error deleting media.', error });
     }
 };
-
 
 module.exports = {
     getMediaByTaskId,

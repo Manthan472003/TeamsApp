@@ -37,78 +37,76 @@ const createEntry = async (req, res) => {
     }
 };
 
-// Mark Task is Working
+// Mark Task as Working
 const markTaskWorking = async (req, res) => {
-    const { buildId, taskId, userId } = req.body;
+    const { buildId, taskName, userId } = req.body;
 
     // Validate input
-    if (!taskId) {
-        return res.status(400).json({ message: 'Task ID is required.' });
+    if (!taskName) {
+        return res.status(400).json({ message: 'Task Name is required.' });
     }
     if (!userId) {
         return res.status(400).json({ message: 'User ID is required.' });
     }
 
     try {
-        // Check if the task exists
-        const task = await Task.findOne({ where: { id: taskId } });
+        const task = await Task.findOne({ where: { taskName } });
         if (!task) {
             return res.status(404).json({ message: 'Task does not exist.' });
         }
 
-        // Check if the user exists
         const user = await User.findOne({ where: { id: userId } });
         if (!user) {
             return res.status(404).json({ message: 'User does not exist.' });
         }
 
-        // Check if an entry already exists for this taskId
-        const existingEntry = await TasksChecked.findOne({ where: { taskId, checkedByUserId: userId } });
+        const existingEntry = await TasksChecked.findOne({ where: { taskId: task.id, checkedByUserId: userId } });
+        let newEntry;
 
         if (existingEntry) {
             if (existingEntry.isWorking) {
                 return res.status(400).json({ message: 'Task is already marked as working.' });
             } else {
-                // Update the existing entry to set isWorking to true
                 existingEntry.isWorking = true;
                 await existingEntry.save();
                 return res.status(200).json({ message: 'Task status updated to working.', existingEntry });
             }
+        } else {
+            newEntry = await TasksChecked.create({
+                taskId: task.id,
+                checkedByUserId: userId,
+                isWorking: true
+            });
         }
 
-        // Create a new entry in TasksChecked
-        const newEntry = await TasksChecked.create({
-            taskId,
-            checkedByUserId: userId,
-            isWorking: true
-        });
-
-        // Find the corresponding build entry to update
         const buildEntry = await Build.findByPk(buildId);
         if (!buildEntry) {
             return res.status(404).json({ message: 'Build does not exist.' });
         }
 
-        // Initialize checkedIds as an array
-        let currentCheckedIds = [];
-        if (buildEntry.checkedIds) {
-            try {
-                currentCheckedIds = JSON.parse(buildEntry.checkedIds);
-            } catch (error) {
-                console.error('Error parsing checkedIds:', error);
-                return res.status(500).json({ message: 'Error parsing checked IDs.' });
+        // Initialize currentCheckedIds as an array
+        let currentCheckedIds = buildEntry.checkedIds || [];
+        if (currentCheckedIds) {
+            if (typeof currentCheckedIds === 'string') {
+                currentCheckedIds = JSON.parse(currentCheckedIds);
             }
+        } else {
+            currentCheckedIds = [];  // Ensure it's an empty array if null
         }
+
         if (!Array.isArray(currentCheckedIds)) {
             currentCheckedIds = [];
         }
 
-        currentCheckedIds.push(newEntry.id);
-        await buildEntry.update({ checkedIds: JSON.stringify(currentCheckedIds) });
+        if (newEntry) {
+            currentCheckedIds.push(newEntry.id);
+        }
+
+        await buildEntry.update({ checkedIds: currentCheckedIds });
 
         return res.status(201).json({
             message: 'Task marked as working successfully.',
-            newEntry
+            newEntry: newEntry || existingEntry
         });
     } catch (error) {
         console.error('Error marking task as working:', error);
@@ -116,74 +114,68 @@ const markTaskWorking = async (req, res) => {
     }
 };
 
-// Mark Task is Not Working
+// Mark Task as Not Working
 const markTaskNotWorking = async (req, res) => {
-    const { buildId, taskId, userId } = req.body;
+    const { buildId, taskName, userId } = req.body;
 
     // Validate input
-    if (!taskId) {
-        return res.status(400).json({ message: 'Task ID is required.' });
+    if (!taskName) {
+        return res.status(400).json({ message: 'Task Name is required.' });
     }
     if (!userId) {
         return res.status(400).json({ message: 'User ID is required.' });
     }
 
     try {
-        // Check if the task exists
-        const task = await Task.findOne({ where: { id: taskId } });
+        const task = await Task.findOne({ where: { taskName } });
         if (!task) {
             return res.status(404).json({ message: 'Task does not exist.' });
         }
 
-        // Check if the user exists
         const user = await User.findOne({ where: { id: userId } });
         if (!user) {
             return res.status(404).json({ message: 'User does not exist.' });
         }
 
-        // Check if an entry already exists for this taskId
-        const existingEntry = await TasksChecked.findOne({ where: { taskId, checkedByUserId: userId } });
+        const existingEntry = await TasksChecked.findOne({ where: { taskId: task.id, checkedByUserId: userId } });
 
         if (existingEntry) {
             if (!existingEntry.isWorking) {
                 return res.status(400).json({ message: 'Task is already marked as not working.' });
             } else {
-                // Update the existing entry to set isWorking to false
                 existingEntry.isWorking = false;
                 await existingEntry.save();
                 return res.status(200).json({ message: 'Task status updated to not working.', existingEntry });
             }
         }
 
-        // Create a new entry in TasksChecked
         const newEntry = await TasksChecked.create({
-            taskId,
+            taskId: task.id,
             checkedByUserId: userId,
             isWorking: false
         });
 
-        // Find the corresponding build entry to update
         const buildEntry = await Build.findByPk(buildId);
         if (!buildEntry) {
             return res.status(404).json({ message: 'Build does not exist.' });
         }
 
-        // Initialize checkedIds as an array
-        let currentCheckedIds = [];
-        if (buildEntry.checkedIds) {
-            try {
-                currentCheckedIds = JSON.parse(buildEntry.checkedIds);
-            } catch (error) {
-                console.error('Error parsing checkedIds:', error);
-                return res.status(500).json({ message: 'Error parsing checked IDs.' });
+        let currentCheckedIds = buildEntry.checkedIds || [];
+        if (currentCheckedIds) {
+            if (typeof currentCheckedIds === 'string') {
+                currentCheckedIds = JSON.parse(currentCheckedIds);
             }
+        } else {
+            currentCheckedIds = [];
         }
+
         if (!Array.isArray(currentCheckedIds)) {
             currentCheckedIds = [];
         }
 
         currentCheckedIds.push(newEntry.id);
-        await buildEntry.update({ checkedIds: JSON.stringify(currentCheckedIds) });
+
+        await buildEntry.update({ checkedIds: currentCheckedIds });
 
         return res.status(201).json({
             message: 'Task marked as not working successfully.',
