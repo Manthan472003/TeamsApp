@@ -1,5 +1,6 @@
 const Media = require('../../Database/Models/media');
 const Task = require('../../Database/Models/task');
+const Build = require('../../Database/Models/build');
 const multer = require('multer');
 const s3 = require('../../Database/Config/s3Config');
 const awsConfig = require('../../Database/Config/awsConfig.json');
@@ -52,28 +53,39 @@ const compressVideo = (mediaFile) => {
     });
 };
 
-const getMediaByTaskId = async (req, res) => {
-    const { taskId } = req.params;
-    if (!taskId) {
-        return res.status(400).json({ message: 'TaskId is required.' });
+const getMediaByTaskOrBuildId = async (req, res) => {
+    const { type, taskOrBuildId } = req.params;
+    if (!type) {
+        return res.status(400).json({ message: 'Type is required.' });
+    }
+    if (!taskOrBuildId) {
+        return res.status(400).json({ message: 'Id is required.' });
     }
     try {
-        if (taskId) {
+        if (type === 'Task') {
             const task = await Task.findOne({
-                where: { id: taskId }
+                where: { id: taskOrBuildId }
             });
             if (!task) {
                 return res.status(404).json({ message: 'Task does not exist.' });
             }
         }
+        if (type === 'Build') {
+            const build = await Build.findOne({
+                where: { id: taskOrBuildId }
+            });
+            if (!build) {
+                return res.status(404).json({ message: 'Build does not exist.' });
+            }
+        }
 
         const medias = await Media.findAll({
-            where: { taskId: taskId }
+            where: { taskOrBuildId: taskOrBuildId }
         });
         return res.status(200).json(medias);
     } catch (error) {
-        console.error('Error retrieving Tasks by UserID:', error);
-        return res.status(500).json({ message: 'Error retrieving Tasks by UserId.' });
+        console.error('Error retrieving Tasks by TaskOrBuildId:', error);
+        return res.status(500).json({ message: 'Error retrieving Tasks by TaskOrBuildId.' });
 
     }
 };
@@ -81,17 +93,28 @@ const getMediaByTaskId = async (req, res) => {
 const createMedia = async (req, res) => {
     try {
         const mediaFiles = req.files; // Uploaded files
-        const { taskId } = req.params; // Get taskId from request parameters
+        const { type, taskOrBuildId } = req.params;
 
         // Check if mediaFiles are provided
         if (!mediaFiles || mediaFiles.length === 0) {
             return res.status(400).json({ message: 'At least one media file is required.' });
         }
 
-        // Validate that taskId is provided and exists
-        const task = await Task.findOne({ where: { id: taskId } });
-        if (!task) {
-            return res.status(404).json({ message: 'Task not found.' });
+        if (type === 'Task') {
+            const task = await Task.findOne({
+                where: { id: taskOrBuildId }
+            });
+            if (!task) {
+                return res.status(404).json({ message: 'Task does not exist.' });
+            }
+        }
+        if (type === 'Build') {
+            const build = await Build.findOne({
+                where: { id: taskOrBuildId }
+            });
+            if (!build) {
+                return res.status(404).json({ message: 'Build does not exist.' });
+            }
         }
 
         const newMediaEntries = [];
@@ -131,7 +154,8 @@ const createMedia = async (req, res) => {
             // Create a new Media entry in the database, including taskId and mediaType
             const newMedia = await Media.create({
                 mediaLink: uploadedMediaLink,
-                taskId, // Associate the media with the task
+                type,
+                taskOrBuildId, // Associate the media with the task
                 mediaType // Set the mediaType
             });
             newMediaEntries.push(newMedia);
@@ -194,7 +218,7 @@ const deleteMediaById = async (req, res) => {
 };
 
 module.exports = {
-    getMediaByTaskId,
+    getMediaByTaskOrBuildId,
     upload,
     createMedia,
     getAllMedias,

@@ -11,7 +11,10 @@ const Media = sequelize.define('Media', {
         type: DataTypes.TEXT,
         allowNull: false
     },
-    taskId: {
+    type: {
+        type: DataTypes.ENUM('Task','Build')
+    },
+    taskOrBuildId: {
         type: DataTypes.INTEGER,
     },
     mediaType: {
