@@ -20,7 +20,7 @@ import {
     Divider,
 } from '@chakra-ui/react';
 import { FaTimesCircle, FaPlus } from 'react-icons/fa';
-import { getMediaOfTheTask, deleteMedia } from '../Services/MediaService';
+import { getMediaOfTheTaskorBuild, deleteMedia } from '../Services/MediaService';
 import AddMediaModal from './AddMediaModal';
 import ViewImageModal from './ViewImageModal';
 import ViewVideoModal from './ViewVideoModal';
@@ -42,7 +42,7 @@ const MediaUploader = ({ taskId, onUpdate }) => {
     const fetchMedia = useCallback(async () => {
         setLoading(true);
         try {
-            const { data } = await getMediaOfTheTask(taskId);
+            const { data } = await getMediaOfTheTaskorBuild('Task',taskId);
             setUploadedMedia(data);
         } catch (error) {
             console.error('Error fetching media:', error);

@@ -19,7 +19,7 @@ import {
   useDisclosure
 } from '@chakra-ui/react';
 import { CheckIcon } from '@chakra-ui/icons';
-import { getMediaOfTheTask } from '../Services/MediaService';
+import { getMediaOfTheTaskorBuild } from '../Services/MediaService';
 import { updateTask } from '../Services/TaskService';
 import { getCommentsByTaskId, createComment } from '../Services/CommentService';
 import MediaUploader from './MediaUploader';
@@ -55,7 +55,7 @@ const ViewTaskDrawer = ({ isOpen, onClose, task, tags, onUpdate = () => { }, onS
   const fetchMedia = useCallback(async () => {
     if (!task || !task.id) return;
     try {
-      await getMediaOfTheTask(task.id);
+      await getMediaOfTheTaskorBuild('Task',task.id);
     } catch (error) {
       toast({
         title: 'Error fetching media.',

@@ -3,8 +3,7 @@ const router = express.Router();
 const mediaController = require('../Controllers/mediaController');
 
 // Route for creating a new media file
-router.post('/tasks/:taskId/media', (req, res, next) => {
-    console.log('Received POST request for media upload:', req.params.taskId);
+router.post('/:type/:taskOrBuildId/media', (req, res, next) => {
     next();
   }, mediaController.upload.array('mediaFiles', 10), mediaController.createMedia);
   
@@ -15,7 +14,7 @@ router.get('/', mediaController.getAllMedias);
 router.get('/:id', mediaController.getMediaById);
 
 // Route for getting media by Task ID
-router.get('/tasks/:taskId/media', mediaController.getMediaByTaskId);
+router.get('/:type/:taskOrBuildId/media', mediaController.getMediaByTaskOrBuildId);
 
 // Route for deleting media by ID
 router.delete('/:id', mediaController.deleteMediaById);

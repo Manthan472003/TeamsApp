@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, Button, Box } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Button, Box, Input } from '@chakra-ui/react';
 import { getUsers } from '../Services/UserService';
 import { markTaskWorking, markTaskNotWorking } from '../Services/BuildService';
 import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import jwt_decode from 'jwt-decode';
 import { useToast } from "@chakra-ui/react";
+import { createMedia } from '../Services/MediaService'; // Import createMedia
 
 const BuildEntryTable = ({ build, sections }) => {
     const [, setUsernames] = useState({});
     const [, setUsers] = useState([]);
     const [userId, setUserId] = useState('');
     const [taskStatus, setTaskStatus] = useState({});
+    const [mediaFile, setMediaFile] = useState(null); // State for media file
     const toast = useToast();
 
     useEffect(() => {
@@ -46,6 +48,40 @@ const BuildEntryTable = ({ build, sections }) => {
     const getSectionNameById = (sectionId) => {
         const section = sections.find(section => section.id === sectionId);
         return section ? section.sectionName : '-//-';
+    };
+
+    const handleMediaUpload = async (taskName) => {
+        if (!mediaFile) {
+            toast({
+                title: "No media file selected.",
+                description: "Please select a media file to upload.",
+                status: "warning",
+                duration: 3000,
+                isClosable: true,
+            });
+            return;
+        }
+
+        try {
+            await createMedia('Task', taskName, [mediaFile]);
+            toast({
+                title: "Media uploaded.",
+                description: `You have uploaded media for "${taskName}".`,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+            setMediaFile(null); // Reset the file input
+        } catch (error) {
+            console.error('Error uploading media:', error);
+            toast({
+                title: "Error uploading media.",
+                description: String(error.response ? error.response.data.message : error.message),
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
     };
 
     const handleMarkWorking = async (taskName) => {
@@ -124,9 +160,6 @@ const BuildEntryTable = ({ build, sections }) => {
                     .styled_table th {
                         background-color: #ECF9FF;
                     }
-                    .task-list {
-                        margin-top: 20px;
-                    }
                 `}
             </style>
             <div className="table-container">
@@ -145,7 +178,27 @@ const BuildEntryTable = ({ build, sections }) => {
                             <Td>{getSectionNameById(build.appId)}</Td>
                             <Td>{build.deployedOn}</Td>
                             <Td>{build.versionName}</Td>
-                            <Td>{build.mediaLink}</Td>
+                            <Td>
+                                {build.mediaLink ? (
+                                    <a href={build.mediaLink} target="_blank" rel="noopener noreferrer">View Media</a>
+                                ) : (
+                                    <Box>
+                                        <Input 
+                                            type="file" 
+                                            accept="image/*, video/*" 
+                                            onChange={(e) => setMediaFile(e.target.files[0])} 
+                                        />
+                                        <Button 
+                                            onClick={() => handleMediaUpload(build.appId)} 
+                                            colorScheme="teal" 
+                                            ml={2}
+                                            isDisabled={!mediaFile}
+                                        >
+                                            Upload Media
+                                        </Button>
+                                    </Box>
+                                )}
+                            </Td>
                             <Td>{new Date(build.updatedAt).toLocaleDateString()}</Td>
                         </Tr>
                     </Tbody>
@@ -169,7 +222,7 @@ const BuildEntryTable = ({ build, sections }) => {
                                         <Box>
                                             <Button
                                                 leftIcon={<CheckIcon />}
-                                                onClick={() => handleMarkWorking(taskName)} // This passes the taskName
+                                                onClick={() => handleMarkWorking(taskName)}
                                                 colorScheme="blue"
                                                 variant="outline"
                                                 ml={2}>
@@ -177,7 +230,7 @@ const BuildEntryTable = ({ build, sections }) => {
                                             </Button>
                                             <Button
                                                 leftIcon={<CloseIcon />}
-                                                onClick={() => handleMarkNotWorking(taskName)} // This passes the taskName
+                                                onClick={() => handleMarkNotWorking(taskName)}
                                                 colorScheme="red"
                                                 variant="outline"
                                                 ml={2}>

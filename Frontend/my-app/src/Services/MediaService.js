@@ -6,20 +6,20 @@ const API_URL = 'http://localhost:8080/media';
 export const getAllMedia = () => axios.get(API_URL);
 
 // Fetch Media By Task ID
-export const getMediaOfTheTask = (taskId) => axios.get(`${API_URL}/tasks/${taskId}/media`);
+export const getMediaOfTheTaskorBuild = (type, taskId) => axios.get(`${API_URL}/${type}/${taskId}/media`);
 
 // Fetch Media By ID
 export const getMediaById = (mediaId) => axios.get(`${API_URL}/${mediaId}`);
 
 // Upload Media
-export const createMedia = async (taskId, mediaFiles) => {
+export const createMedia = async (type, taskId, mediaFiles) => {
   const formData = new FormData();
   mediaFiles.forEach(file => {
     formData.append('mediaFiles', file); // Use 'mediaFiles' as the key
   });
 
   try {
-    const response = await axios.post(`${API_URL}/tasks/${taskId}/media`, formData);
+    const response = await axios.post(`${API_URL}/${type}/${taskId}/media`, formData);
     return response.data; // Return the response data
   } catch (error) {
     console.error('Error uploading media:', error.response ? error.response.data : error.message);

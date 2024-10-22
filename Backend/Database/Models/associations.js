@@ -23,10 +23,6 @@ DailyReports.belongsTo(User, { foreignKey: 'userId' });
 Task.hasMany(DailyReports, { foreignKey: 'taskId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 DailyReports.belongsTo(Task, { foreignKey: 'taskId' });
 
-//Task to Media
-Task.hasMany(Media, { foreignKey: 'taskId' });
-Media.belongsTo(Task, { foreignKey: 'taskId' });
-
 // Task to Comment
 Task.hasMany(Comment, { foreignKey: 'taskId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Comment.belongsTo(Task, { foreignKey: 'taskId' });

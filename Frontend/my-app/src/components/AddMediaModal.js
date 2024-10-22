@@ -46,7 +46,7 @@ const AddMediaModal = ({ isOpen, onClose, taskId, onUploadComplete }) => {
         setLoading(true); // Start loading
 
         try {
-            await createMedia(taskId, formData);
+            await createMedia('Task',taskId, formData);
             onUploadComplete(); // Trigger the parent to refresh media
             onClose(); // Close modal after upload
         } catch (error) {

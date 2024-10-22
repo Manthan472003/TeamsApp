@@ -4,7 +4,7 @@ const Build = require('../../Database/Models/build');
 const multer = require('multer');
 const s3 = require('../../Database/Config/s3Config');
 const awsConfig = require('../../Database/Config/awsConfig.json');
-const sharp = require('sharp'); // For image compression
+const sharp = require('sharp');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
 const fs = require('fs');
@@ -100,63 +100,61 @@ const createMedia = async (req, res) => {
             return res.status(400).json({ message: 'At least one media file is required.' });
         }
 
+        // Validate task or build existence
         if (type === 'Task') {
-            const task = await Task.findOne({
-                where: { id: taskOrBuildId }
-            });
+            const task = await Task.findOne({ where: { id: taskOrBuildId } });
             if (!task) {
                 return res.status(404).json({ message: 'Task does not exist.' });
             }
-        }
-        if (type === 'Build') {
-            const build = await Build.findOne({
-                where: { id: taskOrBuildId }
-            });
+        } else if (type === 'Build') {
+            const build = await Build.findOne({ where: { id: taskOrBuildId } });
             if (!build) {
                 return res.status(404).json({ message: 'Build does not exist.' });
             }
+        } else {
+            return res.status(400).json({ message: 'Invalid media type specified.' });
         }
 
         const newMediaEntries = [];
 
-        // If files are provided, upload each to S3
+        // Upload each file to S3
         for (const mediaFile of mediaFiles) {
             let buffer;
             let mediaType;
 
-            // Check if the file is an image or a video
+            // Determine media type and process the file accordingly
             if (mediaFile.mimetype.startsWith('image/')) {
                 // Compress image
                 buffer = await sharp(mediaFile.buffer)
                     .resize(1024) // Resize image to a width of 1024px, keeping aspect ratio
                     .toBuffer();
-                mediaType = 'Image'; // Set mediaType to Image
+                mediaType = 'Image';
             } else if (mediaFile.mimetype.startsWith('video/')) {
                 // Compress video
                 buffer = await compressVideo(mediaFile);
-                mediaType = 'Video'; // Set mediaType to Video
+                mediaType = 'Video';
             } else {
                 return res.status(400).json({ message: 'Unsupported media type.' });
             }
 
             const params = {
-                Bucket: awsConfig.aws.bucketName, // Use bucket name from config
-                Key: `media/${Date.now()}_${mediaFile.originalname}`, // Unique file name
-                Body: buffer, // Use the compressed buffer
-                ContentType: mediaFile.mimetype, // Set content type
-                ContentDisposition: 'inline', // Display in browser
+                Bucket: awsConfig.aws.bucketName,
+                Key: `media/${Date.now()}_${mediaFile.originalname}`,
+                Body: buffer,
+                ContentType: mediaFile.mimetype,
+                ContentDisposition: 'inline',
             };
 
             // Upload to S3
             const data = await s3.upload(params).promise();
-            const uploadedMediaLink = data.Location; // Get the file URL from the response
+            const uploadedMediaLink = data.Location;
 
-            // Create a new Media entry in the database, including taskId and mediaType
+            // Create a new Media entry in the database
             const newMedia = await Media.create({
                 mediaLink: uploadedMediaLink,
                 type,
-                taskOrBuildId, // Associate the media with the task
-                mediaType // Set the mediaType
+                taskOrBuildId,
+                mediaType,
             });
             newMediaEntries.push(newMedia);
         }
@@ -166,13 +164,14 @@ const createMedia = async (req, res) => {
         if (error instanceof multer.MulterError) {
             // Handle Multer-specific errors
             if (error.code === 'LIMIT_FILE_SIZE') {
-                return res.status(400).json({ message: 'File size exceeds 5 MB limit.' });
+                return res.status(400).json({ message: 'File size exceeds limit.' });
             }
         }
-        console.error('Error uploading to S3:', error); // Log error for debugging
-        return res.status(500).json({ message: 'Error creating Media.', error });
+        console.error('Error uploading to S3:', error);
+        return res.status(500).json({ message: 'Error creating media.', error: error.message });
     }
 };
+
 
 // Get all medias
 const getAllMedias = async (req, res) => {

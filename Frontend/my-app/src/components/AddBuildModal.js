@@ -31,7 +31,6 @@ const AddBuildModal = ({ isOpen, onClose, onSubmit, taskToEdit }) => {
     const [appId, setAppId] = useState('');
     const [deployedOn, setDeployedOn] = useState('');
     const [versionName, setVersionName] = useState('');
-    const [mediaLink, setMediaLink] = useState('');
     const [sections, setSections] = useState([]);
     const [filteredTasks, setFilteredTasks] = useState([]);
     const [selectedTaskIds, setSelectedTaskIds] = useState([]);
@@ -73,7 +72,6 @@ const AddBuildModal = ({ isOpen, onClose, onSubmit, taskToEdit }) => {
             setAppId(taskToEdit.appId || '');
             setDeployedOn(taskToEdit.deployedOn || '');
             setVersionName(taskToEdit.versionName || '');
-            setMediaLink(taskToEdit.mediaLink || '');
             setSelectedTaskIds(taskToEdit.selectedTasks || []);
         } else {
             resetFields();
@@ -90,7 +88,6 @@ const AddBuildModal = ({ isOpen, onClose, onSubmit, taskToEdit }) => {
         setAppId('');
         setDeployedOn('');
         setVersionName('');
-        setMediaLink('');
         setSelectedTaskIds([]);
         setFilteredTasks([]);
         setErrors({});
@@ -130,7 +127,6 @@ const AddBuildModal = ({ isOpen, onClose, onSubmit, taskToEdit }) => {
                 appId,
                 deployedOn,
                 versionName,
-                mediaLink,
                 tasksForBuild: selectedTaskIds,
             };
             onSubmit(newBuild);
@@ -190,10 +186,6 @@ const AddBuildModal = ({ isOpen, onClose, onSubmit, taskToEdit }) => {
                         <FormErrorMessage>{errors.versionName}</FormErrorMessage>
                     </FormControl>
 
-                    <FormControl mt={4}>
-                        <FormLabel>Media Link</FormLabel>
-                        <Input value={mediaLink} onChange={(e) => setMediaLink(e.target.value)} />
-                    </FormControl>
 
                     <FormControl mt={4}>
                         <FormLabel>Tasks</FormLabel>
