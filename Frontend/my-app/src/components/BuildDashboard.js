@@ -3,21 +3,22 @@ import { useDisclosure, Box, Heading, Button, useToast, Stack, Card, CardBody } 
 import { createBuildEntry, fetchAllBuildEntries } from '../Services/BuildService';
 import AddBuildModal from './AddBuildModal';
 import { IoMdAddCircleOutline } from "react-icons/io";
-import BuildEntryTable from './BuildEntryTable'; // Import the new table component
+import BuildEntryTable from './BuildEntryTable';
 import { getSections } from '../Services/SectionService';
 
 const BuildDashboard = () => {
     const toast = useToast();
     const { isOpen: isAddTaskOpen, onOpen: onAddTaskOpen, onClose: onAddTaskClose } = useDisclosure();
-    const [buildEntries, setBuildEntries] = useState([]); // Ensure this is initialized as an array
+    const [buildEntries, setBuildEntries] = useState([]);
     const [sections, setSections] = useState([]);
-
+    const [selectedTaskIds, setSelectedTaskIds] = useState([]);
 
     const handleEntrySubmit = async (data) => {
         try {
             await createBuildEntry(data);
             fetchBuildEntries();
             onAddTaskClose();
+            setSelectedTaskIds([]); // Clear selected tasks after submission
             toast({
                 title: "Build Entry Created",
                 description: "The build entry has been successfully created.",
@@ -40,10 +41,8 @@ const BuildDashboard = () => {
     const fetchBuildEntries = useCallback(async () => {
         try {
             const response = await fetchAllBuildEntries();
-            console.log(response.data);
-            // Check if the response is an array
             if (Array.isArray(response.data)) {
-                setBuildEntries(response.data); // Assuming response is the array of build entries
+                setBuildEntries(response.data);
             } else {
                 throw new Error('Unexpected response format');
             }
@@ -58,11 +57,10 @@ const BuildDashboard = () => {
             });
         }
     }, [toast]);
-    
+
     const fetchSections = useCallback(async () => {
-        // Define your logic to fetch sections here
         try {
-            const response = await getSections(); // Replace with your API call
+            const response = await getSections();
             if (Array.isArray(response.data)) {
                 setSections(response.data);
             } else {
@@ -107,7 +105,10 @@ const BuildDashboard = () => {
             <AddBuildModal
                 isOpen={isAddTaskOpen}
                 onClose={onAddTaskClose}
-                onSubmit={handleEntrySubmit}
+                onSubmit={(data) => {
+                    handleEntrySubmit(data);
+                    setSelectedTaskIds(data.selectedTasks); // Set selected tasks after submission
+                }}
             />
 
             <Stack spacing={4}>
@@ -117,7 +118,7 @@ const BuildDashboard = () => {
                             <BuildEntryTable
                                 build={build}
                                 sections={sections}
-                                
+                                selectedTasks={selectedTaskIds} // Pass selected tasks to the table
                             />
                         </CardBody>
                     </Card>

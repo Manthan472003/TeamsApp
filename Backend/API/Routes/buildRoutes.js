@@ -17,5 +17,4 @@ router.get('/', buildController.getAllBuildEntries);
 //Get Build Entry by ID
 router.get('/:id', buildController.getBuildEntry);
 
-
 module.exports = router;

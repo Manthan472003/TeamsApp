@@ -7,33 +7,33 @@ const Task = require('../../Database/Models/task');
 
 //Create Build Entry
 const createEntry = async (req, res) => {
-    const { appId, deployedOn, versionName, mediaLink, tasksForBuild } = req.body;
+    const { appId, deployedOn, versionName, mediaLink } = req.body;
     if (!appId) {
         return res.status(400).json({ message: 'Application ID is required.' });
     }
     if (!versionName) {
-        return res.status(400).json({ message: 'Version name is required.' });
+        return res.status(400).json({ message: 'versionName is required.' });
     }
 
     try {
-        // Validate application existence
-        const application = await Section.findByPk(appId);
-        if (!application) {
-            return res.status(404).json({ message: 'Application does not exist.' });
+        // appId = parseInt(appId, 10);
+
+        // Validate users and section existence
+        if (appId) {
+            const application = await Section.findOne({ where: { id: appId } });
+            if (!application) {
+                return res.status(404).json({ message: 'Application does not exist.' });
+            }
         }
 
-        // Create the build entry
+        // Create the task
         const newBuild = await Build.create({
-            appId,
-            deployedOn,
-            versionName,
-            mediaLink,
-            tasksForBuild,
+            appId, deployedOn, versionName, mediaLink
         });
         return res.status(201).json({ message: 'Build created successfully.', newBuild });
     } catch (error) {
-        console.error('Error creating build entry:', error);
-        return res.status(500).json({ message: 'Error creating build entry.', error: error.message });
+        console.error('Error creating task:', error);
+        return res.status(500).json({ message: 'Error creating task.', error: error.message });
     }
 };
 
@@ -64,7 +64,7 @@ const markTaskWorking = async (req, res) => {
 
         // Check if an entry already exists for this taskId
         const existingEntry = await TasksChecked.findOne({ where: { taskId, checkedByUserId: userId } });
-
+        
         if (existingEntry) {
             if (existingEntry.isWorking) {
                 return res.status(400).json({ message: 'Task is already marked as working.' });

@@ -2,34 +2,38 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../Config/config');
 
 const Build = sequelize.define('Build', {
-    id:{
+    id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
-    appId:{
+    appId: {
         type: DataTypes.INTEGER,
-        allowNull:false
+        allowNull: false
     },
-    deployedOn:{
-        type: DataTypes.ENUM('Stage','Production'),
+    deployedOn: {
+        type: DataTypes.ENUM('Stage', 'Production'),
         defaultValue: 'Production'
     },
-    versionName:{
+    versionName: {
         type: DataTypes.STRING(45)
     },
-    mediaLink:{
+    mediaLink: {
         type: DataTypes.TEXT,
     },
-    checkedIds:{
+    tasksForBuild: {
+        type: DataTypes.JSON,
+        allowNull: true
+    },
+    checkedIds: {
         type: DataTypes.JSON
     },
 
 }, {
-  tableName: 'build_table',
-  timestamps: true, // Enables automatic createdAt and updatedAt fields
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
+    tableName: 'build_table',
+    timestamps: true, // Enables automatic createdAt and updatedAt fields
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
 });
 
 module.exports = Build;
