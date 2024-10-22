@@ -135,8 +135,8 @@ const BuildEntryTable = ({ build, sections }) => {
     };
 
     const getRowColor = (taskName) => {
-        if (taskStatus[taskName] === 'working') return 'green.100'; 
-        if (taskStatus[taskName] === 'not working') return 'red.100'; 
+        if (taskStatus[taskName] === 'working') return 'green.100';
+        if (taskStatus[taskName] === 'not working') return 'red.100';
         return 'white';
     };
 
@@ -183,14 +183,14 @@ const BuildEntryTable = ({ build, sections }) => {
                                     <a href={build.mediaLink} target="_blank" rel="noopener noreferrer">View Media</a>
                                 ) : (
                                     <Box>
-                                        <Input 
-                                            type="file" 
-                                            accept="image/*, video/*" 
-                                            onChange={(e) => setMediaFile(e.target.files[0])} 
+                                        <Input
+                                            type="file"
+                                            accept="image/*, video/*"
+                                            onChange={(e) => setMediaFile(e.target.files[0])}
                                         />
-                                        <Button 
-                                            onClick={() => handleMediaUpload(build.appId)} 
-                                            colorScheme="teal" 
+                                        <Button
+                                            onClick={() => handleMediaUpload(build.appId)}
+                                            colorScheme="teal"
                                             ml={2}
                                             isDisabled={!mediaFile}
                                         >
