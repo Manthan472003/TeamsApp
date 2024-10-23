@@ -9,19 +9,16 @@ import ViewVideoModal from './ViewVideoModal';
 const MediaUploaderForBuild = ({ buildId }) => {
     const [mediaFile, setMediaFile] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
-    const [mediaLink, setMediaLink] = useState(null);
+    const [mediaLinks, setMediaLinks] = useState([]);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+    const [selectedMediaLink, setSelectedMediaLink] = useState(null);
     const toast = useToast();
 
     const fetchMedia = useCallback(async () => {
         try {
             const response = await getMediaOfTheTaskorBuild('Build', buildId);
-            if (response.data.length > 0) {
-                setMediaLink(response.data[0].mediaLink);
-            } else {
-                setMediaLink(null);
-            }
+            setMediaLinks(response.data);
         } catch (error) {
             console.error('Error fetching media:', error);
             toast({
@@ -73,14 +70,29 @@ const MediaUploaderForBuild = ({ buildId }) => {
         }
     };
 
-    const handleMediaView = () => {
-        const isImage = mediaLink && (mediaLink.endsWith('.jpg') || mediaLink.endsWith('.png'));
-        const isVideo = mediaLink && mediaLink.endsWith('.mp4');
+    const handleMediaView = (link) => {
+        const isImage = link && (link.endsWith('.jpg') || link.endsWith('.png') || link.endsWith('.jpeg'));
+        const isVideo = link && link.endsWith('.mp4');
 
+        setSelectedMediaLink(link);
         if (isImage) {
             setIsImageModalOpen(true);
         } else if (isVideo) {
             setIsVideoModalOpen(true);
+        }
+    };
+
+    const handlePaste = (event) => {
+        event.preventDefault(); // Prevent default paste behavior
+        const items = event.clipboardData.items;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.kind === 'file') {
+                const file = item.getAsFile();
+                if (file) {
+                    setMediaFile(file);
+                }
+            }
         }
     };
 
@@ -94,17 +106,24 @@ const MediaUploaderForBuild = ({ buildId }) => {
                 Upload Media
             </Button>
 
-            {mediaLink && (
-                <Button leftIcon={<FaEye size={20} />} ml={3} colorScheme="blue" onClick={handleMediaView}>
-                    View Media
-                </Button>
+            {mediaLinks.length > 0 && (
+                mediaLinks.map((media, index) => (
+                    <Button
+                        key={index}
+                        leftIcon={<FaEye size={20} />}
+                        ml={2}
+                        colorScheme="blue"
+                        onClick={() => handleMediaView(media.mediaLink)}
+                    >
+                    </Button>
+                ))
             )}
 
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>Upload Media</ModalHeader>
-                    <ModalBody>
+                    <ModalBody onPaste={handlePaste}>
                         <Input
                             type="file"
                             accept="image/*, video/*"
@@ -122,17 +141,17 @@ const MediaUploaderForBuild = ({ buildId }) => {
                 </ModalContent>
             </Modal>
 
-            {mediaLink && (
+            {selectedMediaLink && (
                 <>
                     <ViewImageModal
                         isOpen={isImageModalOpen}
                         onClose={() => setIsImageModalOpen(false)}
-                        imageSrc={mediaLink}
+                        imageSrc={selectedMediaLink}
                     />
                     <ViewVideoModal
                         isOpen={isVideoModalOpen}
                         onClose={() => setIsVideoModalOpen(false)}
-                        videoSrc={mediaLink}
+                        videoSrc={selectedMediaLink}
                     />
                 </>
             )}

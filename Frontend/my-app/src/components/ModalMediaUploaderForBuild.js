@@ -3,7 +3,7 @@ import { Box, Button, Input, useToast, Modal, ModalOverlay, ModalContent, ModalH
 import { IoMdCloudUpload } from "react-icons/io";
 import { createMedia } from '../Services/MediaService';
 
-const MediaUploaderForBuild = ({ buildId }) => {
+const ModalMediaUploaderForBuild = ({ buildId }) => {
     const [mediaFile, setMediaFile] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
     const toast = useToast();
@@ -43,6 +43,17 @@ const MediaUploaderForBuild = ({ buildId }) => {
         }
     };
 
+    const handlePaste = (event) => {
+        const items = event.clipboardData.items;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.kind === 'file') {
+                const file = item.getAsFile();
+                setMediaFile(file);
+            }
+        }
+    };
+
     return (
         <Box>
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
@@ -54,6 +65,7 @@ const MediaUploaderForBuild = ({ buildId }) => {
                             type="file"
                             accept="image/*, video/*"
                             onChange={(e) => setMediaFile(e.target.files[0])}
+                            onPaste={handlePaste}
                         />
                     </ModalBody>
                     <ModalFooter>
@@ -70,4 +82,4 @@ const MediaUploaderForBuild = ({ buildId }) => {
     );
 };
 
-export default MediaUploaderForBuild;
+export default ModalMediaUploaderForBuild;
