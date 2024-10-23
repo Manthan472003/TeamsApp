@@ -15,15 +15,15 @@ export const getMediaById = (mediaId) => axios.get(`${API_URL}/${mediaId}`);
 export const createMedia = async (type, taskId, mediaFiles) => {
   const formData = new FormData();
   mediaFiles.forEach(file => {
-    formData.append('mediaFiles', file); // Use 'mediaFiles' as the key
+    formData.append('mediaFiles', file); 
   });
 
   try {
     const response = await axios.post(`${API_URL}/${type}/${taskId}/media`, formData);
-    return response.data; // Return the response data
+    return response.data; 
   } catch (error) {
     console.error('Error uploading media:', error.response ? error.response.data : error.message);
-    throw error; // Rethrow the error to handle it in the calling code
+    throw error; 
   }
 };
 
