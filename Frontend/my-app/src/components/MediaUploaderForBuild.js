@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Button, Input, useToast, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@chakra-ui/react';
 import { IoMdCloudUpload } from "react-icons/io";
+import { FaEye } from "react-icons/fa";
 import { createMedia, getMediaOfTheTaskorBuild } from '../Services/MediaService';
 import ViewImageModal from './ViewImageModal';
 import ViewVideoModal from './ViewVideoModal';
@@ -12,6 +13,30 @@ const MediaUploaderForBuild = ({ buildId }) => {
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
     const toast = useToast();
+
+    const fetchMedia = useCallback(async () => {
+        try {
+            const response = await getMediaOfTheTaskorBuild('Build', buildId);
+            if (response.data.length > 0) {
+                setMediaLink(response.data[0].mediaLink);
+            } else {
+                setMediaLink(null);
+            }
+        } catch (error) {
+            console.error('Error fetching media:', error);
+            toast({
+                title: "Error fetching media.",
+                description: String(error.response ? error.response.data.message : error.message),
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    }, [buildId, toast]);
+
+    useEffect(() => {
+        fetchMedia(); 
+    }, [fetchMedia]);
 
     const handleMediaUpload = async () => {
         if (!mediaFile) {
@@ -35,27 +60,11 @@ const MediaUploaderForBuild = ({ buildId }) => {
             });
             setMediaFile(null);
             setIsOpen(false);
-            fetchMedia();
+            fetchMedia(); // Fetch updated media after upload
         } catch (error) {
             console.error('Error uploading media:', error);
             toast({
                 title: "Error uploading media.",
-                description: String(error.response ? error.response.data.message : error.message),
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-            });
-        }
-    };
-
-    const fetchMedia = async () => {
-        try {
-            const response = await getMediaOfTheTaskorBuild('Build', buildId);
-            setMediaLink(response.data.mediaLink);
-        } catch (error) {
-            console.error('Error fetching media:', error);
-            toast({
-                title: "Error fetching media.",
                 description: String(error.response ? error.response.data.message : error.message),
                 status: "error",
                 duration: 3000,
@@ -86,7 +95,7 @@ const MediaUploaderForBuild = ({ buildId }) => {
             </Button>
 
             {mediaLink && (
-                <Button ml={3} colorScheme="blue" onClick={handleMediaView}>
+                <Button leftIcon={<FaEye size={20} />} ml={3} colorScheme="blue" onClick={handleMediaView}>
                     View Media
                 </Button>
             )}
