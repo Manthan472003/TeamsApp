@@ -76,8 +76,9 @@ const markTaskWorking = async (req, res) => {
                 return res.status(400).json({ message: 'Task is already marked as working.' });
             } else {
                 existingEntry.isWorking = true;
+                existingEntry.checkedByUserId = userId;
                 // Ensure buildId is stored correctly
-                existingEntry.buildId = buildId; 
+                existingEntry.buildId = buildId;
                 await existingEntry.save();
                 return res.status(200).json({ message: 'Task status updated to working.', existingEntry });
             }
@@ -117,7 +118,6 @@ const markTaskWorking = async (req, res) => {
     }
 };
 
-
 // Mark Task as Not Working
 const markTaskNotWorking = async (req, res) => {
     const { buildId, taskName, userId } = req.body;
@@ -151,8 +151,9 @@ const markTaskNotWorking = async (req, res) => {
                 return res.status(400).json({ message: 'Task is already marked as not working.' });
             } else {
                 existingEntry.isWorking = false;
+                existingEntry.checkedByUserId = userId;
                 // Ensure buildId is stored correctly
-                existingEntry.buildId = buildId; 
+                existingEntry.buildId = buildId;
                 await existingEntry.save();
                 return res.status(200).json({ message: 'Task status updated to not working.', existingEntry });
             }
@@ -188,7 +189,6 @@ const markTaskNotWorking = async (req, res) => {
         return res.status(500).json({ message: 'Error marking task as not working.', error: error.message });
     }
 };
-
 
 //Get All Build Entries
 const getAllBuildEntries = async (req, res) => {
@@ -245,13 +245,42 @@ const isTaskWorking = async (req, res) => {
                 isWorking: taskCheckedEntry.isWorking
             });
         } else {
-            return res.status(404).json({ message: 'Task is not marked in this build.' });
+            return res.status(404).json({ isWorking: 'Task is not marked in this build.' });
         }
     } catch (error) {
         console.error('Error checking task status:', error);
         return res.status(500).json({ message: 'Error checking task status.', error: error.message });
     }
 };
+
+// Add Build Link for Android
+const updateLinkForAndroid = async (req, res) => {
+    const { buildId } = req.params;
+    const { link } = req.body;
+
+    // Validate input
+    if (!buildId) {
+        return res.status(400).json({ message: 'Build ID is required.' });
+    }
+    if (!link) {
+        return res.status(400).json({ message: 'Link is required.' });
+    }
+
+    try {
+        const build = await Build.findOne({ where: { id: buildId } });
+        if (!build) {
+            return res.status(404).json({ message: 'Build not found.' });
+        }
+
+        build.link = link;
+
+        await build.save();
+        return res.status(200).json({ message: 'Link added to build successfully', build });
+
+    } catch (error) {
+        return res.status(500).json({ message: 'Error updating build.', error });
+    }
+}
 
 
 
@@ -261,5 +290,6 @@ module.exports = {
     markTaskNotWorking,
     getAllBuildEntries,
     getBuildEntry,
-    isTaskWorking
+    isTaskWorking,
+    updateLinkForAndroid
 };

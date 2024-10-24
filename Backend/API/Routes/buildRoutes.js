@@ -18,6 +18,9 @@ router.get('/', buildController.getAllBuildEntries);
 router.get('/:id', buildController.getBuildEntry);
 
 //Check if Task is working or not
-router.get('/task/isWorking', buildController.isTaskWorking);
+router.post('/task/isWorking', buildController.isTaskWorking);
+
+//Update Link For Android to build
+router.post('/addLink/android/:buildId', buildController.updateLinkForAndroid);
 
 module.exports = router;

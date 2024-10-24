@@ -16,3 +16,9 @@ export const markTaskWorking = (taskDetails) => axios.post(`${API_URL}/markWorki
 
 //Mark Task Not Working
 export const markTaskNotWorking = (taskDetails) => axios.post(`${API_URL}/markNotWorking`, taskDetails);
+
+//Check if Task is Working
+export const isTaskWorking = (taskDetails) => axios.post(`${API_URL}/task/isWorking`, taskDetails);
+
+//Update Android Link for Build
+export const addAndroidLink = (buildId, link) => axios.post(`${API_URL}/addLink/android/${buildId}`,link);

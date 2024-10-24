@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, Button, Box } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Box, IconButton } from '@chakra-ui/react';
 import { getUsers } from '../Services/UserService';
-import { markTaskWorking, markTaskNotWorking } from '../Services/BuildService';
+import { markTaskWorking, markTaskNotWorking, isTaskWorking } from '../Services/BuildService';
 import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import jwt_decode from 'jwt-decode';
 import { useToast } from "@chakra-ui/react";
@@ -43,6 +43,26 @@ const BuildEntryTable = ({ build, sections }) => {
         const savedUsernames = JSON.parse(localStorage.getItem('usernames')) || {};
         setUsernames(savedUsernames);
     }, []);
+
+    useEffect(() => {
+        const fetchTaskStatuses = async () => {
+            const statuses = {};
+            for (const taskName of build.tasksForBuild) {
+                try {
+                    const response = await isTaskWorking({ taskName, buildId: build.id });
+                    statuses[taskName] = response.data.isWorking ? 'working' : 'not working';
+                } catch (error) {
+                    console.error(`Error fetching status for task ${taskName}:`, error);
+                    statuses[taskName] = 'unknown'; // Handle error
+                }
+            }
+            setTaskStatus(statuses);
+        };
+
+        if (build.tasksForBuild && build.tasksForBuild.length > 0) {
+            fetchTaskStatuses();
+        }
+    }, [build]);
 
     const getSectionNameById = (sectionId) => {
         const section = sections.find(section => section.id === sectionId);
@@ -131,11 +151,11 @@ const BuildEntryTable = ({ build, sections }) => {
                 <Table className="styled_table" variant="simple">
                     <Thead>
                         <Tr>
-                            <Th style={{ width: '18%' }}>Application ID</Th>
-                            <Th style={{ width: '15%' }}>Deployed On</Th>
-                            <Th style={{ width: '15%' }}>Version</Th>
-                            <Th style={{ width: '32%' }}>Media</Th>
-                            <Th style={{ width: '10%' }}>Updated At</Th>
+                            <Th style={{ width: '20%' }}>Application</Th>
+                            <Th style={{ width: '20%' }}>Deployed On</Th>
+                            <Th style={{ width: '20%' }}>Version</Th>
+                            <Th style={{ width: '20%' }}>Media</Th>
+                            <Th style={{ width: '20%' }}>Updated At</Th>
                         </Tr>
                     </Thead>
                     <Tbody>
@@ -146,7 +166,14 @@ const BuildEntryTable = ({ build, sections }) => {
                             <Td>
                                 <MediaUploaderForBuild buildId={build.id} />
                             </Td>
-                            <Td>{new Date(build.updatedAt).toLocaleDateString()}</Td>
+                            <Td>
+                                {build.updatedAt ? new Intl.DateTimeFormat('en-GB', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric'
+                                }).format(new Date(build.updatedAt)) : ''}
+                            </Td>
+
                         </Tr>
                     </Tbody>
                 </Table>
@@ -156,8 +183,8 @@ const BuildEntryTable = ({ build, sections }) => {
                 <Table className="styled_table" variant="simple">
                     <Thead>
                         <Tr>
-                            <Th style={{ width: '75%' }}>Tasks Covered In Build</Th>
-                            <Th style={{ width: '25%' }}>Actions</Th>
+                            <Th style={{ width: '90%' }}>Tasks Covered In Build</Th>
+                            <Th style={{ width: '10%' }}>Actions</Th>
                         </Tr>
                     </Thead>
                     <Tbody>
@@ -167,22 +194,35 @@ const BuildEntryTable = ({ build, sections }) => {
                                     <Td style={{ whiteSpace: 'pre-wrap' }}>{taskName}</Td>
                                     <Td>
                                         <Box>
-                                            <Button
+                                            {/* <Button
                                                 leftIcon={<CheckIcon />}
                                                 onClick={() => handleMarkWorking(taskName)}
                                                 colorScheme="blue"
                                                 variant="outline"
-                                                ml={2}>
+                                                ml={2}
+                                                isDisabled={taskStatus[taskName] === 'working'}>
                                                 Working
-                                            </Button>
-                                            <Button
-                                                leftIcon={<CloseIcon />}
-                                                onClick={() => handleMarkNotWorking(taskName)}
-                                                colorScheme="red"
+                                            </Button> */}
+                                            <IconButton
+                                                icon={<CheckIcon size={25} />}
+                                                onClick={() => handleMarkWorking(taskName)}
                                                 variant="outline"
-                                                ml={2}>
-                                                Not Working
-                                            </Button>
+                                                title='Working'
+                                                colorScheme="blue"
+                                                border={0}
+                                                mr={2}
+                                                isDisabled={taskStatus[taskName] === 'working'}
+                                            />
+                                            <IconButton
+                                                icon={<CloseIcon size={25} />}
+                                                onClick={() => handleMarkNotWorking(taskName)}
+                                                variant="outline"
+                                                title='Not Working'
+                                                colorScheme="red"
+                                                border={0}
+                                                mr={2}
+                                                isDisabled={taskStatus[taskName] === 'not working'}
+                                            />
                                         </Box>
                                     </Td>
                                 </Tr>
