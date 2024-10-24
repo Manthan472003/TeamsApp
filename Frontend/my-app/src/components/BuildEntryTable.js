@@ -157,7 +157,7 @@ const BuildEntryTable = ({ build, sections }) => {
                     <Thead>
                         <Tr>
                             <Th style={{ width: '75%' }}>Tasks Covered In Build</Th>
-                            <Th style={{ width: '25%' }}>Action</Th>
+                            <Th style={{ width: '25%' }}>Actions</Th>
                         </Tr>
                     </Thead>
                     <Tbody>

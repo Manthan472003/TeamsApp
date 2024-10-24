@@ -103,7 +103,6 @@ const MediaUploaderForBuild = ({ buildId }) => {
                 colorScheme="teal"
                 onClick={() => setIsOpen(true)}
             >
-                Upload Media
             </Button>
 
             {mediaLinks.length > 0 && (
@@ -114,8 +113,7 @@ const MediaUploaderForBuild = ({ buildId }) => {
                         ml={2}
                         colorScheme="blue"
                         onClick={() => handleMediaView(media.mediaLink)}
-                    >
-                    </Button>
+                    />
                 ))
             )}
 
