@@ -22,3 +22,6 @@ export const isTaskWorking = (taskDetails) => axios.post(`${API_URL}/task/isWork
 
 //Update Android Link for Build
 export const addAndroidLink = (buildId, link) => axios.post(`${API_URL}/addLink/android/${buildId}`,link);
+
+//Get Checked Task Details
+export const getCheckedTaskDetails = (buildId, taskName) => axios.get(`${API_URL}/getCheckedTaskDetails/${buildId}`, taskName);

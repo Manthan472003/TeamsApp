@@ -59,8 +59,8 @@ const ViewImageModal = ({ isOpen, onClose, imageSrc }) => {
           position="relative"
         >
           <Box
-            width="100%"
-            height="100%"
+            width="30%"
+            height="30%"
             overflow="auto"
             position="relative"
           >
@@ -75,7 +75,7 @@ const ViewImageModal = ({ isOpen, onClose, imageSrc }) => {
             />
           </Box>
         </ModalBody>
-        <Flex justifyContent="center" gap={4} mb={4}>
+        <Flex justifyContent="center" mt={2} gap={4} >
           <IconButton
             icon={<MdOutlineZoomIn />}
             onClick={handleZoomIn}

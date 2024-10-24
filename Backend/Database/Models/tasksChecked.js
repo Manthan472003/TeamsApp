@@ -7,8 +7,8 @@ const TasksChecked = sequelize.define('TasksChecked', {
     autoIncrement: true,
     primaryKey: true,
   },
-  taskId: {
-    type: DataTypes.INTEGER,
+  taskName: {
+    type: DataTypes.TEXT,
     allowNull: false,
   },
   checkedByUserId: {

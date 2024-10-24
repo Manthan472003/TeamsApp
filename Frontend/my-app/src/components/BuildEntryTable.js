@@ -1,31 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, Box, IconButton } from '@chakra-ui/react';
-import { getUsers } from '../Services/UserService';
-import { markTaskWorking, markTaskNotWorking, isTaskWorking } from '../Services/BuildService';
+import { Table, Thead, Tbody, Tr, Th, Td, Box, IconButton, Text } from '@chakra-ui/react';
+import { markTaskWorking, markTaskNotWorking, isTaskWorking, getCheckedTaskDetails } from '../Services/BuildService';
 import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import jwt_decode from 'jwt-decode';
 import { useToast } from "@chakra-ui/react";
 import MediaUploaderForBuild from './MediaUploaderForBuild';
 
 const BuildEntryTable = ({ build, sections }) => {
-    const [, setUsernames] = useState({});
-    const [, setUsers] = useState([]);
     const [userId, setUserId] = useState('');
     const [taskStatus, setTaskStatus] = useState({});
+    const [checkedDetails, setCheckedDetails] = useState({});
     const toast = useToast();
-
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const usersResponse = await getUsers();
-                setUsers(usersResponse.data || []);
-            } catch (error) {
-                console.error('Error fetching users:', error);
-            }
-        };
-
-        fetchUsers();
-    }, []);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -40,17 +25,13 @@ const BuildEntryTable = ({ build, sections }) => {
     }, []);
 
     useEffect(() => {
-        const savedUsernames = JSON.parse(localStorage.getItem('usernames')) || {};
-        setUsernames(savedUsernames);
-    }, []);
-
-    useEffect(() => {
         const fetchTaskStatuses = async () => {
             const statuses = {};
             for (const taskName of build.tasksForBuild) {
                 try {
                     const response = await isTaskWorking({ taskName, buildId: build.id });
                     statuses[taskName] = response.data.isWorking ? 'working' : 'not working';
+                    await fetchCheckedTaskDetails(taskName); // Fetch details initially
                 } catch (error) {
                     console.error(`Error fetching status for task ${taskName}:`, error);
                     statuses[taskName] = 'unknown'; // Handle error
@@ -64,6 +45,19 @@ const BuildEntryTable = ({ build, sections }) => {
         }
     }, [build]);
 
+    const fetchCheckedTaskDetails = async (taskName) => {
+        try {
+            
+            const response = await getCheckedTaskDetails(build.id, taskName);
+            setCheckedDetails((prev) => ({
+                ...prev,
+                [taskName]: response.data
+            }));
+        } catch (error) {
+            console.error(`Error fetching checked task details for ${taskName}:`, error);
+        }
+    };
+
     const getSectionNameById = (sectionId) => {
         const section = sections.find(section => section.id === sectionId);
         return section ? section.sectionName : '-//-';
@@ -74,6 +68,7 @@ const BuildEntryTable = ({ build, sections }) => {
         try {
             await markTaskWorking(payload);
             setTaskStatus((prev) => ({ ...prev, [taskName]: 'working' }));
+            await fetchCheckedTaskDetails(taskName); // Fetch details after marking
             toast({
                 title: "Task marked as working.",
                 description: `You have marked "${taskName}" as working.`,
@@ -99,6 +94,7 @@ const BuildEntryTable = ({ build, sections }) => {
         try {
             await markTaskNotWorking(payload);
             setTaskStatus((prev) => ({ ...prev, [taskName]: 'not working' }));
+            await fetchCheckedTaskDetails(taskName); // Fetch details after marking
             toast({
                 title: "Task marked as not working.",
                 description: `You have marked "${taskName}" as not working.`,
@@ -173,7 +169,6 @@ const BuildEntryTable = ({ build, sections }) => {
                                     year: 'numeric'
                                 }).format(new Date(build.updatedAt)) : ''}
                             </Td>
-
                         </Tr>
                     </Tbody>
                 </Table>
@@ -194,15 +189,6 @@ const BuildEntryTable = ({ build, sections }) => {
                                     <Td style={{ whiteSpace: 'pre-wrap' }}>{taskName}</Td>
                                     <Td>
                                         <Box>
-                                            {/* <Button
-                                                leftIcon={<CheckIcon />}
-                                                onClick={() => handleMarkWorking(taskName)}
-                                                colorScheme="blue"
-                                                variant="outline"
-                                                ml={2}
-                                                isDisabled={taskStatus[taskName] === 'working'}>
-                                                Working
-                                            </Button> */}
                                             <IconButton
                                                 icon={<CheckIcon size={25} />}
                                                 onClick={() => handleMarkWorking(taskName)}
@@ -224,6 +210,11 @@ const BuildEntryTable = ({ build, sections }) => {
                                                 isDisabled={taskStatus[taskName] === 'not working'}
                                             />
                                         </Box>
+                                        {checkedDetails[taskName] && (
+                                            <Text fontSize="sm" mt={2}>
+                                                Task marked as {checkedDetails[taskName].isWorking ? "working" : "not working"} by User ID: {checkedDetails[taskName].checkedByUserId}
+                                            </Text>
+                                        )}
                                     </Td>
                                 </Tr>
                             ))

@@ -2,12 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Box, IconButton, Input, useToast, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@chakra-ui/react';
 import { IoMdCloudUpload } from "react-icons/io";
 import { FaEye } from "react-icons/fa";
-import { createMedia, getMediaOfTheTaskorBuild, } from '../Services/MediaService';
-import { createBuildEntry, getBuildEntryById, fetchAllBuildEntries } from '../Services/BuildService';
+import { createMedia, getMediaOfTheTaskorBuild } from '../Services/MediaService';
+import {  fetchAllBuildEntries, addAndroidLink } from '../Services/BuildService';
 import ViewImageModal from './ViewImageModal';
 import ViewVideoModal from './ViewVideoModal';
 import ViewLinkModal from './ViewLinkModal';
-
 
 const MediaUploaderForBuild = ({ buildId }) => {
     const [mediaFile, setMediaFile] = useState(null);
@@ -19,19 +18,41 @@ const MediaUploaderForBuild = ({ buildId }) => {
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
     const [selectedMediaLink, setSelectedMediaLink] = useState(null);
     const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-
     const toast = useToast();
 
-    const [appId, setAppId] = useState('');
-    const [deployedOn, setDeployedOn] = useState('');
-    const [versionName, setVersionName] = useState('');
-    const [selectedTaskIds, setSelectedTaskIds] = useState([]);
+    const validateFile = (file) => {
+        const maxFileSize = 5 * 1024 * 1024; // 5MB limit
+        const validTypes = ['image/jpeg', 'image/png', 'video/mp4'];
+
+        if (file.size > maxFileSize) {
+            toast({
+                title: "File too large.",
+                description: "Please select a file smaller than 5MB.",
+                status: "warning",
+                duration: 3000,
+                isClosable: true,
+            });
+            return false;
+        }
+
+        if (!validTypes.includes(file.type)) {
+            toast({
+                title: "Invalid file type.",
+                description: "Only JPEG, PNG images, and MP4 videos are allowed.",
+                status: "warning",
+                duration: 3000,
+                isClosable: true,
+            });
+            return false;
+        }
+
+        return true;
+    };
 
     const fetchMedia = useCallback(async () => {
         try {
             const response = await getMediaOfTheTaskorBuild('Build', buildId);
-            console.log('Fetched media files:', response.data);
-            setMediaFiles(response.data);
+            setMediaFiles(response.data || []); // Ensure we set an empty array if no data
         } catch (error) {
             console.error('Error fetching media files:', error);
             toast({
@@ -47,18 +68,9 @@ const MediaUploaderForBuild = ({ buildId }) => {
     const fetchMediaLinks = useCallback(async () => {
         try {
             const response = await fetchAllBuildEntries();
-            console.log('Fetched all build entries:', response.data);
-
-            // Filter for media links related to the build context
-            const buildEntriesWithLinks = response.data.filter(build => build.id !== buildId && build.link);
-
-            if (buildEntriesWithLinks.length > 0) {
-                const links = buildEntriesWithLinks.map(entry => entry.link);
-                setMediaLinks(links);
-            } else {
-                console.warn('No media links found for buildId:', buildId);
-                setMediaLinks([]);
-            }
+            const buildEntriesWithLinks = response.data.filter(build => build.id === buildId && build.link);
+            const links = buildEntriesWithLinks.map(entry => entry.link);
+            setMediaLinks(links);
         } catch (error) {
             console.error('Error fetching media links:', error);
             toast({
@@ -71,32 +83,12 @@ const MediaUploaderForBuild = ({ buildId }) => {
         }
     }, [buildId, toast]);
 
-    const fetchBuildDetails = useCallback(async () => {
-        try {
-            const response = await getBuildEntryById(buildId);
-            const buildData = response.data;
-
-            setAppId(buildData.appId);
-            setDeployedOn(buildData.deployedOn);
-            setVersionName(buildData.versionName);
-            setSelectedTaskIds(buildData.tasksForBuild || []);
-        } catch (error) {
-            console.error('Error fetching build details:', error);
-            toast({
-                title: "Error fetching build details.",
-                description: String(error.response ? error.response.data.message : error.message),
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-            });
-        }
-    }, [buildId, toast]);
-
     useEffect(() => {
-        fetchMedia();
-        fetchMediaLinks();
-        fetchBuildDetails();
-    }, [fetchMedia, fetchMediaLinks, fetchBuildDetails]);
+        if (buildId) {
+            fetchMedia();
+            fetchMediaLinks();
+        }
+    }, [fetchMedia, fetchMediaLinks, buildId]);
 
     const handleMediaUpload = async () => {
         if (!mediaFile && !mediaLink) {
@@ -112,18 +104,22 @@ const MediaUploaderForBuild = ({ buildId }) => {
 
         try {
             if (mediaFile) {
-                await createMedia('Build', buildId, [mediaFile]);
+                if (!validateFile(mediaFile)) return;
+                const mediaResponse = await createMedia('Build', buildId, [mediaFile]);
+                console.log('Media upload response:', mediaResponse);
+
+                if (mediaResponse.message !== 'Media created successfully.') {
+                    throw new Error('Failed to upload media');
+                }
             }
 
             if (mediaLink) {
-                const buildEntry = {
-                    appId,
-                    deployedOn,
-                    versionName,
-                    tasksForBuild: selectedTaskIds,
-                    link: mediaLink,
-                };
-                await createBuildEntry(buildEntry);
+                const linkResponse = await addAndroidLink(buildId, { link: mediaLink });
+                console.log('Link upload response:', linkResponse);
+
+                if (linkResponse.status !== 200) {
+                    throw new Error('Failed to update build with link');
+                }
             }
 
             toast({
@@ -134,16 +130,18 @@ const MediaUploaderForBuild = ({ buildId }) => {
                 isClosable: true,
             });
 
+            // Reset and refetch media and links
             setMediaFile(null);
             setMediaLink('');
             setIsOpen(false);
-            fetchMedia(); // Fetch updated media after upload
-            fetchMediaLinks(); // Fetch updated media links
+            await fetchMedia();
+            await fetchMediaLinks();
+
         } catch (error) {
             console.error('Error uploading media:', error);
             toast({
                 title: "Error uploading media.",
-                description: String(error.response ? error.response.data.message : error.message),
+                description: error.response ? String(error.response.data.message) : "Network error or server is not reachable.",
                 status: "error",
                 duration: 3000,
                 isClosable: true,
@@ -152,28 +150,17 @@ const MediaUploaderForBuild = ({ buildId }) => {
     };
 
     const handleMediaView = (link) => {
-        console.log('Selected media link:', link);
         const isImage = link && (link.endsWith('.jpg') || link.endsWith('.png') || link.endsWith('.jpeg'));
         const isVideo = link && link.endsWith('.mp4');
-        const isLink = link;
         setSelectedMediaLink(link);
         if (isImage) {
             setIsImageModalOpen(true);
         } else if (isVideo) {
             setIsVideoModalOpen(true);
-        } else if (isLink) {
-            setIsLinkModalOpen(true);
         } else {
-            toast({
-                title: "Unsupported media type.",
-                description: "This media type cannot be viewed.",
-                status: "warning",
-                duration: 3000,
-                isClosable: true,
-            });
+            setIsLinkModalOpen(true);
         }
     };
-
 
     return (
         <Box>
@@ -259,7 +246,6 @@ const MediaUploaderForBuild = ({ buildId }) => {
                         onClose={() => setIsVideoModalOpen(false)}
                         videoSrc={selectedMediaLink}
                     />
-
                     <ViewLinkModal
                         isOpen={isLinkModalOpen}
                         onClose={() => setIsLinkModalOpen(false)}

@@ -58,17 +58,17 @@ const markTaskWorking = async (req, res) => {
             return res.status(404).json({ message: 'Build does not exist.' });
         }
 
-        const task = await Task.findOne({ where: { taskName } });
-        if (!task) {
-            return res.status(404).json({ message: 'Task does not exist.' });
-        }
+        // const task = await Task.findOne({ where: { taskName } });
+        // if (!task) {
+        //     return res.status(404).json({ message: 'Task does not exist.' });
+        // }
 
         const user = await User.findOne({ where: { id: userId } });
         if (!user) {
             return res.status(404).json({ message: 'User does not exist.' });
         }
 
-        const existingEntry = await TasksChecked.findOne({ where: { buildId, taskId: task.id } });
+        const existingEntry = await TasksChecked.findOne({ where: { buildId, taskName } });
         let newEntry;
 
         if (existingEntry) {
@@ -84,7 +84,7 @@ const markTaskWorking = async (req, res) => {
             }
         } else {
             newEntry = await TasksChecked.create({
-                taskId: task.id,
+                taskName,
                 checkedByUserId: userId,
                 buildId, // Store buildId
                 isWorking: true
@@ -134,17 +134,17 @@ const markTaskNotWorking = async (req, res) => {
     }
 
     try {
-        const task = await Task.findOne({ where: { taskName } });
-        if (!task) {
-            return res.status(404).json({ message: 'Task does not exist.' });
-        }
+        // const task = await Task.findOne({ where: { taskName } });
+        // if (!task) {
+        //     return res.status(404).json({ message: 'Task does not exist.' });
+        // }
 
         const user = await User.findOne({ where: { id: userId } });
         if (!user) {
             return res.status(404).json({ message: 'User does not exist.' });
         }
 
-        const existingEntry = await TasksChecked.findOne({ where: { buildId, taskId: task.id } });
+        const existingEntry = await TasksChecked.findOne({ where: { buildId, taskName } });
 
         if (existingEntry) {
             if (!existingEntry.isWorking) {
@@ -160,7 +160,7 @@ const markTaskNotWorking = async (req, res) => {
         }
 
         const newEntry = await TasksChecked.create({
-            taskId: task.id,
+            taskName,
             checkedByUserId: userId,
             buildId, // Store buildId
             isWorking: false
@@ -229,15 +229,10 @@ const isTaskWorking = async (req, res) => {
     }
 
     try {
-        // Find the task by its name
-        const task = await Task.findOne({ where: { taskName } });
-        if (!task) {
-            return res.status(404).json({ message: 'Task does not exist.' });
-        }
 
         // Find the TasksChecked entry for the specific build and task
         const taskCheckedEntry = await TasksChecked.findOne({
-            where: { taskId: task.id, buildId }
+            where: { taskName, buildId }
         });
 
         if (taskCheckedEntry) {
@@ -282,6 +277,32 @@ const updateLinkForAndroid = async (req, res) => {
     }
 }
 
+//Get details for the checked tasks=>
+const getCheckedTaskDetails = async (req, res) => {
+    const { buildId } = req.params;
+    const {taskName} = req.body;
+
+    // Validate input
+    if (!buildId) {
+        return res.status(400).json({ message: 'Build ID is required.' });
+    }
+    if (!taskName) {
+        return res.status(400).json({ message: 'Task Name is required.' });
+    }
+    try {
+        // Find the TasksChecked entry for the specific build and task
+        const taskCheckedEntry = await TasksChecked.findOne({
+            where: { taskName, buildId }
+        });
+        if(!taskCheckedEntry){
+            return res.status(404).json({ message: 'Entry Not Found'});
+        }
+        return res.status(200).json(taskCheckedEntry);
+    } catch (error) {
+        return res.status(500).json({ message: 'Error retrieving entry.', error });
+    }
+}
+
 
 
 module.exports = {
@@ -291,5 +312,6 @@ module.exports = {
     getAllBuildEntries,
     getBuildEntry,
     isTaskWorking,
-    updateLinkForAndroid
+    updateLinkForAndroid,
+    getCheckedTaskDetails
 };

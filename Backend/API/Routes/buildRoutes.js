@@ -23,4 +23,7 @@ router.post('/task/isWorking', buildController.isTaskWorking);
 //Update Link For Android to build
 router.post('/addLink/android/:buildId', buildController.updateLinkForAndroid);
 
+//Get Checked Task Detaiks
+router.get('/getCheckedTaskDetails/:buildId', buildController.getCheckedTaskDetails);
+
 module.exports = router;
