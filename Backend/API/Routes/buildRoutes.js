@@ -17,4 +17,7 @@ router.get('/', buildController.getAllBuildEntries);
 //Get Build Entry by ID
 router.get('/:id', buildController.getBuildEntry);
 
+//Check if Task is working or not
+router.get('/task/isWorking', buildController.isTaskWorking);
+
 module.exports = router;

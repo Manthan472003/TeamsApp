@@ -18,7 +18,7 @@ const Build = sequelize.define('Build', {
     versionName: {
         type: DataTypes.STRING(45)
     },
-    mediaLink: {
+    link: {
         type: DataTypes.TEXT,
     },
     tasksForBuild: {

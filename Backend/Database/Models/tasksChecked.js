@@ -15,6 +15,10 @@ const TasksChecked = sequelize.define('TasksChecked', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  buildId:{
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
   isWorking: {
     type: DataTypes.BOOLEAN
   }

@@ -7,7 +7,7 @@ const Task = require('../../Database/Models/task');
 
 //Create Build Entry
 const createEntry = async (req, res) => {
-    const { appId, deployedOn, versionName, mediaLink, tasksForBuild } = req.body;
+    const { appId, deployedOn, versionName, link, tasksForBuild } = req.body;
     if (!appId) {
         return res.status(400).json({ message: 'Application ID is required.' });
     }
@@ -27,7 +27,7 @@ const createEntry = async (req, res) => {
             appId,
             deployedOn,
             versionName,
-            mediaLink,
+            link,
             tasksForBuild,
         });
         return res.status(201).json({ message: 'Build created successfully.', newBuild });
@@ -42,6 +42,9 @@ const markTaskWorking = async (req, res) => {
     const { buildId, taskName, userId } = req.body;
 
     // Validate input
+    if (!buildId) {
+        return res.status(400).json({ message: 'Build ID is required.' });
+    }
     if (!taskName) {
         return res.status(400).json({ message: 'Task Name is required.' });
     }
@@ -50,6 +53,11 @@ const markTaskWorking = async (req, res) => {
     }
 
     try {
+        const build = await Build.findOne({ where: { id: buildId } });
+        if (!build) {
+            return res.status(404).json({ message: 'Build does not exist.' });
+        }
+
         const task = await Task.findOne({ where: { taskName } });
         if (!task) {
             return res.status(404).json({ message: 'Task does not exist.' });
@@ -60,7 +68,7 @@ const markTaskWorking = async (req, res) => {
             return res.status(404).json({ message: 'User does not exist.' });
         }
 
-        const existingEntry = await TasksChecked.findOne({ where: { taskId: task.id, checkedByUserId: userId } });
+        const existingEntry = await TasksChecked.findOne({ where: { buildId, taskId: task.id } });
         let newEntry;
 
         if (existingEntry) {
@@ -68,6 +76,8 @@ const markTaskWorking = async (req, res) => {
                 return res.status(400).json({ message: 'Task is already marked as working.' });
             } else {
                 existingEntry.isWorking = true;
+                // Ensure buildId is stored correctly
+                existingEntry.buildId = buildId; 
                 await existingEntry.save();
                 return res.status(200).json({ message: 'Task status updated to working.', existingEntry });
             }
@@ -75,23 +85,16 @@ const markTaskWorking = async (req, res) => {
             newEntry = await TasksChecked.create({
                 taskId: task.id,
                 checkedByUserId: userId,
+                buildId, // Store buildId
                 isWorking: true
             });
         }
 
+        // Update checkedIds in the build entry
         const buildEntry = await Build.findByPk(buildId);
-        if (!buildEntry) {
-            return res.status(404).json({ message: 'Build does not exist.' });
-        }
-
-        // Initialize currentCheckedIds as an array
         let currentCheckedIds = buildEntry.checkedIds || [];
-        if (currentCheckedIds) {
-            if (typeof currentCheckedIds === 'string') {
-                currentCheckedIds = JSON.parse(currentCheckedIds);
-            }
-        } else {
-            currentCheckedIds = [];  // Ensure it's an empty array if null
+        if (typeof currentCheckedIds === 'string') {
+            currentCheckedIds = JSON.parse(currentCheckedIds);
         }
 
         if (!Array.isArray(currentCheckedIds)) {
@@ -114,11 +117,15 @@ const markTaskWorking = async (req, res) => {
     }
 };
 
+
 // Mark Task as Not Working
 const markTaskNotWorking = async (req, res) => {
     const { buildId, taskName, userId } = req.body;
 
     // Validate input
+    if (!buildId) {
+        return res.status(400).json({ message: 'Build ID is required.' });
+    }
     if (!taskName) {
         return res.status(400).json({ message: 'Task Name is required.' });
     }
@@ -137,13 +144,15 @@ const markTaskNotWorking = async (req, res) => {
             return res.status(404).json({ message: 'User does not exist.' });
         }
 
-        const existingEntry = await TasksChecked.findOne({ where: { taskId: task.id, checkedByUserId: userId } });
+        const existingEntry = await TasksChecked.findOne({ where: { buildId, taskId: task.id } });
 
         if (existingEntry) {
             if (!existingEntry.isWorking) {
                 return res.status(400).json({ message: 'Task is already marked as not working.' });
             } else {
                 existingEntry.isWorking = false;
+                // Ensure buildId is stored correctly
+                existingEntry.buildId = buildId; 
                 await existingEntry.save();
                 return res.status(200).json({ message: 'Task status updated to not working.', existingEntry });
             }
@@ -152,21 +161,14 @@ const markTaskNotWorking = async (req, res) => {
         const newEntry = await TasksChecked.create({
             taskId: task.id,
             checkedByUserId: userId,
+            buildId, // Store buildId
             isWorking: false
         });
 
         const buildEntry = await Build.findByPk(buildId);
-        if (!buildEntry) {
-            return res.status(404).json({ message: 'Build does not exist.' });
-        }
-
         let currentCheckedIds = buildEntry.checkedIds || [];
-        if (currentCheckedIds) {
-            if (typeof currentCheckedIds === 'string') {
-                currentCheckedIds = JSON.parse(currentCheckedIds);
-            }
-        } else {
-            currentCheckedIds = [];
+        if (typeof currentCheckedIds === 'string') {
+            currentCheckedIds = JSON.parse(currentCheckedIds);
         }
 
         if (!Array.isArray(currentCheckedIds)) {
@@ -186,6 +188,7 @@ const markTaskNotWorking = async (req, res) => {
         return res.status(500).json({ message: 'Error marking task as not working.', error: error.message });
     }
 };
+
 
 //Get All Build Entries
 const getAllBuildEntries = async (req, res) => {
@@ -213,10 +216,50 @@ const getBuildEntry = async (req, res) => {
     }
 }
 
+// isTaskWorking
+const isTaskWorking = async (req, res) => {
+    const { buildId, taskName } = req.body;
+
+    // Validate input
+    if (!buildId) {
+        return res.status(400).json({ message: 'Build ID is required.' });
+    }
+    if (!taskName) {
+        return res.status(400).json({ message: 'Task Name is required.' });
+    }
+
+    try {
+        // Find the task by its name
+        const task = await Task.findOne({ where: { taskName } });
+        if (!task) {
+            return res.status(404).json({ message: 'Task does not exist.' });
+        }
+
+        // Find the TasksChecked entry for the specific build and task
+        const taskCheckedEntry = await TasksChecked.findOne({
+            where: { taskId: task.id, buildId }
+        });
+
+        if (taskCheckedEntry) {
+            return res.status(200).json({
+                isWorking: taskCheckedEntry.isWorking
+            });
+        } else {
+            return res.status(404).json({ message: 'Task is not marked in this build.' });
+        }
+    } catch (error) {
+        console.error('Error checking task status:', error);
+        return res.status(500).json({ message: 'Error checking task status.', error: error.message });
+    }
+};
+
+
+
 module.exports = {
     createEntry,
     markTaskWorking,
     markTaskNotWorking,
     getAllBuildEntries,
-    getBuildEntry
+    getBuildEntry,
+    isTaskWorking
 };
